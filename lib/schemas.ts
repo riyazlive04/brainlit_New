@@ -105,6 +105,24 @@ export type LeadInput = z.output<typeof leadSchema>;
 export const webinarRegistrationSchema = leadSchema.extend({
   source: z.literal("webinar").default("webinar"),
   sessionId: z.uuid().optional(),
+  /**
+   * Required here, optional on a general enquiry.
+   *
+   * The "prefer not to say" escape hatch was removed at the client's request.
+   * Worth knowing the trade: every required field on a conversion form costs
+   * some completions. It is bought back by being able to tell a parent
+   * honestly, before they spend anything, whether their child is ready — which
+   * is what the session promises.
+   */
+  // The `error` option is load-bearing: without it, omitting the field fails
+  // the type check first and surfaces Zod's own "expected number, received
+  // undefined" — which means nothing to a parent looking at a row of buttons.
+  // The .min/.max messages only ever run once a number is actually present.
+  childAge: z.coerce
+    .number({ error: "Please choose your child's age" })
+    .int()
+    .min(6, "Please choose your child's age")
+    .max(16, "Please choose your child's age"),
 });
 
 export type WebinarFormValues = z.input<typeof webinarRegistrationSchema>;

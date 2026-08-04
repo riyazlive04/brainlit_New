@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, Honeypot } from "@/components/forms/Field";
 import { phoneInputProps } from "@/components/forms/phoneInput";
+import { AgePicker } from "@/components/forms/AgePicker";
 import { Button } from "@/components/ui/Button";
 import { webinarRegistrationSchema } from "@/lib/schemas";
 import { readUtmParams, trackEvent } from "@/lib/analytics";
@@ -179,23 +180,12 @@ export function WebinarForm({ sessionId }: Props) {
           )}
         </Field>
 
-        <Field
-          label="Your child's age"
-          name="childAge"
-          hint="Optional. Helps us tailor the session."
+        <AgePicker
+          required
+          registration={register("childAge")}
           error={errors.childAge?.message}
-        >
-          {(props) => (
-            <select {...props} defaultValue="" {...register("childAge")}>
-              <option value="">Prefer not to say</option>
-              {Array.from({ length: 11 }, (_, i) => i + 6).map((age) => (
-                <option key={age} value={age}>
-                  {age} years old
-                </option>
-              ))}
-            </select>
-          )}
-        </Field>
+          hint="So we can tell you honestly whether they are ready."
+        />
 
         <div>
           <label className="flex cursor-pointer items-start gap-3">
