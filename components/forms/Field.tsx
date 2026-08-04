@@ -15,6 +15,8 @@ type FieldProps = {
   error?: string;
   hint?: string;
   required?: boolean;
+  /** Fixed text shown inside the control, e.g. a "+91" dialling prefix. */
+  prefix?: string;
   children: (props: {
     id: string;
     "aria-invalid": boolean;
@@ -36,6 +38,7 @@ export function Field({
   error,
   hint,
   required,
+  prefix,
   children,
 }: FieldProps) {
   const id = `field-${name}`;
@@ -65,13 +68,25 @@ export function Field({
         </p>
       )}
 
-      <div className="mt-2">
+      <div className="relative mt-2">
+        {prefix && (
+          <span
+            // Presentational only. The dialling code is stated in the label's
+            // hint and baked into what gets stored, so announcing it here would
+            // just interrupt a screen reader between label and field.
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[0.975rem] font-medium text-slate"
+          >
+            {prefix}
+          </span>
+        )}
         {children({
           id,
           "aria-invalid": Boolean(error),
           "aria-describedby": describedBy,
           className: cn(
             CONTROL_CLASSES,
+            prefix && "pl-14",
             error ? "border-red-500" : "border-mist hover:border-slate/40",
           ),
         })}

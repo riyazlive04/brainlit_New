@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, Honeypot } from "@/components/forms/Field";
+import { phoneInputProps } from "@/components/forms/phoneInput";
 import { Button } from "@/components/ui/Button";
 import { leadSchema } from "@/lib/schemas";
 import { readUtmParams, trackEvent } from "@/lib/analytics";
@@ -104,16 +105,12 @@ export function ContactForm() {
           label="Mobile number"
           name="phone"
           required
+          prefix="+91"
+          hint="10 digits."
           error={errors.phone?.message}
         >
           {(props) => (
-            <input
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              {...props}
-              {...register("phone")}
-            />
+            <input {...props} {...phoneInputProps(register("phone"))} />
           )}
         </Field>
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidIndianMobile, normalizeIndianMobile } from "@/lib/phone";
 
 /**
  * Validation schemas, shared between the client form and the API route.
@@ -7,15 +8,20 @@ import { z } from "zod";
  * convenience for the user; it is not a security control.
  */
 
-/** Indian mobile numbers: optional +91/0 prefix, then 10 digits starting 6–9. */
-const PHONE_RE = /^(?:\+?91[-\s]?|0)?[6-9]\d{9}$/;
-
+/**
+ * Indian mobile number.
+ *
+ * Normalised to exactly ten digits BEFORE validation, so the database holds one
+ * canonical form. The UI restricts typing to ten digits behind a fixed +91
+ * prefix, but this still accepts a pasted country code or leading zero —
+ * validation must not depend on the UI having behaved, since the API is
+ * reachable directly.
+ */
 const phone = z
   .string()
-  .trim()
-  .transform((v) => v.replace(/[\s-]/g, ""))
-  .refine((v) => PHONE_RE.test(v), {
-    message: "Enter a valid 10-digit Indian mobile number",
+  .transform(normalizeIndianMobile)
+  .refine(isValidIndianMobile, {
+    message: "Enter a valid 10-digit mobile number, starting with 6–9",
   });
 
 const name = z
