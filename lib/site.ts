@@ -6,6 +6,34 @@
  * without a deploy. Until then it lives here.
  */
 
+/**
+ * The origin this deployment is actually served from.
+ *
+ * Order matters. An explicit NEXT_PUBLIC_SITE_URL always wins, so production
+ * can be pinned to the real domain. Otherwise Vercel's own variables are used,
+ * which means a preview deployment describes ITSELF in its canonical URLs, OG
+ * tags and sitemap rather than claiming to be brainlit.in — a preview that
+ * points every canonical at the live domain is how a staging copy ends up
+ * competing with production in search results.
+ *
+ * PRODUCTION_URL is the stable project domain; VERCEL_URL changes on every
+ * single deployment, so it is only the last resort.
+ */
+function resolveSiteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+
+  const productionHost = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+  if (productionHost) return `https://${productionHost}`;
+
+  const deploymentHost = process.env.NEXT_PUBLIC_VERCEL_URL;
+  if (deploymentHost) return `https://${deploymentHost}`;
+
+  return "http://localhost:3000";
+}
+
+/** True only when this deployment is serving the real customer-facing domain. */
+export const IS_CANONICAL_HOST = resolveSiteUrl().includes("brainlit.in");
+
 export const SITE = {
   /**
    * Canonical spelling: "BrainLIT" everywhere — logo lockup, page titles,
@@ -19,7 +47,7 @@ export const SITE = {
   tagline: "AI Thinking Academy for children",
   description:
     "BrainLIT teaches children aged 10–14 to think before they use AI — building critical thinking, creativity, problem solving and ethical AI habits through live online programs.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://brainlit.in",
+  url: resolveSiteUrl(),
   locale: "en_IN",
   ageRange: { min: 10, max: 14 },
   founder: "Haja Najmudeen",
