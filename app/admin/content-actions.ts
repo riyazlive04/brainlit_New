@@ -169,13 +169,20 @@ export async function saveTestimonial(form: FormData) {
     quote,
     rating: optionalNumber(form, "rating"),
     consent_ref: optionalText(form, "consent_ref"),
+    video_path: optionalText(form, "video_path"),
     is_published: checkbox(form, "is_published"),
     sort_order: optionalNumber(form, "sort_order") ?? 0,
   };
 
-  // The database also enforces this (0003). Checked here too so the admin gets
-  // a sane outcome rather than an opaque constraint violation.
-  if (payload.is_published && payload.child_first_name && !payload.consent_ref) {
+  // The database enforces this too (0004). Checked here so the admin gets a
+  // sane outcome instead of an opaque constraint violation. A video carries a
+  // parent's face and voice, and often their child's, so it needs recorded
+  // permission exactly as a named child does.
+  if (
+    payload.is_published &&
+    (payload.child_first_name || payload.video_path) &&
+    !payload.consent_ref
+  ) {
     return;
   }
 

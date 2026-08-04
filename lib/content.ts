@@ -34,6 +34,7 @@ export type PublicTestimonial = {
   child_first_name: string | null;
   city: string | null;
   quote: string;
+  video_path: string | null;
 };
 
 export type PublicProject = {
@@ -96,7 +97,7 @@ export function getPublishedTestimonials() {
     (client) =>
       client
         .from("testimonials")
-        .select("id, parent_name, child_first_name, city, quote")
+        .select("id, parent_name, child_first_name, city, quote, video_path")
         .eq("is_published", true)
         .order("sort_order", { ascending: true }),
     "testimonials",

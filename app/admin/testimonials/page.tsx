@@ -17,6 +17,7 @@ import {
   AdminRecord,
   AdminSectionHeading,
 } from "@/components/admin/AdminUI";
+import { VideoUpload } from "@/components/admin/VideoUpload";
 
 
 export const metadata: Metadata = { title: "Testimonials" };
@@ -75,6 +76,9 @@ export default async function TestimonialsPage() {
           />
           <AdminField label="Rating (1–5)" name="rating" type="number" min={1} max={5} />
           <AdminField label="Sort order" name="sort_order" type="number" defaultValue={0} />
+          <div className="sm:col-span-2">
+            <VideoUpload name="video_path" />
+          </div>
           <div className="sm:col-span-2 flex items-center justify-between gap-4">
             <AdminCheckbox label="Published" name="is_published" />
             <AdminSubmit>Add testimonial</AdminSubmit>
@@ -109,6 +113,9 @@ export default async function TestimonialsPage() {
                 <AdminField label="Consent reference" name="consent_ref" defaultValue={item.consent_ref} />
                 <AdminField label="Rating (1–5)" name="rating" type="number" defaultValue={item.rating} min={1} max={5} />
                 <AdminField label="Sort order" name="sort_order" type="number" defaultValue={item.sort_order} />
+                <div className="sm:col-span-2">
+                  <VideoUpload name="video_path" defaultPath={item.video_path} />
+                </div>
                 <div className="sm:col-span-2 flex items-center justify-between gap-4">
                   <AdminCheckbox label="Published" name="is_published" defaultChecked={item.is_published} />
                   <AdminSubmit>Save changes</AdminSubmit>
