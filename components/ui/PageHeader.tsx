@@ -1,10 +1,17 @@
+import type { Route } from "next";
 import { Container } from "@/components/ui/Container";
+import { BackLink } from "@/components/ui/BackLink";
 
 type PageHeaderProps = {
   eyebrow?: string;
   title: React.ReactNode;
   lead?: React.ReactNode;
   children?: React.ReactNode;
+  /** Where the back control falls back to when there is no in-site history. */
+  backHref?: Route;
+  backLabel?: string;
+  /** Set false to hide the back control entirely. */
+  showBack?: boolean;
 };
 
 /**
@@ -18,10 +25,19 @@ export function PageHeader({
   title,
   lead,
   children,
+  backHref = "/",
+  backLabel = "Back",
+  showBack = true,
 }: PageHeaderProps) {
   return (
-    <section className="border-b border-mist bg-mist/20 pt-[calc(var(--header-h)+3rem)] pb-14 sm:pt-[calc(var(--header-h)+5rem)] sm:pb-20">
+    <section className="border-b border-mist bg-mist/20 pt-[calc(var(--header-h)+2rem)] pb-14 sm:pt-[calc(var(--header-h)+3.5rem)] sm:pb-20">
       <Container size="default">
+        {showBack && (
+          <div className="mb-8">
+            <BackLink fallbackHref={backHref} label={backLabel} />
+          </div>
+        )}
+
         {eyebrow && (
           <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
             {eyebrow}

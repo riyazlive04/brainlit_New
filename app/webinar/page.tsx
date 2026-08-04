@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/brand/Wordmark";
+import { BackLink } from "@/components/ui/BackLink";
 import { WebinarForm } from "@/components/forms/WebinarForm";
 import {
   formatSessionDate,
@@ -75,10 +76,17 @@ export default async function WebinarPage() {
         />
       )}
 
-      {/* Mark only, no navigation — nothing here should invite an exit. */}
+      {/* Mark and a back control only — still no navigation menu. A visitor
+          who wants to leave will leave; giving them one clear way back is
+          better UX than making them hunt for the browser button, and it is far
+          cheaper than a full nav bar full of competing exits. */}
       <header className="border-b border-mist">
-        <Container size="wide" className="flex h-18 items-center py-4">
+        <Container
+          size="wide"
+          className="flex h-18 items-center justify-between gap-4 py-4"
+        >
           <Wordmark href="/" />
+          <BackLink label="Back" />
         </Container>
       </header>
 

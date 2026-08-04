@@ -82,6 +82,10 @@ export default async function CourseDetailPage({
         eyebrow={`Ages ${course.ageMin}–${course.ageMax} · ${course.durationWeeks} weeks`}
         title={course.title}
         lead={course.summary}
+        // A visitor who lands here from search has no in-site history, so the
+        // sensible destination is the program list, not the homepage.
+        backHref="/courses"
+        backLabel="All programs"
       >
         <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <Button href="/webinar" variant="spark" size="lg">
