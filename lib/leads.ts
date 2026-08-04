@@ -101,13 +101,26 @@ export async function registerForWebinar(
 
   const existing = await findLeadByEmail(input.email.trim());
 
-  if (existing && sessionId) {
-    const { data: priorRegistration, error } = await supabase
+  if (existing) {
+    // The null-session case must be handled explicitly.
+    //
+    // This originally only ran `if (existing && sessionId)`, so before any
+    // session was scheduled every resubmission created another registration —
+    // and another confirmation email. The unique (session_id, lead_id)
+    // constraint does not catch it either: in Postgres NULL is never equal to
+    // NULL, so any number of rows with a null session count as distinct.
+    //
+    // `.is("session_id", null)` is required here; `.eq(..., null)` would
+    // generate `session_id = null`, which is never true.
+    const query = supabase
       .from("webinar_registrations")
       .select("id")
-      .eq("lead_id", existing.id)
-      .eq("session_id", sessionId)
-      .maybeSingle();
+      .eq("lead_id", existing.id);
+
+    const { data: priorRegistration, error } = await (sessionId
+      ? query.eq("session_id", sessionId)
+      : query.is("session_id", null)
+    ).maybeSingle();
 
     if (error) throw error;
 
