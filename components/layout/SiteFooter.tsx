@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/brand/Wordmark";
+import { CookieSettingsLink } from "@/components/consent/CookieSettingsLink";
 import { LEGAL_LINKS, NAV_LINKS, SITE, whatsappHref } from "@/lib/site";
 
 export function SiteFooter() {
@@ -56,6 +57,11 @@ export function SiteFooter() {
                   </Link>
                 </li>
               ))}
+              <li>
+                {/* Withdrawing consent must be as easy as giving it — DPDP
+                    requires it, and the Privacy Policy promises it. */}
+                <CookieSettingsLink />
+              </li>
             </ul>
 
             {whatsapp && (

@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Inter, Noto_Sans_Tamil, Fredoka } from "next/font/google";
 import { SITE } from "@/lib/site";
+import { Analytics } from "@/components/analytics/Analytics";
+import { CookieConsent } from "@/components/consent/CookieConsent";
+import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
 import "./globals.css";
 
 /* Display face — rounded geometric, closest match to the BrainLIT wordmark */
@@ -91,7 +94,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${outfit.variable} ${inter.variable} ${notoTamil.variable} ${fredoka.variable} h-full`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <OrganizationSchema />
+        {children}
+        {/* Both render nothing until there is something to render: Analytics
+            waits for consent, the banner only appears if no choice is stored. */}
+        <Analytics />
+        <CookieConsent />
+      </body>
     </html>
   );
 }
