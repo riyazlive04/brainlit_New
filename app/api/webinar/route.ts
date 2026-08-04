@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { webinarRegistrationSchema } from "@/lib/schemas";
-import { checkRateLimit, clientIp } from "@/lib/rateLimit";
+import { checkRateLimit, clientIp, refundRateLimit } from "@/lib/rateLimit";
 import {
   registerForWebinar,
   LeadStoreUnavailableError,
@@ -9,14 +9,28 @@ import { sendWebinarConfirmation } from "@/lib/email";
 import { getNextWebinarSession } from "@/lib/webinar";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-/** Five submissions per ten minutes per IP. */
-const LIMIT = 5;
+/**
+ * Submissions per ten minutes per IP.
+ *
+ * Set for CGNAT, not for one person. Indian mobile carriers put large numbers
+ * of subscribers behind a single shared public IP, and school, office and
+ * café networks do the same. A limit tuned to "one parent submits once" would
+ * lock out every other parent on the same carrier gateway — and it would fail
+ * silently from their point of view, as an unexplained error on the one page
+ * that has to convert.
+ *
+ * A genuine attacker is not meaningfully slowed by 20 versus 5; the honeypot,
+ * schema validation and idempotent writes are what actually protect this
+ * endpoint. This exists to stop hammering, not to police individuals.
+ */
+const LIMIT = 20;
 const WINDOW_MS = 10 * 60 * 1000;
 
 export async function POST(request: Request) {
   const ip = clientIp(request.headers);
+  const rateLimitKey = `webinar:${ip}`;
   const { allowed, retryAfter } = checkRateLimit(
-    `webinar:${ip}`,
+    rateLimitKey,
     LIMIT,
     WINDOW_MS,
   );
@@ -110,6 +124,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, alreadyRegistered });
   } catch (error) {
+    // Failed for our reasons, so the attempt is given back. Locking a parent
+    // out for ten minutes because of our misconfiguration would turn one
+    // failure into a lost lead.
+    refundRateLimit(rateLimitKey);
+
     if (error instanceof LeadStoreUnavailableError) {
       console.error("[webinar] Supabase is not configured — lead was LOST");
       return NextResponse.json(

@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
 import { leadSchema } from "@/lib/schemas";
-import { checkRateLimit, clientIp } from "@/lib/rateLimit";
+import { checkRateLimit, clientIp, refundRateLimit } from "@/lib/rateLimit";
 import { createLead, LeadStoreUnavailableError } from "@/lib/leads";
 
-/** General enquiry endpoint — contact form, course interest, footer capture. */
-const LIMIT = 5;
+/**
+ * General enquiry endpoint — contact form, course interest, footer capture.
+ *
+ * Limit is set for CGNAT: Indian mobile carriers put many subscribers behind
+ * one shared public IP, so a per-person limit would lock out strangers.
+ */
+const LIMIT = 20;
 const WINDOW_MS = 10 * 60 * 1000;
 
 export async function POST(request: Request) {
   const ip = clientIp(request.headers);
+  const rateLimitKey = `lead:${ip}`;
   const { allowed, retryAfter } = checkRateLimit(
-    `lead:${ip}`,
+    rateLimitKey,
     LIMIT,
     WINDOW_MS,
   );
@@ -59,6 +65,9 @@ export async function POST(request: Request) {
     // reconnaissance.
     return NextResponse.json({ ok: true });
   } catch (error) {
+    // Our fault, so give the attempt back rather than locking them out.
+    refundRateLimit(rateLimitKey);
+
     if (error instanceof LeadStoreUnavailableError) {
       console.error("[lead] Supabase is not configured — enquiry was LOST");
       return NextResponse.json(

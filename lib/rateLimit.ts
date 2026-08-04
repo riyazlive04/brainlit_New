@@ -30,6 +30,22 @@ export type RateLimitResult = {
   retryAfter: number;
 };
 
+/**
+ * Gives an attempt back.
+ *
+ * Called when a request failed for OUR reasons — Supabase unconfigured, an
+ * unexpected server error. A parent whose registration failed because of a
+ * misconfiguration on our side must not then be locked out for ten minutes for
+ * trying again. They would simply leave, and we would have paid for the click.
+ *
+ * Deliberately does not refund validation failures. Those arrive only from
+ * something that bypassed the client-side form, which is worth counting.
+ */
+export function refundRateLimit(key: string) {
+  const bucket = buckets.get(key);
+  if (bucket && bucket.count > 0) bucket.count -= 1;
+}
+
 export function checkRateLimit(
   key: string,
   limit: number,
