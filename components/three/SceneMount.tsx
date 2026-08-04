@@ -40,7 +40,56 @@ export function SceneMount({
   const [contextLost, setContextLost] = useState(false);
   const [inView, setInView] = useState(true);
 
+  /**
+   * The 3D chunk is not requested until the browser is idle after load.
+   *
+   * Measured, not assumed: with the scene mounting as soon as React hydrated,
+   * Lighthouse put mobile LCP at 3.6s — and the LCP element is the hero
+   * PARAGRAPH, plain text that has been in the HTML since the first byte. It
+   * was late purely because ~234KB of three.js was parsing and evaluating on
+   * the same main thread the browser needed to paint.
+   *
+   * The scene is decorative; the headline and the CTA are the content. So the
+   * content gets the main thread first and the decoration waits its turn. The
+   * timeout is a backstop for browsers that never report idle.
+   */
+  const [idle, setIdle] = useState(false);
+
   const handleContextLost = useCallback(() => setContextLost(true), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let idleHandle: number | undefined;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
+    const begin = () => {
+      if (!cancelled) setIdle(true);
+    };
+
+    const scheduleWhenIdle = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleHandle = window.requestIdleCallback(begin, { timeout: 2500 });
+      } else {
+        // Safari before 16.4 has no requestIdleCallback.
+        timeoutHandle = setTimeout(begin, 400);
+      }
+    };
+
+    if (document.readyState === "complete") {
+      scheduleWhenIdle();
+    } else {
+      window.addEventListener("load", scheduleWhenIdle, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", scheduleWhenIdle);
+      if (idleHandle !== undefined && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleHandle);
+      }
+      if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
+    };
+  }, []);
 
   // Pause the frame loop once the 3D zone scrolls away. Without this the GPU
   // keeps drawing tens of thousands of points behind opaque sections for the
@@ -57,7 +106,7 @@ export function SceneMount({
     return () => observer.disconnect();
   }, []);
 
-  const showScene = webglAvailable && !contextLost;
+  const showScene = webglAvailable && !contextLost && idle;
 
   return (
     <div

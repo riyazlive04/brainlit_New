@@ -1,82 +1,50 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 
 type RevealProps = {
   children: React.ReactNode;
   className?: string;
-  /** Stagger, in ms, for items revealed as a group */
+  /**
+   * Stagger for items revealed as a group, 0–100. Expressed as a scroll offset
+   * rather than a time delay, because scroll-driven animations are positional:
+   * there is no clock to delay against.
+   */
   delay?: number;
   as?: "div" | "section" | "li" | "article";
 };
 
 /**
- * Fades and lifts content into view once, as it enters the viewport.
+ * Fades and lifts content into view as it is scrolled to.
  *
- * Deliberately plain CSS transitions driven by an IntersectionObserver rather
- * than GSAP: GSAP is deferred off the critical path and only loaded for the 3D
- * scroll pipeline, and pulling it forward to fade a heading would undo that.
+ * A SERVER component. It ships no JavaScript at all — the animation is CSS
+ * scroll-driven (see the `reveal` utility in globals.css).
  *
- * The content is always present in the DOM and always visible to a crawler —
- * only opacity and transform change. Nothing here can hide text from Google or
- * from a screen reader.
+ * This was previously a client component running an IntersectionObserver per
+ * instance. With roughly twenty on the homepage, that hydration work was
+ * competing with the browser's attempt to paint the very text being revealed,
+ * and Lighthouse attributed real render delay to it.
+ *
+ * Content is visible by default and always present in the DOM, so nothing here
+ * can hide text from a crawler, a screen reader, or a browser that does not
+ * support scroll-driven animation.
  */
 export function Reveal({
   children,
   className,
   delay = 0,
-  as = "div",
+  as: Tag = "div",
 }: RevealProps) {
-  // One component renders as div, li, section or article. Left as a union,
-  // TypeScript intersects the four elements' prop types and collapses every
-  // shared prop to `never`. Casting to a single permissive signature is the
-  // pragmatic fix; a properly generic polymorphic component is far more
-  // machinery than a fade-in warrants. At runtime this is just a tag name.
-  const Tag = as as unknown as React.FC<
-    React.HTMLAttributes<HTMLElement> & {
-      ref?: React.Ref<HTMLElement>;
-      children?: React.ReactNode;
-    }
-  >;
-  const ref = useRef<HTMLElement>(null);
-  const [shown, setShown] = useState(false);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reducedMotion) return;
-
-    const node = ref.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShown(true);
-          // Reveal is a one-way trip. Re-hiding content on scroll-up is
-          // disorienting and makes long pages feel unstable.
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -12% 0px" },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [reducedMotion]);
-
-  const visible = shown || reducedMotion;
-
   return (
     <Tag
-      ref={ref}
-      className={cn(
-        "transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out-expo)] motion-reduce:transition-none",
-        visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
-        className,
-      )}
-      style={visible && delay ? undefined : { transitionDelay: `${delay}ms` }}
+      className={cn("reveal", className)}
+      style={
+        delay
+          ? // Clamped: past ~30% the item would still be waiting to appear
+            // well after the reader has arrived at it.
+            ({
+              "--reveal-start": `${Math.min(delay / 8, 30)}%`,
+            } as React.CSSProperties)
+          : undefined
+      }
     >
       {children}
     </Tag>

@@ -47,3 +47,6 @@ shape-preview.*
 
 # local build artefacts
 og.png
+
+# Lighthouse reports
+lh*.json

@@ -180,6 +180,46 @@ p {
 }
 
 /* ---------------------------------------------------------------------------
+   Scroll reveal — CSS only, zero JavaScript.
+
+   This replaced a React component that ran an IntersectionObserver per
+   instance. The homepage alone has around twenty, and every one of them was a
+   client component adding hydration work on the main thread — measurably
+   delaying the very text it was revealing.
+
+   Scroll-driven animations do the same job with no script at all. Where they
+   are unsupported (Safari and Firefox at time of writing) the @supports guard
+   simply never applies, content renders visible, and nothing is lost but the
+   flourish. That is the correct direction for a fallback to fail.
+--------------------------------------------------------------------------- */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility reveal {
+  /* Visible by default — the animation is the enhancement, never the gate.
+     Content must never depend on script or on animation support to be seen. */
+  opacity: 1;
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      /* Starts as the element enters, finishes a quarter of the way up. The
+         per-item offset staggers a group without any JS timers. */
+      animation-range: entry var(--reveal-start, 0%) cover 26%;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Reduced motion
    WCAG 2.1 (2.3.3) and a vestibular-safety requirement. This is not an
    aesthetic downgrade and must not be removed to "keep the 3D consistent".
