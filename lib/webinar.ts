@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { isSupabaseConfigured } from "@/lib/env";
 
 export type WebinarSession = {
@@ -24,7 +24,9 @@ export async function getNextWebinarSession(): Promise<WebinarSession | null> {
   if (!isSupabaseConfigured) return null;
 
   try {
-    const supabase = await createClient();
+    // Cookie-free on purpose — see lib/supabase/public.ts. Using the
+    // session-bound client here silently disabled this whole feature.
+    const supabase = createPublicClient();
 
     const { data, error } = await supabase
       .from("webinar_sessions")
