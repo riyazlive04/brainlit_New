@@ -71,7 +71,10 @@ export async function saveSession(form: FormData) {
     starts_at: startsAt,
     duration_minutes: optionalNumber(form, "duration_minutes") ?? 60,
     zoom_url: optionalText(form, "zoom_url"),
-    capacity: optionalNumber(form, "capacity"),
+    // `capacity` is deliberately NOT written here. The field was removed from
+    // the form, and leaving it in the payload would resolve to null on every
+    // edit and silently wipe whatever was stored. The column stays in the
+    // schema — dropping it would be destructive for no gain.
     is_active: checkbox(form, "is_active"),
   };
 

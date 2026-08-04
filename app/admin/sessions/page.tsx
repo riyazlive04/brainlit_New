@@ -111,12 +111,6 @@ export default async function SessionsPage() {
             hint="Sent by email only. Never shown on the site."
             className="sm:col-span-2"
           />
-          <AdminField
-            label="Capacity"
-            name="capacity"
-            type="number"
-            hint="Optional"
-          />
           <div className="flex items-end">
             <AdminCheckbox
               label="Active"
@@ -173,12 +167,6 @@ export default async function SessionsPage() {
                   type="url"
                   defaultValue={session.zoom_url}
                   className="sm:col-span-2"
-                />
-                <AdminField
-                  label="Capacity"
-                  name="capacity"
-                  type="number"
-                  defaultValue={session.capacity}
                 />
                 <div className="flex items-end">
                   <AdminCheckbox

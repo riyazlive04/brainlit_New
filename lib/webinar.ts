@@ -6,7 +6,6 @@ export type WebinarSession = {
   title: string;
   starts_at: string;
   duration_minutes: number;
-  capacity: number | null;
 };
 
 /**
@@ -30,7 +29,7 @@ export async function getNextWebinarSession(): Promise<WebinarSession | null> {
 
     const { data, error } = await supabase
       .from("webinar_sessions")
-      .select("id, title, starts_at, duration_minutes, capacity")
+      .select("id, title, starts_at, duration_minutes")
       .eq("is_active", true)
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
