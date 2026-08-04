@@ -41,11 +41,19 @@ export async function requireAdmin(): Promise<AdminProfile> {
     .eq("id", user.id)
     .maybeSingle();
 
-  // Authenticated but not an admin. Deliberately sent to the public site rather
-  // than shown "access denied" — a stranger who somehow has an account learns
-  // nothing about what exists here.
+  // Authenticated, but with no role.
+  //
+  // This used to redirect to the homepage. Silent, and indistinguishable from a
+  // bug: you click /admin, land on the marketing site, and nothing anywhere
+  // says why. It cost real debugging time the first time it happened.
+  //
+  // /admin/no-access explains it and offers a way out. It does not call this
+  // function, which would send it to itself forever.
   if (!profile || (profile.role !== "admin" && profile.role !== "super_admin")) {
-    redirect("/");
+    console.warn(
+      `[admin] ${user.email ?? user.id} is signed in but has no profile row — run supabase/create-admin.sql`,
+    );
+    redirect("/admin/no-access");
   }
 
   return {
