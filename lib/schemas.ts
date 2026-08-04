@@ -70,23 +70,44 @@ export const leadSchema = z
     source: z
       .enum(["home", "webinar", "contact", "course", "footer"])
       .default("home"),
-    /** Honeypot — must stay empty. Bots fill every field they find. */
-    company: z.string().max(0).optional(),
+    /**
+     * Honeypot. Bots fill every field they find; humans never see this one.
+     *
+     * Deliberately NOT constrained to an empty string. A `max(0)` here makes
+     * validation fail with `company: "Too big"`, which hands whoever wrote the
+     * bot the exact field name that caught them — and returns a 400 instead of
+     * the silent success that makes a honeypot worth having. The route checks
+     * this field and quietly discards; the cap is only to bound the payload.
+     */
+    company: z.string().max(200).optional(),
   })
   .merge(utm);
 
-export type LeadInput = z.infer<typeof leadSchema>;
+/**
+ * Two types per schema, and the distinction matters.
+ *
+ * `*FormValues` is what the FORM holds — before `.default()` fills anything in
+ * and before `coerce` turns the age <select>'s string into a number.
+ * `*Input` is what comes OUT of validation, and what the server works with.
+ *
+ * react-hook-form needs both: it types its fields from the former and its
+ * submit handler from the latter.
+ */
+export type LeadFormValues = z.input<typeof leadSchema>;
+export type LeadInput = z.output<typeof leadSchema>;
 
 export const webinarRegistrationSchema = leadSchema.extend({
   source: z.literal("webinar").default("webinar"),
   sessionId: z.uuid().optional(),
 });
 
-export type WebinarRegistrationInput = z.infer<
+export type WebinarFormValues = z.input<typeof webinarRegistrationSchema>;
+export type WebinarRegistrationInput = z.output<
   typeof webinarRegistrationSchema
 >;
 
 export const newsletterSchema = z.object({
   email: z.email("Enter a valid email address").max(160),
-  company: z.string().max(0).optional(),
+  /** Honeypot — see the note on `leadSchema.company`. */
+  company: z.string().max(200).optional(),
 });

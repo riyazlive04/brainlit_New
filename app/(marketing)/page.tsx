@@ -27,61 +27,59 @@ export const metadata: Metadata = {
  * at z-0 while the copy rides above at z-10; those sections stay transparent so
  * the scene shows through, and everything after is opaque white.
  *
- * Layout is the "quiet aside" arrangement: the mark is offset to the right and
- * scaled down, and copy holds a left column at its natural width. Text and
- * particles never share the same pixels, which is what makes body copy readable
- * over a moving dot field — contrast against a shifting background cannot be
- * guaranteed any other way. Below 768px the mark returns to centre and the copy
- * stacks (see BrainParticles).
+ * Layout is centred: copy sits in the middle of the viewport with the mark
+ * centred behind it. Chosen by the client over the offset "aside" arrangement.
+ *
+ * The known trade is that copy and particles share pixels on the second and
+ * third screens. If that becomes a readability problem in testing, the fix that
+ * preserves this layout is a scrim behind the text blocks (see /lab/scrim)
+ * rather than moving the mark.
  */
 export default function HomePage() {
   return (
     <>
       <div data-three-zone className="relative">
-        <SceneMount offsetX={2.35} offsetY={0.25} scale={0.62} />
+        <SceneMount />
 
         {/* ------------------------------------------------------------- Hero */}
         <section className="relative z-10 flex min-h-[100svh] items-center">
-          <Container size="wide" className="py-32">
-            <div className="max-w-2xl">
-              <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
-                AI Thinking Academy · Ages {SITE.ageRange.min}–
-                {SITE.ageRange.max}
-              </p>
+          <Container className="py-32 text-center">
+            <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
+              AI Thinking Academy · Ages {SITE.ageRange.min}–{SITE.ageRange.max}
+            </p>
 
-              <h1 className="mt-6 text-[length:var(--text-display)] text-ink">
-                Teach your child to{" "}
-                <span className="text-brand-gradient">think</span> before they
-                use AI.
-              </h1>
+            <h1 className="mx-auto mt-6 max-w-4xl text-[length:var(--text-display)] text-ink">
+              Teach your child to{" "}
+              <span className="text-brand-gradient">think</span> before they use
+              AI.
+            </h1>
 
-              <p className="mt-7 max-w-lg text-[length:var(--text-lead)] leading-relaxed text-slate">
-                AI can already do the homework. It cannot do the thinking.
-                BrainLIT builds the one thing that stays valuable — a child who
-                can question, create and solve.
-              </p>
+            <p className="mx-auto mt-7 max-w-2xl text-[length:var(--text-lead)] leading-relaxed text-slate">
+              AI can already do the homework. It cannot do the thinking.
+              BrainLIT builds the one thing that stays valuable — a child who
+              can question, create and solve.
+            </p>
 
-              <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row">
-                <Button href="/webinar" variant="spark" size="lg">
-                  Join the free webinar
-                </Button>
-                <Button href="/courses" variant="outline" size="lg">
-                  Explore programs
-                </Button>
-              </div>
-
-              <p className="mt-6 text-sm text-slate">
-                Live online · Small batches · For parents in {SITE.city} and
-                across India
-              </p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button href="/webinar" variant="spark" size="lg">
+                Join the free webinar
+              </Button>
+              <Button href="/courses" variant="outline" size="lg">
+                Explore programs
+              </Button>
             </div>
+
+            <p className="mt-6 text-sm text-slate">
+              Live online · Small batches · For parents in {SITE.city} and
+              across India
+            </p>
           </Container>
         </section>
 
         {/* -------------------------------------------------------- The problem */}
         <section className="relative z-10 flex min-h-[90svh] items-center">
-          <Container size="wide" className="py-24">
-            <Reveal className="max-w-2xl">
+          <Container size="narrow" className="py-24 text-center">
+            <Reveal>
               <h2 className="text-[length:var(--text-h2)] text-ink">
                 The homework is no longer the hard part.
               </h2>
@@ -101,8 +99,8 @@ export default function HomePage() {
 
         {/* ------------------------------------------------------- The ignition */}
         <section className="relative z-10 flex min-h-[90svh] items-center">
-          <Container size="wide" className="py-24">
-            <Reveal className="max-w-2xl">
+          <Container size="narrow" className="py-24 text-center">
+            <Reveal>
               <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
                 Our whole philosophy
               </p>
