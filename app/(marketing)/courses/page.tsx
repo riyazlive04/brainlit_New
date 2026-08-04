@@ -4,7 +4,8 @@ import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
-import { COURSES, PROGRAM_ESSENTIALS } from "@/content/courses";
+import { PROGRAM_ESSENTIALS } from "@/content/courses";
+import { getPublishedCourses } from "@/lib/content";
 import { SITE, whatsappHref } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -23,7 +24,13 @@ function formatPrice(priceInr: number | null) {
   }).format(priceInr);
 }
 
-export default function CoursesPage() {
+/** Revalidates every five minutes, so a programme published in the admin panel
+ *  reaches the public site without a deploy. */
+export const revalidate = 300;
+
+export default async function CoursesPage() {
+  const courses = await getPublishedCourses();
+
   const whatsapp = whatsappHref(
     "Hi BrainLIT, I would like to know about your programs and fees.",
   );
@@ -38,23 +45,23 @@ export default function CoursesPage() {
 
       <section className="py-20 sm:py-28">
         <Container>
-          {COURSES.length > 0 ? (
+          {courses.length > 0 ? (
             <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {COURSES.map((course, i) => (
-                <Reveal as="li" key={course.slug} delay={i * 70}>
+              {courses.map((course, i) => (
+                <Reveal as="li" key={course.id} delay={i * 70}>
                   <article className="flex h-full flex-col rounded-2xl border border-mist p-7 transition-colors hover:border-violet/40">
                     <h2 className="font-display text-[length:var(--text-h3)] text-ink">
                       {course.title}
                     </h2>
                     <p className="mt-2 text-sm text-violet">
-                      Ages {course.ageMin}–{course.ageMax} ·{" "}
-                      {course.durationWeeks} weeks
+                      Ages {course.age_min}–{course.age_max}
+                      {course.duration_weeks ? ` · ${course.duration_weeks} weeks` : ""}
                     </p>
                     <p className="mt-4 flex-1 text-[0.95rem] leading-relaxed text-slate">
                       {course.summary}
                     </p>
                     <p className="mt-5 font-display font-semibold text-ink">
-                      {formatPrice(course.priceInr)}
+                      {formatPrice(course.price_inr)}
                     </p>
                     <Link
                       href={`/courses/${course.slug}`}

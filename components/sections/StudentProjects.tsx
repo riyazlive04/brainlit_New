@@ -1,6 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
-import { PROJECTS } from "@/content/home";
+import { getPublishedProjects } from "@/lib/content";
 
 /**
  * Student project showcase.
@@ -11,8 +11,9 @@ import { PROJECTS } from "@/content/home";
  * parental consent. Children are shown as first name and age only — never a
  * full name, school or photograph.
  */
-export function StudentProjects() {
-  if (PROJECTS.length === 0) return null;
+export async function StudentProjects() {
+  const projects = await getPublishedProjects();
+  if (projects.length === 0) return null;
 
   return (
     <section className="relative z-10 bg-paper py-24 sm:py-32">
@@ -27,8 +28,8 @@ export function StudentProjects() {
         </Reveal>
 
         <ul className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {PROJECTS.map((project, i) => (
-            <Reveal as="li" key={project.title} delay={i * 80}>
+          {projects.map((project, i) => (
+            <Reveal as="li" key={project.id} delay={i * 80}>
               <article className="h-full rounded-2xl border border-mist p-7 transition-colors hover:border-violet/35">
                 <h3 className="font-display text-[length:var(--text-h3)] text-ink">
                   {project.title}
@@ -37,7 +38,7 @@ export function StudentProjects() {
                   {project.summary}
                 </p>
                 <p className="mt-5 text-sm font-medium text-violet">
-                  {project.studentFirstName}, age {project.age}
+                  {project.student_first_name}{project.student_age ? `, age ${project.student_age}` : ""}
                 </p>
               </article>
             </Reveal>

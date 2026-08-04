@@ -85,37 +85,13 @@ export const FAQS: Faq[] = [
 ];
 
 /**
- * Parent testimonials.
+ * Testimonials and student projects now live in the database and are managed
+ * from /admin — see lib/content.ts. They were static arrays here, which meant
+ * publishing a parent quote required a developer.
  *
- * EMPTY UNTIL REAL ONES ARE SUPPLIED. Each needs the parent's name, city, the
- * quote, and their consent to publish. If a child is named, that requires
- * recorded parental consent — see PLAN.md §10 and `testimonials.consent_ref`
- * in the schema.
+ * The consent rules did not move with them: publishing a child's name or work
+ * requires a recorded consent reference, and the database refuses without one.
  */
-export type Testimonial = {
-  quote: string;
-  parentName: string;
-  city: string;
-  childContext?: string;
-};
-
-export const TESTIMONIALS: Testimonial[] = [];
-
-/**
- * Student project showcase.
- *
- * EMPTY UNTIL REAL ONES ARE SUPPLIED, each with written parental consent.
- * Display children as first name and age only — never a full name, school or
- * photograph without explicit consent on record.
- */
-export type Project = {
-  title: string;
-  summary: string;
-  studentFirstName: string;
-  age: number;
-};
-
-export const PROJECTS: Project[] = [];
 
 /**
  * Founder.

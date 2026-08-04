@@ -9,8 +9,12 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/api/",
-          // Internal layout comparison pages. Also noindex, but keeping
-          // crawlers out entirely avoids wasting crawl budget on them.
+          // The admin pages are already noindex, which is the stronger signal —
+          // this just stops crawlers spending budget on URLs that will only
+          // ever redirect them to a login screen.
+          "/admin",
+          "/admin/",
+          // Internal layout comparison pages, same reasoning.
           "/lab",
           "/lab/",
         ],

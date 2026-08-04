@@ -1,6 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
-import { TESTIMONIALS } from "@/content/home";
+import { getPublishedTestimonials } from "@/lib/content";
 
 /**
  * Parent testimonials.
@@ -11,10 +11,11 @@ import { TESTIMONIALS } from "@/content/home";
  * never be filled with invented quotes. An empty section costs a conversion;
  * a fabricated one is a lie told to a parent about their child's education.
  *
- * Supply real quotes with consent in `content/home.ts` and this appears.
+ * Managed in the admin panel. Publish one and this section appears.
  */
-export function Testimonials() {
-  if (TESTIMONIALS.length === 0) return null;
+export async function Testimonials() {
+  const testimonials = await getPublishedTestimonials();
+  if (testimonials.length === 0) return null;
 
   return (
     <section className="relative z-10 bg-mist/30 py-24 sm:py-32">
@@ -29,10 +30,10 @@ export function Testimonials() {
         </Reveal>
 
         <ul className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {TESTIMONIALS.map((item, i) => (
+          {testimonials.map((item, i) => (
             <Reveal
               as="li"
-              key={`${item.parentName}-${item.city}`}
+              key={item.id}
               delay={i * 80}
               className="flex"
             >
@@ -42,10 +43,10 @@ export function Testimonials() {
                 </blockquote>
                 <figcaption className="mt-6 text-sm text-slate">
                   <span className="font-display font-semibold text-ink">
-                    {item.parentName}
+                    {item.parent_name}
                   </span>
                   <br />
-                  {item.childContext ? `${item.childContext} · ` : ""}
+                  {item.child_first_name ? `Parent of ${item.child_first_name} · ` : ""}
                   {item.city}
                 </figcaption>
               </figure>

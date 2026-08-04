@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { COURSES } from "@/content/courses";
+import { getPublishedCourses } from "@/lib/content";
 import { SITE } from "@/lib/site";
 
 /**
@@ -11,7 +11,11 @@ import { SITE } from "@/lib/site";
  * `/webinar` is deliberately absent: it is noindex, and listing a noindex URL
  * in a sitemap sends Google contradictory instructions. `/lab` is internal.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Read from the database, so a programme published in the admin panel is
+  // submitted to search engines without anyone remembering to edit this file.
+  const courses = await getPublishedCourses();
+
   const lastModified = new Date();
 
   const staticRoutes: Array<{
@@ -36,7 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: route.changeFrequency,
       priority: route.priority,
     })),
-    ...COURSES.map((course) => ({
+    ...courses.map((course) => ({
       url: `${SITE.url}/courses/${course.slug}`,
       lastModified,
       changeFrequency: "monthly" as const,

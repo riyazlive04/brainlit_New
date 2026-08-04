@@ -8,9 +8,24 @@ until the first section is done.
 ## 1. Blocked on the client — nothing works without these
 
 ### Supabase
-- [ ] Create the project (or share the existing one)
-- [ ] Apply `supabase/migrations/0001_init.sql` in the SQL editor
-- [ ] Run `supabase/verify-rls.sql` — **it must print `ALL RLS CHECKS PASSED`**
+- [x] Project created — `awtlporhufkubsjtxvbc`
+- [x] `0001_init.sql` applied
+- [ ] Apply **`0002_registration_dedupe.sql`** — without it, duplicate
+      registrations are possible when two submissions race
+- [ ] Apply **`0003_student_projects.sql`** — the student work section and its
+      admin page do not function until this exists
+- [ ] Run `supabase/verify-rls.sql` — 24 rows, **every one PASS**
+
+### Admin access
+- [ ] Create the team's users in the dashboard (Authentication → Users)
+- [ ] Grant the role with **`supabase/create-admin.sql`** — deliberately manual,
+      because a trigger that promoted every signup would make anyone who found
+      the endpoint an administrator of the parent lead database
+- [ ] **Turn OFF public signups** (Authentication → Providers → Email). Nothing
+      here needs them; leaving it on is an open door with no purpose.
+- [ ] **Rotate the service role key** — it was shared in chat during
+      development. Rolling the JWT secret invalidates the anon key too, so
+      update BOTH env vars afterwards.
 - [ ] Manually confirm the anon key cannot read `leads` (curl command at the
       bottom of `verify-rls.sql`)
 - [ ] Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
