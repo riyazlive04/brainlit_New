@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { createClient } from "@/lib/supabase/server";
 import { LeadStatusSelect } from "@/components/admin/LeadStatusSelect";
 import { toInternational } from "@/lib/phone";
+import { initials, relativeTime } from "@/lib/admin/format";
 
 export const metadata: Metadata = { title: "Leads" };
 export const dynamic = "force-dynamic";
@@ -107,12 +108,22 @@ export default async function LeadsPage({
               {leads?.map((lead) => (
                 <tr key={lead.id} className="align-top">
                   <td className="px-5 py-4">
-                    <span className="font-medium text-ink">{lead.name}</span>
-                    {lead.message && (
-                      <p className="mt-1 max-w-xs text-xs leading-relaxed text-slate">
-                        {lead.message}
-                      </p>
-                    )}
+                    <div className="flex items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-brand-gradient text-[0.7rem] font-semibold text-white"
+                      >
+                        {initials(lead.name)}
+                      </span>
+                      <div>
+                        <span className="font-medium text-ink">{lead.name}</span>
+                        {lead.message && (
+                          <p className="mt-1 max-w-xs text-xs leading-relaxed text-slate">
+                            {lead.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-5 py-4">
                     <a
@@ -145,8 +156,13 @@ export default async function LeadsPage({
                       </p>
                     )}
                   </td>
-                  <td className="px-5 py-4 whitespace-nowrap text-slate">
-                    {formatWhen(lead.created_at)}
+                  <td className="px-5 py-4 whitespace-nowrap">
+                    <span className="block text-ink">
+                      {relativeTime(lead.created_at)}
+                    </span>
+                    <span className="block text-xs text-slate">
+                      {formatWhen(lead.created_at)}
+                    </span>
                   </td>
                   <td className="px-5 py-4">
                     <LeadStatusSelect id={lead.id} status={lead.status} />
