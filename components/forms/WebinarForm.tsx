@@ -7,6 +7,7 @@ import { Field, Honeypot } from "@/components/forms/Field";
 import { phoneInputProps } from "@/components/forms/phoneInput";
 import { AgePicker } from "@/components/forms/AgePicker";
 import { Button } from "@/components/ui/Button";
+import { SuccessMark } from "@/components/ui/SuccessMark";
 import { webinarRegistrationSchema } from "@/lib/schemas";
 import { readUtmParams, trackEvent } from "@/lib/analytics";
 import { SITE, whatsappHref } from "@/lib/site";
@@ -89,38 +90,44 @@ export function WebinarForm({ sessionId }: Props) {
 
   if (status.kind === "done") {
     return (
-      <div className="rounded-2xl border border-mist bg-white p-8 text-center">
-        <div
-          aria-hidden="true"
-          className="mx-auto grid size-12 place-items-center rounded-full bg-spark"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0b1020" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </div>
+      <div
+        className="rounded-2xl border border-mist bg-white p-8 text-center"
+        // Announced as a whole once, when it replaces the form. Without this a
+        // screen reader user who submitted gets no confirmation at all — the
+        // form simply vanishes.
+        role="status"
+        aria-live="polite"
+      >
+        <SuccessMark />
 
-        <h3 className="mt-5 font-display text-[length:var(--text-h3)] text-ink">
+        {/* Staggered so the words land after the mark, not with it. */}
+        <h3
+          className="success-rise mt-6 font-display text-[length:var(--text-h3)] text-ink"
+          style={{ animationDelay: "420ms" }}
+        >
           {status.alreadyRegistered
             ? "You are already registered."
             : "Your seat is booked."}
         </h3>
 
-        <p className="mt-3 text-[0.975rem] leading-relaxed text-slate">
+        <p
+          className="success-rise mt-3 text-[0.975rem] leading-relaxed text-slate"
+          style={{ animationDelay: "520ms" }}
+        >
           {status.alreadyRegistered
             ? "We already have you on the list for this session. Check your inbox for the joining details."
             : "Check your email for confirmation and the joining link. If it has not arrived in a few minutes, look in your spam folder."}
         </p>
 
         {whatsapp && (
-          <Button
-            href={whatsapp}
-            external
-            variant="outline"
-            size="md"
-            className="mt-6"
+          <div
+            className="success-rise mt-6"
+            style={{ animationDelay: "620ms" }}
           >
-            Any questions? Message us
-          </Button>
+            <Button href={whatsapp} external variant="outline" size="md">
+              Any questions? Message us
+            </Button>
+          </div>
         )}
       </div>
     );

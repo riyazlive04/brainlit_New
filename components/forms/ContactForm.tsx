@@ -7,6 +7,7 @@ import { Field, Honeypot } from "@/components/forms/Field";
 import { phoneInputProps } from "@/components/forms/phoneInput";
 import { AgePicker } from "@/components/forms/AgePicker";
 import { Button } from "@/components/ui/Button";
+import { SuccessMark } from "@/components/ui/SuccessMark";
 import { leadSchema } from "@/lib/schemas";
 import { readUtmParams, trackEvent } from "@/lib/analytics";
 import { SITE } from "@/lib/site";
@@ -63,11 +64,22 @@ export function ContactForm() {
 
   if (status.kind === "done") {
     return (
-      <div className="rounded-2xl border border-mist bg-white p-8">
-        <h2 className="font-display text-[length:var(--text-h3)] text-ink">
+      <div
+        className="rounded-2xl border border-mist bg-white p-8 text-center"
+        role="status"
+        aria-live="polite"
+      >
+        <SuccessMark />
+        <h2
+          className="success-rise mt-6 font-display text-[length:var(--text-h3)] text-ink"
+          style={{ animationDelay: "420ms" }}
+        >
           Thank you — we have your message.
         </h2>
-        <p className="mt-3 text-[0.975rem] leading-relaxed text-slate">
+        <p
+          className="success-rise mt-3 text-[0.975rem] leading-relaxed text-slate"
+          style={{ animationDelay: "520ms" }}
+        >
           Someone from the team will get back to you. If it is urgent, WhatsApp
           is the fastest way to reach us.
         </p>

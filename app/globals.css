@@ -220,6 +220,80 @@ p {
 }
 
 /* ---------------------------------------------------------------------------
+   Success confirmation
+
+   Sequenced rather than simultaneous. Everything arriving at once reads as a
+   page swap; a beat between the mark landing, the ring expanding and the words
+   arriving reads as something having *happened*. This is the moment a parent
+   has committed to us, and it is the only celebratory moment on the site.
+
+   The ring deliberately echoes the click ripple in the 3D scene, so the two
+   feel like the same product rather than two unrelated effects.
+--------------------------------------------------------------------------- */
+@keyframes success-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    opacity: 1;
+    /* Slight overshoot — a linear scale-up reads as mechanical. */
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes success-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes success-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes success-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility success-mark {
+  animation: success-pop 520ms var(--ease-out-expo) both;
+}
+
+@utility success-ring {
+  animation: success-ring 1100ms var(--ease-out-expo) 160ms both;
+}
+
+@utility success-check {
+  /* Path length of the tick, rounded up. */
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: success-draw 420ms var(--ease-out-expo) 300ms both;
+}
+
+@utility success-rise {
+  animation: success-rise 520ms var(--ease-out-expo) both;
+}
+
+/* ---------------------------------------------------------------------------
    Reduced motion
    WCAG 2.1 (2.3.3) and a vestibular-safety requirement. This is not an
    aesthetic downgrade and must not be removed to "keep the 3D consistent".
