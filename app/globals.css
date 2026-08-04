@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   BrainLIT design tokens
+   Colours sampled directly from the official logo artwork.
+   Left hemisphere = blue = logic / critical thinking.
+   Right hemisphere = violet = creativity.
+   `spark` is the filament — the "LIT" moment. Reserved for CTAs and ignition.
+--------------------------------------------------------------------------- */
+@theme {
+  /* Brand ramp: cyan -> blue -> periwinkle -> violet (the wordmark gradient) */
+  --color-cyan: #7aceeb;
+  --color-blue: #5eaedd;
+  --color-indigo: #3f5ba6;
+  --color-periwinkle: #8777c8;
+  --color-violet: #854fb4;
+  --color-lilac: #c68edc;
+
+  /* Ignition accent — use sparingly, it must stay special */
+  --color-spark: #fcd057;
+  --color-spark-deep: #f0b429;
+
+  /* Neutrals */
+  --color-ink: #0b1020;
+  --color-ink-soft: #151b30;
+  --color-slate: #4a5169;
+  --color-mist: #e8edf5;
+  --color-paper: #ffffff;
+
+  /* Typography */
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-tamil: var(--font-noto-tamil), var(--font-inter), sans-serif;
+  /* Logo lockup only — the artwork uses a rounded geometric face */
+  --font-wordmark: var(--font-fredoka), var(--font-outfit), sans-serif;
+
+  /* Fluid type scale — clamped so headings never overflow a 360px Android */
+  --text-display: clamp(2.5rem, 7vw, 5.5rem);
+  --text-h1: clamp(2rem, 5vw, 3.75rem);
+  --text-h2: clamp(1.625rem, 3.5vw, 2.75rem);
+  --text-h3: clamp(1.25rem, 2.2vw, 1.75rem);
+  --text-lead: clamp(1.0625rem, 1.6vw, 1.375rem);
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+:root {
+  --header-h: 4.5rem;
+  /* The site is light-mode by design; the 3D sections supply their own dark
+     canvas. Declaring this stops Android browsers auto-darkening form controls. */
+  color-scheme: light;
+}
+
+html {
+  /* Lenis drives scrolling; native smooth-scroll would fight it */
+  scroll-behavior: auto;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+:lang(ta) {
+  font-family: var(--font-tamil);
+  /* Tamil glyphs carry more vertical detail than Latin at the same size */
+  line-height: 1.75;
+}
+
+/* Keyboard focus must stay visible — it is the only affordance for non-mouse users */
+:focus-visible {
+  outline: 2px solid var(--color-violet);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--color-spark);
+  color: var(--color-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+
+/* The brand gradient, tuned for a WHITE page.
+ *
+ * The full logo ramp starts at cyan (#7aceeb), which measures 1.8:1 against
+ * white — below the 3:1 floor for large text and nowhere near the 4.5:1 needed
+ * for body copy. On the original dark canvas it was fine; on white it is close
+ * to invisible.
+ *
+ * This ramp runs indigo -> periwinkle -> violet instead, which holds 5.5:1 or
+ * better against white across its whole length while staying recognisably the
+ * brand. The pale end is reserved for `*-bright` below, on dark surfaces only.
+ */
+@utility text-brand-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-indigo) 0%,
+    var(--color-periwinkle) 52%,
+    var(--color-violet) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Carries white text (pillar numbers, solid buttons), so every stop must clear
+   4.5:1 against white. indigo 6.4:1 · violet 5.6:1. */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-indigo) 0%,
+    var(--color-violet) 100%
+  );
+}
+
+/* The full logo ramp. Decorative use on DARK surfaces only — it fails contrast
+   on white. Do not put text on it or use it for headline words on the page. */
+@utility bg-brand-gradient-bright {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-cyan) 0%,
+    var(--color-blue) 32%,
+    var(--color-periwinkle) 68%,
+    var(--color-violet) 100%
+  );
+}
+
+/* Static poster shown when WebGL is unavailable or the context is lost.
+   Without this the hero is a blank void on devices that refuse a context.
+
+   Light variant: the site is white, so the fallback is white with the faintest
+   brand wash. Kept very low opacity — headline contrast beats decoration. */
+@utility bg-canvas-fallback {
+  background:
+    radial-gradient(
+      ellipse 55% 42% at 50% 34%,
+      color-mix(in oklab, var(--color-spark) 16%, transparent) 0%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 70% 55% at 20% 28%,
+      color-mix(in oklab, var(--color-cyan) 20%, transparent) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 70% 55% at 80% 32%,
+      color-mix(in oklab, var(--color-lilac) 20%, transparent) 0%,
+      transparent 62%
+    ),
+    var(--color-paper);
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion
+   WCAG 2.1 (2.3.3) and a vestibular-safety requirement. This is not an
+   aesthetic downgrade and must not be removed to "keep the 3D consistent".
+   The 3D scene reads this same signal and holds itself near-static.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

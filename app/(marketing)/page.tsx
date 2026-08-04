@@ -1,0 +1,163 @@
+import type { Metadata } from "next";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
+import { SceneMount } from "@/components/three/SceneMount";
+import { PILLARS, SITE } from "@/lib/site";
+
+export const metadata: Metadata = {
+  // `absolute` bypasses the root layout's "%s · BrainLIT" template, which would
+  // otherwise render "BrainLIT — AI Thinking Academy for children · BrainLIT".
+  title: { absolute: `${SITE.name} — ${SITE.tagline}` },
+  description: SITE.description,
+  alternates: { canonical: "/" },
+};
+
+/**
+ * The 3D zone spans the first three sections. A single fixed canvas sits behind
+ * them at z-0 while the copy rides above at z-10; those sections stay
+ * transparent so the scene shows through. Everything after the zone is opaque
+ * white and covers the canvas, which is also paused by then.
+ *
+ * Scroll progress across this element drives the whole animation — see
+ * `SmoothScroll` for the ScrollTrigger that measures it.
+ */
+export default function HomePage() {
+  return (
+    <>
+      <div data-three-zone className="relative">
+        <SceneMount />
+
+        {/* ------------------------------------------------------------- Hero */}
+        <section className="relative z-10 flex min-h-[100svh] items-center">
+          <Container className="py-32 text-center">
+            <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
+              AI Thinking Academy · Ages {SITE.ageRange.min}–{SITE.ageRange.max}
+            </p>
+
+            <h1 className="mx-auto mt-6 max-w-4xl text-[length:var(--text-display)] text-ink">
+              Teach your child to{" "}
+              <span className="text-brand-gradient">think</span> before they use
+              AI.
+            </h1>
+
+            <p className="mx-auto mt-7 max-w-2xl text-[length:var(--text-lead)] leading-relaxed text-slate">
+              AI can already do the homework. It cannot do the thinking.
+              BrainLIT builds the one thing that stays valuable — a child who
+              can question, create and solve.
+            </p>
+
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button href="/webinar" variant="spark" size="lg">
+                Join the free webinar
+              </Button>
+              <Button href="/courses" variant="outline" size="lg">
+                Explore programs
+              </Button>
+            </div>
+
+            <p className="mt-6 text-sm text-slate">
+              Live online · Small batches · For parents in {SITE.city} and
+              across India
+            </p>
+          </Container>
+        </section>
+
+        {/* -------------------------------------------------------- The problem */}
+        <section className="relative z-10 flex min-h-[90svh] items-center">
+          <Container size="narrow" className="py-24 text-center">
+            <h2 className="text-[length:var(--text-h2)] text-ink">
+              The homework is no longer the hard part.
+            </h2>
+            <p className="mt-6 text-[length:var(--text-lead)] leading-relaxed text-slate">
+              A child can now get a finished essay in four seconds. What they
+              cannot get is the judgement to know whether it is any good, the
+              curiosity to ask a better question, or the confidence to disagree
+              with it.
+            </p>
+            <p className="mt-5 text-[length:var(--text-lead)] leading-relaxed text-slate">
+              Those are the skills that decide what happens next. They are also
+              the ones nobody is teaching.
+            </p>
+          </Container>
+        </section>
+
+        {/* ------------------------------------------------------- The ignition */}
+        <section className="relative z-10 flex min-h-[90svh] items-center">
+          <Container size="narrow" className="py-24 text-center">
+            <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
+              Our whole philosophy
+            </p>
+            <p className="mt-8 font-display text-[length:var(--text-h1)] leading-[1.1] font-semibold tracking-tight text-ink">
+              We don&apos;t teach children to depend on AI.
+              <br />
+              We teach them to{" "}
+              <span className="text-brand-gradient">think</span>, so they can
+              lead it.
+            </p>
+          </Container>
+        </section>
+      </div>
+
+      {/* ------------------------------------------------------- Positioning */}
+      <section className="relative z-10 bg-paper py-24 sm:py-32">
+        <Container size="narrow" className="text-center">
+          <h2 className="text-[length:var(--text-h2)] text-ink">
+            An AI <em className="text-brand-gradient not-italic">Thinking</em>{" "}
+            Academy — not another coding academy.
+          </h2>
+          <p className="mt-6 text-[length:var(--text-lead)] leading-relaxed text-slate">
+            Most programs teach children to operate AI tools. Tools change every
+            six months. We teach the thinking underneath — the part that still
+            matters in ten years.
+          </p>
+        </Container>
+      </section>
+
+      {/* --------------------------------------------------------------- Pillars */}
+      <section className="relative z-10 bg-paper pb-24 sm:pb-32">
+        <Container>
+          <h2 className="text-center text-[length:var(--text-h2)] text-ink">
+            Seven things we build
+          </h2>
+
+          <ul className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {PILLARS.map((pillar, i) => (
+              <li key={pillar.key} className="flex gap-4">
+                <span
+                  aria-hidden="true"
+                  className="mt-1 grid size-9 shrink-0 place-items-center rounded-full bg-brand-gradient font-display text-sm font-semibold text-white"
+                >
+                  {i + 1}
+                </span>
+                <div>
+                  <h3 className="text-[length:var(--text-h3)] text-ink">
+                    {pillar.title}
+                  </h3>
+                  <p className="mt-1.5 text-[0.95rem] leading-relaxed text-slate">
+                    {pillar.blurb}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </section>
+
+      {/* ------------------------------------------------------------------- CTA */}
+      <section className="relative z-10 border-t border-mist bg-paper py-24 sm:py-28">
+        <Container size="narrow" className="text-center">
+          <h2 className="text-[length:var(--text-h2)] text-ink">
+            Start with a free session for parents.
+          </h2>
+          <p className="mt-5 text-[length:var(--text-lead)] leading-relaxed text-slate">
+            See exactly how we teach thinking — and ask us anything about
+            raising a child alongside AI.
+          </p>
+          <Button href="/webinar" variant="spark" size="lg" className="mt-9">
+            Reserve your free seat
+          </Button>
+        </Container>
+      </section>
+    </>
+  );
+}
