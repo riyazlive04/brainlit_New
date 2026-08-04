@@ -31,8 +31,6 @@ function formatWhen(iso: string) {
 export default async function LeadsPage({
   searchParams,
 }: PageProps<"/admin/leads">) {
-  await requireAdmin();
-
   const params = await searchParams;
   const raw = params?.status;
   const status = typeof raw === "string" ? raw : "all";
@@ -51,7 +49,9 @@ export default async function LeadsPage({
     query = query.eq("status", status);
   }
 
-  const { data: leads, error } = await query;
+  // Auth and data concurrently — see the note in the sessions page. RLS is what
+  // keeps these rows private, not the ordering of these two awaits.
+  const [, { data: leads, error }] = await Promise.all([requireAdmin(), query]);
 
   return (
     <>

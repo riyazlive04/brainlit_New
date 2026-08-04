@@ -38,6 +38,10 @@ export function AdminNav() {
             <li key={link.href}>
               <Link
                 href={link.href}
+                // Prefetch on hover. For a dynamic route this fetches the
+                // loading skeleton, so a click paints instantly instead of
+                // waiting on the first server round trip.
+                prefetch
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "block rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",

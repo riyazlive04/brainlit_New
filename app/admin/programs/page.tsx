@@ -14,13 +14,18 @@ export const metadata: Metadata = { title: "Programmes" };
 export const dynamic = "force-dynamic";
 
 export default async function ProgramsPage() {
-  await requireAdmin();
+  // Auth and data run CONCURRENTLY, not in sequence.
+  //
+  // Awaiting requireAdmin() first meant three serial round trips to Supabase at
+  // ~250ms each before anything rendered. Firing them together removes one leg
+  // of that. It is safe: if requireAdmin() redirects, the query result is simply
+  // discarded, and the data is protected by RLS regardless of what this function
+  // concluded — the check is not what keeps the rows private.
   const supabase = await createClient();
-
-  const { data: courses } = await supabase
-    .from("courses")
-    .select("*")
-    .order("sort_order", { ascending: true });
+  const [, { data: courses }] = await Promise.all([
+    requireAdmin(),
+    supabase.from("courses").select("*").order("sort_order", { ascending: true }),
+  ]);
 
   return (
     <>

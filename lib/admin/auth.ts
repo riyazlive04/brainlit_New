@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,7 +25,10 @@ export type AdminProfile = {
  * database no matter what either of them concluded. Any one of them failing
  * leaves the other two standing.
  */
-export async function requireAdmin(): Promise<AdminProfile> {
+export const requireAdmin = cache(async function requireAdmin(): Promise<AdminProfile> {
+  // Wrapped in React's cache(), so calling this from a page and again from a
+  // component in the same render costs one auth round trip, not two. At ~250ms
+  // per trip to Supabase that is not a micro-optimisation.
   const supabase = await createClient();
 
   // getUser() verifies with the auth server; getSession() would only decode
@@ -62,4 +66,4 @@ export async function requireAdmin(): Promise<AdminProfile> {
     fullName: profile.full_name,
     role: profile.role,
   };
-}
+});

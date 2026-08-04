@@ -8,36 +8,45 @@ import { initials, relativeTime, statusStyle } from "@/lib/admin/format";
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverview() {
-  const admin = await requireAdmin();
   const supabase = await createClient();
 
-  const [{ count: totalLeads }, { count: newLeads }, { count: enrolled }] =
-    await Promise.all([
-      supabase.from("leads").select("*", { count: "exact", head: true }),
-      supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "new"),
-      supabase
-        .from("leads")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "enrolled"),
-    ]);
-
-  const { data: nextSession } = await supabase
-    .from("webinar_sessions")
-    .select("id, title, starts_at")
-    .eq("is_active", true)
-    .gte("starts_at", new Date().toISOString())
-    .order("starts_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  const { data: recent } = await supabase
-    .from("leads")
-    .select("id, name, email, child_age, source, status, created_at")
-    .order("created_at", { ascending: false })
-    .limit(6);
+  // The auth check joins the same Promise.all as the counts. Awaiting it first
+  // added a serial ~250ms round trip before any query even started.
+  // ALL SIX round trips fire together — the auth check, three counts, the next
+  // session and the recent leads. Sequentially that was six waits of ~250ms
+  // stacked up; concurrently the page costs roughly one.
+  const [
+    admin,
+    { count: totalLeads },
+    { count: newLeads },
+    { count: enrolled },
+    { data: nextSession },
+    { data: recent },
+  ] = await Promise.all([
+    requireAdmin(),
+    supabase.from("leads").select("*", { count: "exact", head: true }),
+    supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "new"),
+    supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "enrolled"),
+    supabase
+      .from("webinar_sessions")
+      .select("id, title, starts_at")
+      .eq("is_active", true)
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("leads")
+      .select("id, name, email, child_age, source, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(6),
+  ]);
 
   const stats = [
     {
