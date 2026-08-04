@@ -9,6 +9,15 @@ import {
   AdminSubmit,
   AdminTextarea,
 } from "@/components/admin/AdminForm";
+import {
+  AdminCard,
+  AdminEmpty,
+  AdminNotice,
+  AdminPageHeader,
+  AdminRecord,
+  AdminSectionHeading,
+} from "@/components/admin/AdminUI";
+
 
 export const metadata: Metadata = { title: "Student work" };
 export const dynamic = "force-dynamic";
@@ -29,23 +38,23 @@ export default async function ProjectsPage() {
 
   return (
     <>
-      <h1 className="font-display text-[length:var(--text-h2)] text-ink">
-        Student work
-      </h1>
+      <AdminPageHeader
+        title="Student work"
+        description="Proof that the teaching works, in the children's own output. Appears on the homepage once at least one project is live."
+      />
 
-      <div className="mt-4 rounded-xl border border-spark-deep/40 bg-spark/15 p-4">
-        <p className="text-sm leading-relaxed text-ink">
+      <div className="mt-6">
+        <AdminNotice tone="warn">
           <strong>A consent reference is required to publish.</strong> The
-          database enforces it — publishing a child&apos;s work is processing a
-          child&apos;s personal data, and the DPDP Act 2023 requires verifiable
-          parental consent. Use a first name and age only: never a full name,
-          school or photograph.
-        </p>
+          database enforces it — publishing a child&apos;s work is processing
+          their personal data, and the DPDP Act 2023 requires verifiable
+          parental consent. First name and age only: never a full name, school
+          or photograph.
+        </AdminNotice>
       </div>
 
-      <section className="mt-8 rounded-2xl border border-mist bg-white p-6">
-        <h2 className="font-display font-semibold text-ink">Add a project</h2>
-        <form action={saveProject} className="mt-5 grid gap-4 sm:grid-cols-2">
+      <AdminCard accent title="Add a project" className="mt-6">
+        <form action={saveProject} className="grid gap-4 sm:grid-cols-2">
           <AdminField
             label="Project title"
             name="title"
@@ -80,39 +89,32 @@ export default async function ProjectsPage() {
             <AdminSubmit>Add project</AdminSubmit>
           </div>
         </form>
-      </section>
+      </AdminCard>
 
-      <h2 className="mt-10 font-display font-semibold text-ink">
-        All projects ({projects?.length ?? 0})
-      </h2>
+      <AdminSectionHeading count={projects?.length ?? 0}>
+        All projects
+      </AdminSectionHeading>
 
-      <div className="mt-4 space-y-4">
+      <div className="space-y-4">
         {projects?.length ? (
           projects.map((project) => (
-            <form
-              key={project.id}
-              action={saveProject}
-              className="rounded-2xl border border-mist bg-white p-6"
-            >
+            <form key={project.id} action={saveProject}>
               <input type="hidden" name="id" value={project.id} />
-
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <p className="font-medium text-ink">
-                  {project.title}
-                  <span
-                    className={
-                      project.is_published
-                        ? "ml-2 rounded-full bg-mist px-2 py-0.5 text-xs text-ink"
-                        : "ml-2 rounded-full bg-mist/60 px-2 py-0.5 text-xs text-slate"
-                    }
-                  >
-                    {project.is_published ? "Published" : "Draft"}
-                  </span>
-                </p>
-                <AdminDelete id={project.id} action={deleteProject} />
-              </div>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <AdminRecord
+                heading={project.title}
+                meta={
+                  [
+                    project.student_first_name,
+                    project.student_age ? "age " + project.student_age : null,
+                    project.consent_ref ? null : "no consent on file",
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
+                }
+                published={project.is_published}
+                actions={<AdminDelete id={project.id} action={deleteProject} />}
+              >
+              <div className="grid gap-4 sm:grid-cols-2">
                 <AdminField label="Project title" name="title" defaultValue={project.title} required className="sm:col-span-2" />
                 <AdminTextarea label="What they made, and why" name="summary" rows={3} defaultValue={project.summary} className="sm:col-span-2" />
                 <AdminField label="Child's first name" name="student_first_name" defaultValue={project.student_first_name} required />
@@ -127,13 +129,14 @@ export default async function ProjectsPage() {
               <div className="mt-5">
                 <AdminSubmit>Save changes</AdminSubmit>
               </div>
+              </AdminRecord>
             </form>
           ))
         ) : (
-          <p className="rounded-2xl border border-mist bg-white px-6 py-8 text-[0.975rem] text-slate">
-            None yet. The student work section stays hidden until one is
-            published.
-          </p>
+          <AdminEmpty
+            title="No student work yet"
+            description="The section stays hidden on the homepage until one project is live."
+          />
         )}
       </div>
     </>

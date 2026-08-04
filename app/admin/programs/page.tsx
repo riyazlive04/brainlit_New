@@ -9,6 +9,14 @@ import {
   AdminSubmit,
   AdminTextarea,
 } from "@/components/admin/AdminForm";
+import {
+  AdminCard,
+  AdminEmpty,
+  AdminPageHeader,
+  AdminRecord,
+  AdminSectionHeading,
+} from "@/components/admin/AdminUI";
+
 
 export const metadata: Metadata = { title: "Programmes" };
 export const dynamic = "force-dynamic";
@@ -29,18 +37,18 @@ export default async function ProgramsPage() {
 
   return (
     <>
-      <h1 className="font-display text-[length:var(--text-h2)] text-ink">
-        Programmes
-      </h1>
-      <p className="mt-2 max-w-2xl text-[0.975rem] text-slate">
-        Only published programmes appear on the public site. Until at least one
-        is published, the Programmes page shows a &ldquo;being
-        finalised&rdquo; message and routes visitors to the free session.
-      </p>
+      <AdminPageHeader
+        title="Programmes"
+        description="Only live programmes appear on the public site. Until one is live, the Programmes page shows a “being finalised” message and routes visitors to the free session."
+      />
 
-      <section className="mt-8 rounded-2xl border border-mist bg-white p-6">
-        <h2 className="font-display font-semibold text-ink">Add a programme</h2>
-        <form action={saveCourse} className="mt-5 grid gap-4 sm:grid-cols-2">
+      <AdminCard
+        accent
+        title="Add a programme"
+        description="Leave the price blank for “price on enquiry”."
+        className="mt-6"
+      >
+        <form action={saveCourse} className="grid gap-4 sm:grid-cols-2">
           <AdminField
             label="Title"
             name="title"
@@ -84,39 +92,24 @@ export default async function ProgramsPage() {
             <AdminSubmit>Add programme</AdminSubmit>
           </div>
         </form>
-      </section>
+      </AdminCard>
 
-      <h2 className="mt-10 font-display font-semibold text-ink">
-        All programmes ({courses?.length ?? 0})
-      </h2>
+      <AdminSectionHeading count={courses?.length ?? 0}>
+        All programmes
+      </AdminSectionHeading>
 
-      <div className="mt-4 space-y-4">
+      <div className="space-y-4">
         {courses?.length ? (
           courses.map((course) => (
-            <form
-              key={course.id}
-              action={saveCourse}
-              className="rounded-2xl border border-mist bg-white p-6"
-            >
+            <form key={course.id} action={saveCourse}>
               <input type="hidden" name="id" value={course.id} />
-
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <p className="font-medium text-ink">
-                  {course.title}{" "}
-                  <span
-                    className={
-                      course.is_published
-                        ? "ml-2 rounded-full bg-mist px-2 py-0.5 text-xs text-ink"
-                        : "ml-2 rounded-full bg-mist/60 px-2 py-0.5 text-xs text-slate"
-                    }
-                  >
-                    {course.is_published ? "Published" : "Draft"}
-                  </span>
-                </p>
-                <AdminDelete id={course.id} action={deleteCourse} />
-              </div>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <AdminRecord
+                heading={course.title}
+                meta={`/courses/${course.slug} · ages ${course.age_min}–${course.age_max}`}
+                published={course.is_published}
+                actions={<AdminDelete id={course.id} action={deleteCourse} />}
+              >
+              <div className="grid gap-4 sm:grid-cols-2">
                 <AdminField label="Title" name="title" defaultValue={course.title} required />
                 <AdminField label="URL slug" name="slug" defaultValue={course.slug} />
                 <AdminTextarea
@@ -143,12 +136,14 @@ export default async function ProgramsPage() {
               <div className="mt-5">
                 <AdminSubmit>Save changes</AdminSubmit>
               </div>
+              </AdminRecord>
             </form>
           ))
         ) : (
-          <p className="rounded-2xl border border-mist bg-white px-6 py-8 text-[0.975rem] text-slate">
-            No programmes yet.
-          </p>
+          <AdminEmpty
+            title="No programmes yet"
+            description="Add one above. It stays hidden until you mark it live, so you can draft it first."
+          />
         )}
       </div>
     </>

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { LeadStatusSelect } from "@/components/admin/LeadStatusSelect";
 import { toInternational } from "@/lib/phone";
 import { initials, relativeTime } from "@/lib/admin/format";
+import { AdminEmpty, AdminPageHeader } from "@/components/admin/AdminUI";
 
 export const metadata: Metadata = { title: "Leads" };
 export const dynamic = "force-dynamic";
@@ -55,14 +56,15 @@ export default async function LeadsPage({
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="font-display text-[length:var(--text-h2)] text-ink">
-          Leads
-        </h1>
-        <p className="text-sm text-slate">
-          {leads?.length ?? 0} shown{leads?.length === 200 ? " (most recent 200)" : ""}
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Leads"
+        badge={
+          leads?.length === 200
+            ? "most recent 200"
+            : (leads?.length ?? 0) + " shown"
+        }
+        description="Every enquiry and registration, newest first. Tap a phone number to open WhatsApp — the fastest way this team actually reaches a parent."
+      />
 
       <nav aria-label="Filter by status" className="mt-6 flex flex-wrap gap-2">
         {STATUSES.map((s) => (
@@ -88,14 +90,21 @@ export default async function LeadsPage({
       )}
 
       {leads && leads.length === 0 ? (
-        <p className="mt-8 rounded-2xl border border-mist bg-white px-6 py-8 text-[0.975rem] text-slate">
-          Nothing here yet.
-        </p>
+        <div className="mt-6">
+          <AdminEmpty
+            title={status === "all" ? "No leads yet" : "Nothing at this stage"}
+            description={
+              status === "all"
+                ? "They appear here the moment someone registers or sends an enquiry."
+                : "Try another filter, or clear it to see everything."
+            }
+          />
+        </div>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-2xl border border-mist bg-white">
           <table className="w-full min-w-[52rem] text-left text-sm">
             <thead>
-              <tr className="border-b border-mist text-xs tracking-wide text-slate uppercase">
+              <tr className="border-b border-mist bg-mist/25 text-xs tracking-wide text-slate uppercase">
                 <th className="px-5 py-3 font-medium">Parent</th>
                 <th className="px-5 py-3 font-medium">Contact</th>
                 <th className="px-5 py-3 font-medium">Child</th>
@@ -106,7 +115,7 @@ export default async function LeadsPage({
             </thead>
             <tbody className="divide-y divide-mist">
               {leads?.map((lead) => (
-                <tr key={lead.id} className="align-top">
+                <tr key={lead.id} className="align-top transition-colors hover:bg-mist/25">
                   <td className="px-5 py-4">
                     <div className="flex items-start gap-3">
                       <span

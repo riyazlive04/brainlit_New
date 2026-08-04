@@ -9,6 +9,15 @@ import {
   AdminSubmit,
 } from "@/components/admin/AdminForm";
 import { formatSessionDate, formatSessionTime } from "@/lib/webinar";
+import {
+  AdminCard,
+  AdminEmpty,
+  AdminNotice,
+  AdminPageHeader,
+  AdminRecord,
+  AdminSectionHeading,
+} from "@/components/admin/AdminUI";
+
 
 export const metadata: Metadata = { title: "Webinars" };
 export const dynamic = "force-dynamic";
@@ -52,19 +61,28 @@ export default async function SessionsPage() {
 
   return (
     <>
-      <h1 className="font-display text-[length:var(--text-h2)] text-ink">
-        Webinars
-      </h1>
-      <p className="mt-2 max-w-2xl text-[0.975rem] text-slate">
-        The soonest active session in the future is the one shown on the public
-        webinar page. If there is none, that page shows no date at all.
-      </p>
+      <AdminPageHeader
+        title="Webinars"
+        badge={sessions?.length ? undefined : "none scheduled"}
+        description="The soonest active session in the future is the one shown on the public webinar page. If there is none, that page shows no date at all."
+      />
 
-      <section className="mt-8 rounded-2xl border border-mist bg-white p-6">
-        <h2 className="font-display font-semibold text-ink">
-          Schedule a session
-        </h2>
-        <form action={saveSession} className="mt-5 grid gap-4 sm:grid-cols-2">
+      {!sessions?.length && (
+        <div className="mt-6">
+          <AdminNotice tone="warn">
+            Nothing is scheduled, so anyone arriving from an ad sees a
+            registration form with no date attached.
+          </AdminNotice>
+        </div>
+      )}
+
+      <AdminCard
+        accent
+        title="Schedule a session"
+        description="Times are Indian Standard Time. The Zoom link is emailed to registrants and never rendered on the site."
+        className="mt-6"
+      >
+        <form action={saveSession} className="grid gap-4 sm:grid-cols-2">
           <AdminField
             label="Title"
             name="title"
@@ -111,31 +129,24 @@ export default async function SessionsPage() {
             <AdminSubmit>Schedule</AdminSubmit>
           </div>
         </form>
-      </section>
+      </AdminCard>
 
-      <h2 className="mt-10 font-display font-semibold text-ink">
-        Scheduled ({sessions?.length ?? 0})
-      </h2>
+      <AdminSectionHeading count={sessions?.length ?? 0}>
+        Scheduled
+      </AdminSectionHeading>
 
-      <div className="mt-4 space-y-4">
+      <div className="space-y-4">
         {sessions?.length ? (
           sessions.map((session) => (
-            <form
-              key={session.id}
-              action={saveSession}
-              className="rounded-2xl border border-mist bg-white p-6"
-            >
+            <form key={session.id} action={saveSession}>
               <input type="hidden" name="id" value={session.id} />
-
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <p className="font-medium text-ink">
-                  {formatSessionDate(session.starts_at)} ·{" "}
-                  {formatSessionTime(session.starts_at)} IST
-                </p>
-                <AdminDelete id={session.id} action={deleteSession} />
-              </div>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <AdminRecord
+                heading={session.title}
+                meta={`${formatSessionDate(session.starts_at)} · ${formatSessionTime(session.starts_at)} IST`}
+                published={session.is_active}
+                actions={<AdminDelete id={session.id} action={deleteSession} />}
+              >
+              <div className="grid gap-4 sm:grid-cols-2">
                 <AdminField
                   label="Title"
                   name="title"
@@ -181,12 +192,14 @@ export default async function SessionsPage() {
               <div className="mt-5">
                 <AdminSubmit>Save changes</AdminSubmit>
               </div>
+              </AdminRecord>
             </form>
           ))
         ) : (
-          <p className="rounded-2xl border border-mist bg-white px-6 py-8 text-[0.975rem] text-slate">
-            No sessions yet. The public webinar page is showing no date.
-          </p>
+          <AdminEmpty
+            title="No sessions scheduled"
+            description="Add one above and the public webinar page starts showing a real date and time."
+          />
         )}
       </div>
     </>

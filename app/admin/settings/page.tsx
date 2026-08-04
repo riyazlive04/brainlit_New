@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { createClient } from "@/lib/supabase/server";
 import { saveSetting } from "../content-actions";
 import { AdminField, AdminSubmit } from "@/components/admin/AdminForm";
+import { AdminCard, AdminPageHeader } from "@/components/admin/AdminUI";
 
 export const metadata: Metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
@@ -45,39 +46,46 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <h1 className="font-display text-[length:var(--text-h2)] text-ink">
-        Settings
-      </h1>
-      <p className="mt-2 text-[0.975rem] text-slate">
-        Signed in as {admin.email} ({admin.role.replace("_", " ")}).
-      </p>
+      <AdminPageHeader
+        title="Settings"
+        badge={admin.role.replace("_", " ")}
+        description={"Signed in as " + admin.email + "."}
+      />
 
-      <div className="mt-8 space-y-4">
-        {EDITABLE.map((setting) => (
-          <form
-            key={setting.key}
-            action={saveSetting}
-            className="flex flex-wrap items-end gap-4 rounded-2xl border border-mist bg-white p-6"
-          >
-            <input type="hidden" name="key" value={setting.key} />
-            <AdminField
-              label={setting.label}
-              name="value"
-              hint={setting.hint}
-              placeholder={setting.placeholder}
-              defaultValue={current.get(setting.key) ?? ""}
-              className="min-w-64 flex-1"
-            />
-            <AdminSubmit />
-          </form>
-        ))}
-      </div>
+      <AdminCard
+        accent
+        title="Editable without a deploy"
+        description="Changes take effect on the public site immediately."
+        className="mt-6"
+      >
+        <div className="space-y-5">
+          {EDITABLE.map((setting) => (
+            <form
+              key={setting.key}
+              action={saveSetting}
+              className="flex flex-wrap items-end gap-4"
+            >
+              <input type="hidden" name="key" value={setting.key} />
+              <AdminField
+                label={setting.label}
+                name="value"
+                hint={setting.hint}
+                placeholder={setting.placeholder}
+                defaultValue={current.get(setting.key) ?? ""}
+                className="min-w-64 flex-1"
+              />
+              <AdminSubmit />
+            </form>
+          ))}
+        </div>
+      </AdminCard>
 
-      <div className="mt-10 rounded-2xl border border-mist bg-white p-6">
-        <h2 className="font-display font-semibold text-ink">
-          Managed outside the admin panel
-        </h2>
-        <ul className="mt-3 space-y-1.5 text-sm text-slate">
+      <AdminCard
+        title="Managed outside the admin panel"
+        description="Deliberately not editable here — each one either needs a code review or is a secret that should never live in a database row."
+        className="mt-4"
+      >
+        <ul className="space-y-2 text-sm text-slate">
           <li>
             <strong className="text-ink">Team accounts</strong> — Supabase
             dashboard, then grant the role with{" "}
@@ -92,7 +100,7 @@ export default async function SettingsPage() {
             changes are reviewed and version-controlled
           </li>
         </ul>
-      </div>
+      </AdminCard>
     </>
   );
 }

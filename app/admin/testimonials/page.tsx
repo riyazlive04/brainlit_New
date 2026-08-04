@@ -9,6 +9,15 @@ import {
   AdminSubmit,
   AdminTextarea,
 } from "@/components/admin/AdminForm";
+import {
+  AdminCard,
+  AdminEmpty,
+  AdminNotice,
+  AdminPageHeader,
+  AdminRecord,
+  AdminSectionHeading,
+} from "@/components/admin/AdminUI";
+
 
 export const metadata: Metadata = { title: "Testimonials" };
 export const dynamic = "force-dynamic";
@@ -29,23 +38,22 @@ export default async function TestimonialsPage() {
 
   return (
     <>
-      <h1 className="font-display text-[length:var(--text-h2)] text-ink">
-        Testimonials
-      </h1>
+      <AdminPageHeader
+        title="Testimonials"
+        description="Parents buy on trust from other parents, so this is one of the highest-value sections on the site — and the one where invented content would do the most damage."
+      />
 
-      <div className="mt-4 rounded-xl border border-spark-deep/40 bg-spark/15 p-4">
-        <p className="text-sm leading-relaxed text-ink">
-          <strong>Only publish what a parent has actually said</strong>, with
-          their permission. If you name the child, a consent reference is
-          required — the database will refuse to publish without one. Naming a
-          child publicly is processing a child&apos;s personal data under the
-          DPDP Act.
-        </p>
+      <div className="mt-6">
+        <AdminNotice tone="warn">
+          <strong>Only publish what a parent actually said</strong>, with their
+          permission. Naming a child requires a consent reference — the database
+          refuses to publish without one, because publishing a child&apos;s name
+          is processing their personal data under the DPDP Act.
+        </AdminNotice>
       </div>
 
-      <section className="mt-8 rounded-2xl border border-mist bg-white p-6">
-        <h2 className="font-display font-semibold text-ink">Add a testimonial</h2>
-        <form action={saveTestimonial} className="mt-5 grid gap-4 sm:grid-cols-2">
+      <AdminCard accent title="Add a testimonial" className="mt-6">
+        <form action={saveTestimonial} className="grid gap-4 sm:grid-cols-2">
           <AdminField label="Parent's name" name="parent_name" required />
           <AdminField label="City" name="city" placeholder="Chennai" />
           <AdminTextarea
@@ -72,39 +80,28 @@ export default async function TestimonialsPage() {
             <AdminSubmit>Add testimonial</AdminSubmit>
           </div>
         </form>
-      </section>
+      </AdminCard>
 
-      <h2 className="mt-10 font-display font-semibold text-ink">
-        All testimonials ({testimonials?.length ?? 0})
-      </h2>
+      <AdminSectionHeading count={testimonials?.length ?? 0}>
+        All testimonials
+      </AdminSectionHeading>
 
-      <div className="mt-4 space-y-4">
+      <div className="space-y-4">
         {testimonials?.length ? (
           testimonials.map((item) => (
-            <form
-              key={item.id}
-              action={saveTestimonial}
-              className="rounded-2xl border border-mist bg-white p-6"
-            >
+            <form key={item.id} action={saveTestimonial}>
               <input type="hidden" name="id" value={item.id} />
-
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <p className="font-medium text-ink">
-                  {item.parent_name}
-                  <span
-                    className={
-                      item.is_published
-                        ? "ml-2 rounded-full bg-mist px-2 py-0.5 text-xs text-ink"
-                        : "ml-2 rounded-full bg-mist/60 px-2 py-0.5 text-xs text-slate"
-                    }
-                  >
-                    {item.is_published ? "Published" : "Draft"}
-                  </span>
-                </p>
-                <AdminDelete id={item.id} action={deleteTestimonial} />
-              </div>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <AdminRecord
+                heading={item.parent_name}
+                meta={
+                  [item.city, item.child_first_name]
+                    .filter(Boolean)
+                    .join(" · ") || undefined
+                }
+                published={item.is_published}
+                actions={<AdminDelete id={item.id} action={deleteTestimonial} />}
+              >
+              <div className="grid gap-4 sm:grid-cols-2">
                 <AdminField label="Parent's name" name="parent_name" defaultValue={item.parent_name} required />
                 <AdminField label="City" name="city" defaultValue={item.city} />
                 <AdminTextarea label="What they said" name="quote" rows={3} defaultValue={item.quote} required className="sm:col-span-2" />
@@ -117,13 +114,14 @@ export default async function TestimonialsPage() {
                   <AdminSubmit>Save changes</AdminSubmit>
                 </div>
               </div>
+              </AdminRecord>
             </form>
           ))
         ) : (
-          <p className="rounded-2xl border border-mist bg-white px-6 py-8 text-[0.975rem] text-slate">
-            None yet. The testimonials section is hidden on the public site
-            until at least one is published.
-          </p>
+          <AdminEmpty
+            title="No testimonials yet"
+            description="The section stays hidden on the public site until one is live. An empty section costs a conversion; a fabricated one costs your credibility."
+          />
         )}
       </div>
     </>
