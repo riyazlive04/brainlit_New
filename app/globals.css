@@ -69,7 +69,18 @@ body {
   font-synthesis-weight: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+
+  /* `clip`, NOT `hidden`.
+   *
+   * `overflow-x: hidden` forces the browser to compute `overflow-y` as `auto`,
+   * which turns <body> into a scroll container. That breaks anything expecting
+   * the document to scroll: scroll-driven animations stop firing, and a
+   * smooth-scroll library driving window scroll silently does nothing — the
+   * page freezes with the wheel event already swallowed.
+   *
+   * `clip` prevents horizontal scrolling without creating a scroll container,
+   * which is what was actually wanted here. */
+  overflow-x: clip;
 }
 
 h1,

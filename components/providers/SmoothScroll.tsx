@@ -1,51 +1,33 @@
 "use client";
 
 import { useEffect } from "react";
-import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { scrollState } from "@/lib/scrollState";
-import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 
 /**
- * Smooth scrolling, plus the single ScrollTrigger that drives the 3D scene.
+ * Feeds native scroll position and pointer state to the 3D scene.
+ * Renders nothing.
  *
- * Lenis and ScrollTrigger both want to own the scroll position, so they are
- * explicitly married: Lenis is driven by GSAP's ticker (not its own rAF loop)
- * and reports every scroll to ScrollTrigger. Running two independent rAF loops
- * is the classic cause of jittery scroll-linked animation.
+ * THIS WAS SMOOTH SCROLLING VIA LENIS. That is gone, deliberately.
  *
- * Renders nothing — it exists for its effects.
+ * Lenis works by preventing the default wheel event and animating the scroll
+ * position itself. When anything upsets that — here, `overflow-x: hidden` on
+ * <body> quietly making body the scroll container instead of the document —
+ * the wheel event is still swallowed but nothing moves, and the page becomes
+ * completely unscrollable. A catastrophic failure mode in exchange for eased
+ * scrolling, on a site whose entire job is letting a parent read down a page.
+ *
+ * Scroll hijacking is also an accessibility problem in its own right: it
+ * overrides the scroll speed someone set at the OS level and interacts badly
+ * with assistive technology. And it cost ~15KB on the critical path.
+ *
+ * ScrollTrigger reads native scroll perfectly well, so the 3D beats are
+ * unaffected. Native scrolling cannot break.
  */
 export function SmoothScroll() {
-  const reducedMotion = useReducedMotion();
-
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-
-    // Momentum scrolling is exactly the kind of motion that triggers vestibular
-    // discomfort, so honour the preference by handing scrolling back to the
-    // browser. Scroll progress still tracks, so the scene still responds.
-    const lenis = reducedMotion
-      ? null
-      : new Lenis({
-          duration: 1.05,
-          // Touch devices already have native momentum; layering Lenis on top
-          // feels laggy and fights the OS.
-          syncTouch: false,
-        });
-
-    let tick: ((time: number) => void) | null = null;
-
-    if (lenis) {
-      lenis.on("scroll", ScrollTrigger.update);
-
-      tick = (time: number) => lenis.raf(time * 1000);
-      gsap.ticker.add(tick);
-      // GSAP's lag smoothing pauses the ticker after a long frame, which makes
-      // Lenis jump on scroll-heavy pages.
-      gsap.ticker.lagSmoothing(0);
-    }
 
     const zone = document.querySelector<HTMLElement>("[data-three-zone]");
     const trigger = zone
@@ -80,11 +62,8 @@ export function SmoothScroll() {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
       trigger?.kill();
-
-      if (tick) gsap.ticker.remove(tick);
-      lenis?.destroy();
     };
-  }, [reducedMotion]);
+  }, []);
 
   return null;
 }
