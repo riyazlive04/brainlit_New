@@ -104,12 +104,12 @@ export const PILLARS = [
   {
     key: "ethical-ai",
     title: "Ethical AI Usage",
-    blurb: "Know when to use AI — and when not to.",
+    blurb: "How to use AI responsibly and Ethically  with our data",
   },
   {
     key: "portfolio",
     title: "Portfolio Building",
-    blurb: "Leave school with work you can show.",
+    blurb: "Leave with a portfolio of your work and what you are capable of.",
   },
 ] as const;
 

@@ -74,7 +74,14 @@ export default function OpengraphImage() {
               maxWidth: 940,
             }}
           >
-            Teach your child to think before they use AI.
+            {/* Must match the homepage <h1>. This is the image WhatsApp and
+                Facebook show when the link is shared, and a share card that
+                says something different from the page is a jarring arrival. */}
+            {/* Literal capitals here, unlike the page, which does it in CSS.
+                Satori renders to a flat PNG — there is no text layer for a
+                screen reader or a search engine to misread, so the simpler
+                thing is also the correct one. */}
+            AI Literacy for NEXT GENERATION Thinkers and Leaders
           </div>
           <div
             style={{

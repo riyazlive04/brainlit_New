@@ -23,8 +23,9 @@ export function HeroCopy({ align = "center" }: { align?: "center" | "left" }) {
           centred ? "mx-auto max-w-4xl" : "max-w-2xl"
         }`}
       >
-        Teach your child to <span className="text-brand-gradient">think</span>{" "}
-        before they use AI.
+        AI Literacy for{" "}
+        <span className="tracking-normal uppercase">next generation</span>{" "}
+        <span className="text-brand-gradient">Thinkers and Leaders</span>
       </h1>
 
       <p

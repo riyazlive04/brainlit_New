@@ -80,9 +80,15 @@ export default function HomePage() {
             </p>
 
             <h1 className="mx-auto mt-6 max-w-4xl text-[length:var(--text-display)] text-ink">
-              Teach your child to{" "}
-              <span className="text-brand-gradient">think</span> before they use
-              AI.
+              {/* Capitalised with CSS, not by typing NEXT GENERATION into the
+                  DOM. Screen readers pronounce short all-caps strings as
+                  initialisms — "N-E-X-T" — and the text also stops matching a
+                  search for "next generation". Styling gets the look without
+                  either cost. `tracking-normal` cancels the -0.02em on h1,
+                  which reads as cramped once the letters are caps. */}
+              AI Literacy for{" "}
+              <span className="tracking-normal uppercase">next generation</span>{" "}
+              <span className="text-brand-gradient">Thinkers and Leaders</span>
             </h1>
 
             <p className="mx-auto mt-7 max-w-2xl text-[length:var(--text-lead)] leading-relaxed text-slate">
