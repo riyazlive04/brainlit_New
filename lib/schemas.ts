@@ -130,8 +130,28 @@ export type WebinarRegistrationInput = z.output<
   typeof webinarRegistrationSchema
 >;
 
-export const newsletterSchema = z.object({
-  email: z.email("Enter a valid email address").max(160),
-  /** Honeypot — see the note on `leadSchema.company`. */
-  company: z.string().max(200).optional(),
-});
+/**
+ * Newsletter signup.
+ *
+ * One field, on purpose. Every additional field on a subscribe form costs
+ * completions, and a newsletter has no use for a phone number.
+ *
+ * Note there is no `consent` boolean here, unlike `leadSchema`. Consent for a
+ * newsletter is the act of typing an address into a box labelled "newsletter"
+ * and pressing subscribe; the form states what will be sent and how to stop.
+ * A tick-box that is required to proceed adds friction without adding consent.
+ * The timestamp is recorded server-side — see 0005_newsletter.sql.
+ */
+export const newsletterSchema = z
+  .object({
+    email: z.email("Enter a valid email address").max(160),
+    source: z
+      .enum(["home", "footer", "resources", "blog", "webinar"])
+      .default("home"),
+    /** Honeypot — see the note on `leadSchema.company`. */
+    company: z.string().max(200).optional(),
+  })
+  .merge(utm.pick({ utm_source: true, utm_medium: true, utm_campaign: true }));
+
+export type NewsletterFormValues = z.input<typeof newsletterSchema>;
+export type NewsletterInput = z.output<typeof newsletterSchema>;

@@ -28,7 +28,7 @@ function resolveSiteUrl(): string {
   const deploymentHost = process.env.NEXT_PUBLIC_VERCEL_URL;
   if (deploymentHost) return `https://${deploymentHost}`;
 
-  return "http://localhost:3000";
+  return "http://localhost:3003";
 }
 
 /** True only when this deployment is serving the real customer-facing domain. */
@@ -112,6 +112,9 @@ export const PILLARS = [
     blurb: "Leave school with work you can show.",
   },
 ] as const;
+
+/** Drives the icon lookup in components/brand/PillarIcon.tsx. */
+export type PillarKey = (typeof PILLARS)[number]["key"];
 
 /**
  * WhatsApp deep link. Number is a placeholder until the client supplies the

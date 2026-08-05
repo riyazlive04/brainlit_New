@@ -12,7 +12,7 @@
  * mechanical mistakes, which is most of them.
  */
 
-const base = process.argv[2] ?? "http://localhost:3000";
+const base = process.argv[2] ?? "http://localhost:3003";
 
 const PAGES = [
   "/",
@@ -112,6 +112,13 @@ function audit(page, html, status) {
   for (const control of inputs) {
     const type = control.match(/type=["']([^"']+)["']/i)?.[1] ?? "text";
     if (["hidden", "submit", "button"].includes(type)) continue;
+
+    // Honeypots. `tabindex="-1"` takes the field out of the tab order and its
+    // wrapper is aria-hidden, so it is not in the accessibility tree at all —
+    // "unlabelled" cannot be a finding against something no assistive
+    // technology can reach. Labelling it would also be counterproductive: the
+    // whole point is that a human never encounters it and a bot does.
+    if (/tabindex=["']-1["']/i.test(control)) continue;
 
     const id = control.match(/\bid=["']([^"']+)["']/i)?.[1];
     const labelled =

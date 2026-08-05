@@ -41,6 +41,7 @@ export default async function CoursesPage() {
         eyebrow="Programs"
         title="Live online, small batches, and a project your child can defend."
         lead={`For ages ${SITE.ageRange.min}–${SITE.ageRange.max}. Every program teaches the same seven habits of mind — they differ in depth, not in philosophy.`}
+        breadcrumbs={[{ label: "Programs" }]}
       />
 
       <section className="py-20 sm:py-28">

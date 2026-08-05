@@ -231,6 +231,56 @@ p {
 }
 
 /* ---------------------------------------------------------------------------
+   Number count-up — CSS only, zero JavaScript.
+
+   A plain custom property is a string as far as the browser is concerned, so it
+   cannot be animated. @property declares this one as an integer, which makes it
+   interpolatable; the counter then prints it. Combined with a scroll timeline
+   this gives a count-up with no script, no observer and no hydration cost.
+
+   Everything about the fallback is deliberate. Where @property is unsupported
+   the `to` value still applies and the final number renders immediately; where
+   scroll-driven animation is unsupported, likewise. A statistic must never be
+   able to end up stuck at a wrong number because a feature was missing — and
+   the real value is also present as visually-hidden text beside it.
+--------------------------------------------------------------------------- */
+@property --tally-now {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes tally-up {
+  from {
+    --tally-now: 0;
+  }
+  to {
+    --tally-now: var(--tally-to);
+  }
+}
+
+@utility tally {
+  /* Fallback and end state both land on the real number. */
+  --tally-now: var(--tally-to);
+  counter-reset: tally var(--tally-now);
+  font-variant-numeric: tabular-nums;
+
+  &::after {
+    content: counter(tally);
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: tally-up linear both;
+      animation-timeline: view();
+      /* Finishes well before the element leaves — a number still counting as
+         it scrolls off is a number nobody read. */
+      animation-range: entry 15% cover 35%;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Success confirmation
 
    Sequenced rather than simultaneous. Everything arriving at once reads as a

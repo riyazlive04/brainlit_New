@@ -27,7 +27,7 @@ Production domain: **brainlit.in**
 ```bash
 cp .env.example .env.local   # then fill in the values
 npm install
-npm run dev                  # http://localhost:3000
+npm run dev                  # http://localhost:3003
 ```
 
 `npm run build` typechecks as part of the build — run it, plus `npx eslint .`,

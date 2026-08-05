@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import { Container } from "@/components/ui/Container";
 import { BackLink } from "@/components/ui/BackLink";
+import { Breadcrumbs, type Crumb } from "@/components/seo/Breadcrumbs";
 
 type PageHeaderProps = {
   eyebrow?: string;
@@ -12,6 +13,11 @@ type PageHeaderProps = {
   backLabel?: string;
   /** Set false to hide the back control entirely. */
   showBack?: boolean;
+  /**
+   * Trail after "Home". Supplying it adds a visible breadcrumb and emits
+   * BreadcrumbList structured data; omit it and neither appears.
+   */
+  breadcrumbs?: Crumb[];
 };
 
 /**
@@ -28,13 +34,17 @@ export function PageHeader({
   backHref = "/",
   backLabel = "Back",
   showBack = true,
+  breadcrumbs,
 }: PageHeaderProps) {
   return (
     <section className="border-b border-mist bg-mist/20 pt-[calc(var(--header-h)+2rem)] pb-14 sm:pt-[calc(var(--header-h)+3.5rem)] sm:pb-20">
       <Container size="default">
-        {showBack && (
-          <div className="mb-8">
-            <BackLink fallbackHref={backHref} label={backLabel} />
+        {(showBack || breadcrumbs) && (
+          <div className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-3">
+            {showBack && (
+              <BackLink fallbackHref={backHref} label={backLabel} />
+            )}
+            {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
           </div>
         )}
 

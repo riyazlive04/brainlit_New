@@ -94,6 +94,10 @@ export default async function CourseDetailPage({
         lead={course.summary ?? undefined}
         backHref="/courses"
         backLabel="All programmes"
+        breadcrumbs={[
+          { label: "Programs", href: "/courses" },
+          { label: course.title },
+        ]}
       >
         <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <Button href="/webinar" variant="spark" size="lg">

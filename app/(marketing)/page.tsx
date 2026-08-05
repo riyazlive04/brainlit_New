@@ -2,12 +2,26 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
+import { PillarIcon } from "@/components/brand/PillarIcon";
 import { SceneMount } from "@/components/three/SceneMount";
 import { StickyCta } from "@/components/layout/StickyCta";
+import { WhyNow } from "@/components/sections/WhyNow";
+import { Comparison } from "@/components/sections/Comparison";
+import { Transformation } from "@/components/sections/Transformation";
+import { Curriculum } from "@/components/sections/Curriculum";
 import { HowItWorks } from "@/components/sections/HowItWorks";
+import { Journey } from "@/components/sections/Journey";
+import { ThinkingDemo } from "@/components/sections/ThinkingDemo";
+import { ProofStats } from "@/components/sections/ProofStats";
 import { StudentProjects } from "@/components/sections/StudentProjects";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Founder } from "@/components/sections/Founder";
+import { WebinarValue } from "@/components/sections/WebinarValue";
+import { Pricing } from "@/components/sections/Pricing";
+import { Library } from "@/components/sections/Library";
+import { Resources } from "@/components/sections/Resources";
+import { Community } from "@/components/sections/Community";
+import { TrustMarks } from "@/components/sections/TrustMarks";
 import { FaqPreview } from "@/components/sections/FaqPreview";
 import { FinalCta } from "@/components/sections/FinalCta";
 import { PILLARS, SITE } from "@/lib/site";
@@ -30,10 +44,27 @@ export const metadata: Metadata = {
  * Layout is centred: copy sits in the middle of the viewport with the mark
  * centred behind it. Chosen by the client over the offset "aside" arrangement.
  *
- * The known trade is that copy and particles share pixels on the second and
- * third screens. If that becomes a readability problem in testing, the fix that
- * preserves this layout is a scrim behind the text blocks (see /lab/scrim)
- * rather than moving the mark.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ORDER IS THE ARGUMENT
+ *
+ * The sections below are sequenced as one continuous case, not grouped by type.
+ * Read top to bottom it goes: something changed → here is what changed → we are
+ * not what you think we are → here is what we do instead → here is the proof →
+ * here is who we are → here is what it costs → here is the easy first step.
+ *
+ * Two rules held while assembling it:
+ *   1. Every claim is followed by the evidence for it, not three screens later.
+ *      Transformation sits next to Curriculum; ProofStats sits next to
+ *      Testimonials and StudentProjects.
+ *   2. Nothing asks for money or an email before it has given something. The
+ *      interactive demo comes before Pricing; the free guides come before the
+ *      final CTA.
+ *
+ * Sections whose content has not been supplied render nothing — ProofStats,
+ * StudentProjects, Testimonials, Library, Community, TrustMarks. The live page
+ * is therefore shorter than this file suggests, and gets longer as real
+ * material arrives rather than shipping placeholders. See content/home.ts.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 export default function HomePage() {
   return (
@@ -114,6 +145,9 @@ export default function HomePage() {
         </section>
       </div>
 
+      {/* ── The case ─────────────────────────────────────────────────────── */}
+      <WhyNow />
+
       {/* --------------------------------------------------------- Positioning */}
       <section className="relative z-10 bg-paper py-24 sm:py-32">
         <Container size="narrow" className="text-center">
@@ -130,6 +164,8 @@ export default function HomePage() {
           </Reveal>
         </Container>
       </section>
+
+      <Comparison />
 
       {/* ------------------------------------------------------------- Pillars */}
       <section className="relative z-10 bg-paper pb-24 sm:pb-32">
@@ -149,9 +185,9 @@ export default function HomePage() {
               <Reveal as="li" key={pillar.key} delay={i * 60} className="flex gap-4">
                 <span
                   aria-hidden="true"
-                  className="mt-1 grid size-9 shrink-0 place-items-center rounded-full bg-brand-gradient font-display text-sm font-semibold text-white"
+                  className="mt-0.5 grid size-11 shrink-0 place-items-center rounded-2xl bg-mist/60 text-indigo"
                 >
-                  {i + 1}
+                  <PillarIcon pillar={pillar.key} className="size-[1.35rem]" />
                 </span>
                 <div>
                   <h3 className="text-[length:var(--text-h3)] text-ink">
@@ -167,10 +203,30 @@ export default function HomePage() {
         </Container>
       </section>
 
+      {/* ── What actually happens ────────────────────────────────────────── */}
+      <Transformation />
+      <Curriculum />
       <HowItWorks />
+      <Journey />
+
+      {/* ── Proof ───────────────────────────────────────────────────────── */}
+      <ThinkingDemo />
+      <ProofStats />
       <StudentProjects />
       <Testimonials />
       <Founder />
+
+      {/* ── The offer ───────────────────────────────────────────────────── */}
+      <WebinarValue />
+      <Pricing />
+
+      {/* ── Reasons to stay in touch ────────────────────────────────────── */}
+      <Library />
+      <Resources />
+      <Community />
+      <TrustMarks />
+
+      {/* ── Close ───────────────────────────────────────────────────────── */}
       <FaqPreview />
       <FinalCta />
 

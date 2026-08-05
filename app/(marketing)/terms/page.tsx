@@ -25,6 +25,7 @@ export default function TermsPage() {
         eyebrow="Legal"
         title="Terms & Conditions"
         lead="The agreement between you and us. Written to be read, not to be survived."
+        breadcrumbs={[{ label: "Terms & Conditions" }]}
       />
 
       <section className="py-16 sm:py-24">

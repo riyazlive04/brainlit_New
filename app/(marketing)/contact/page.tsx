@@ -21,6 +21,7 @@ export default function ContactPage() {
         eyebrow="Contact"
         title="Ask us anything."
         lead="Especially the sceptical questions. Those are usually the ones worth answering."
+        breadcrumbs={[{ label: "Contact" }]}
       />
 
       <section className="py-20 sm:py-28">

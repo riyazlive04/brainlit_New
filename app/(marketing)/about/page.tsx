@@ -25,6 +25,7 @@ export default function AboutPage() {
           </>
         }
         lead="We are trying to make them harder to replace. Those are different goals, and almost everyone is chasing the first one."
+        breadcrumbs={[{ label: "About" }]}
       />
 
       <section className="py-20 sm:py-28">

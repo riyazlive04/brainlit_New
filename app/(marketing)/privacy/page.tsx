@@ -28,6 +28,7 @@ export default function PrivacyPage() {
         eyebrow="Legal"
         title="Privacy Policy"
         lead={`How we handle your information — and, more importantly, how little we hold about your child.`}
+        breadcrumbs={[{ label: "Privacy Policy" }]}
       />
 
       <section className="py-16 sm:py-24">

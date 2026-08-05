@@ -33,6 +33,7 @@ export default function RefundPage() {
         eyebrow="Legal"
         title="Refund Policy"
         lead="What happens if a program is not right for your child."
+        breadcrumbs={[{ label: "Refund Policy" }]}
       />
 
       <section className="py-16 sm:py-24">

@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
-import { FAQS } from "@/content/home";
+import { FAQS, HOMEPAGE_FAQS } from "@/content/home";
+
+/**
+ * Structured data must describe what is actually on the page — Google treats
+ * FAQPage markup listing questions the visitor cannot see as a violation. So
+ * the homepage marks up only the six it renders; /faq marks up all of them.
+ */
+
 
 /**
  * FAQ preview.
@@ -18,7 +25,7 @@ export function FaqPreview() {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: FAQS.map((faq) => ({
+    mainEntity: HOMEPAGE_FAQS.map((faq) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: { "@type": "Answer", text: faq.answer },
@@ -45,7 +52,7 @@ export function FaqPreview() {
         </Reveal>
 
         <div className="mt-12 divide-y divide-mist border-y border-mist">
-          {FAQS.map((faq, i) => (
+          {HOMEPAGE_FAQS.map((faq, i) => (
             <Reveal key={faq.question} delay={i * 60}>
               <details className="group py-5">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-6 font-display text-[1.0625rem] font-semibold text-ink marker:hidden [&::-webkit-details-marker]:hidden">
@@ -80,7 +87,7 @@ export function FaqPreview() {
             href="/faq"
             className="font-display text-[0.975rem] font-semibold text-violet hover:underline"
           >
-            Read all questions →
+            Read all {FAQS.length} questions →
           </Link>
         </Reveal>
       </Container>
