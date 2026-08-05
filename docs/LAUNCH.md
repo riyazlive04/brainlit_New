@@ -87,6 +87,43 @@ Meta rejects education and lead-gen ad accounts without these live.
 
 ## 4. Deploy
 
+### Where it is now
+
+- [x] Deployed as a **separate** Vercel project, `brainlit-2026`, at
+      **https://brainlit-2026.vercel.app**
+- [x] `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` set
+- [x] Crawling blocked and canonicals self-referencing on every non-production
+      host, so this copy cannot compete with the live site in search
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` — **deliberately not set.** Until it is,
+      every registration returns an honest 503 with the WhatsApp fallback
+      rather than a compromised key sitting in production.
+
+**The existing site is untouched.** `brain-lit-webinar-09-may` still serves
+https://www.brainlit.in. Nothing a real visitor sees has changed.
+
+### Going live on brainlit.in
+
+Do these together, not piecemeal — the domain and the flags have to move at the
+same time or the live site briefly serves draft legal pages, or serves correct
+pages that tell Google not to index them.
+
+1. Everything in sections 1–3 above is done, especially the legal review
+2. `IS_DRAFT = false` in `lib/legal.ts`, and set `EFFECTIVE_DATE`
+3. Add `NEXT_PUBLIC_SITE_URL=https://brainlit.in` in Vercel
+4. Deploy, and check `/robots.txt` now allows crawling and `/sitemap.xml`
+   lists brainlit.in URLs
+5. Move the domain from `brain-lit-webinar-09-may` to `brainlit-2026` in the
+   Vercel dashboard
+6. Keep the old project for a week as a rollback, then remove it
+7. Resubmit the sitemap in Google Search Console
+
+### Redeploying
+
+`vercel deploy --prod` from the project root. The repo is not connected to
+GitHub, so **deploys are manual and come from this machine** — worth fixing
+before anyone else needs to ship.
+
+
 - [ ] Vercel project connected to the repo
 - [ ] All environment variables set in Vercel (not just `.env.local`)
 - [ ] `NEXT_PUBLIC_SITE_URL=https://brainlit.in`
