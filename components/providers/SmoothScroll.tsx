@@ -29,17 +29,29 @@ export function SmoothScroll() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const zone = document.querySelector<HTMLElement>("[data-three-zone]");
-    const trigger = zone
-      ? ScrollTrigger.create({
-          trigger: zone,
+    // Two zones, at most one of which exists on any given route: the hero
+    // cinematic on the homepage, and the older logo composition still used by
+    // the /lab/* layout explorations.
+    const zones: Array<[string, "progress" | "cinematic"]> = [
+      ["[data-three-zone]", "progress"],
+      ["[data-cinematic]", "cinematic"],
+    ];
+
+    const triggers = zones.flatMap(([selector, key]) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (!element) return [];
+
+      return [
+        ScrollTrigger.create({
+          trigger: element,
           start: "top top",
           end: "bottom bottom",
           onUpdate: (self) => {
-            scrollState.progress = self.progress;
+            scrollState[key] = self.progress;
           },
-        })
-      : null;
+        }),
+      ];
+    });
 
     const onPointerMove = (e: PointerEvent) => {
       scrollState.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
@@ -61,7 +73,7 @@ export function SmoothScroll() {
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
-      trigger?.kill();
+      triggers.forEach((trigger) => trigger.kill());
     };
   }, []);
 

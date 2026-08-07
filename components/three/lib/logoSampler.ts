@@ -38,9 +38,26 @@ const WORLD_WIDTH = 3.1;
  * channel to a power deepens the light channels more than the dark ones, which
  * darkens while *increasing* saturation, so the hues stay recognisably the
  * brand.
+ *
+ * Tuning history — raise GAMMA first, and only then trim SCALE:
+ *   1.7 / 0.95   still read as pale against white at this dot density
+ *   2.4 / 0.84   darker, still not enough
+ *   3.1 / 0.78   current
+ *
+ * GAMMA is the knob that darkens without dulling. SCALE is a flat multiply and
+ * behaves exactly like the one rejected above, so it is kept close to 1 and
+ * used only to take the last of the brightness off the very lightest pixels.
+ * Push SCALE much below ~0.75 and the rays go muddy.
+ *
+ * COLOUR IS ONLY HALF OF THIS. The mark is dots on white, so most of its area
+ * is page showing through the gaps — even pure black dots at this density read
+ * as grey. The other half of "darker" is coverage, which lives in the size
+ * calculation in shaders/brain.ts. Change both together or you will keep
+ * pushing gamma until the light end crushes to black and the logo loses its
+ * hemispheres.
  */
-const LOGO_GAMMA = 1.7;
-const LOGO_SCALE = 0.95;
+const LOGO_GAMMA = 3.1;
+const LOGO_SCALE = 0.78;
 
 /**
  * A single muted periwinkle for every field dot — a desaturated point on the
@@ -186,12 +203,43 @@ function buildFieldPositions(
   return points;
 }
 
+export type SampleOptions = {
+  /**
+   * Share of the budget spent on the background lattice.
+   *
+   * Zero gives a logo-only cloud. The cinematic's closing shot needs exactly
+   * that: the mark assembles in mid-air out of the embers of a burning paper
+   * rocket, and a rectangular grid of background dots hanging in the sky behind
+   * it would be nonsense. The `/lab/*` compositions still want the default.
+   */
+  ambientShare?: number;
+  /**
+   * Where unformed particles start.
+   *
+   * `shell` is the original: a wide sphere the mark condenses out of, for the
+   * old hero's "scattered thought gathers" reading.
+   *
+   * `ember` is tight and hot — a small cluster at the origin, as though the
+   * particles were just thrown off something that burned. It is what makes the
+   * handover from the rocket read as a transformation rather than a crossfade.
+   */
+  scatter?: "shell" | "ember";
+  url?: string;
+  seed?: number;
+};
+
 export async function sampleLogoCloud(
   count: number,
   pattern: FieldPattern = "stagger",
-  url = "/brainlit-mark.svg",
-  seed = 0x8a17,
+  options: SampleOptions = {},
 ): Promise<LogoCloud> {
+  const {
+    ambientShare = AMBIENT_SHARE,
+    scatter: scatterMode = "shell",
+    url = "/brainlit-mark.svg",
+    seed = 0x8a17,
+  } = options;
+
   const pixels = await rasterise(url);
   const data = pixels.data;
 
@@ -209,15 +257,15 @@ export async function sampleLogoCloud(
 
   const rand = mulberry32(seed);
 
-  const logoCount = count - Math.round(count * AMBIENT_SHARE);
+  const logoCount = count - Math.round(count * ambientShare);
 
   // The field is laid out before allocating, because a regular pattern yields
   // whatever count its geometry produces — rings especially. Sizing the buffers
   // to the real total beats trimming the pattern to hit a round number.
-  const fieldPositions = buildFieldPositions(
-    Math.round(count * AMBIENT_SHARE),
-    pattern,
-  );
+  const fieldPositions =
+    ambientShare > 0
+      ? buildFieldPositions(Math.round(count * ambientShare), pattern)
+      : [];
   const total = logoCount + fieldPositions.length;
 
   const target = new Float32Array(total * 3);
@@ -259,14 +307,27 @@ export async function sampleLogoCloud(
     color[i3 + 1] = deepen(data[o + 1] / 255, LOGO_GAMMA, LOGO_SCALE);
     color[i3 + 2] = deepen(data[o + 2] / 255, LOGO_GAMMA, LOGO_SCALE);
 
-    // Scattered start: a loose shell, biased outward so convergence reads as
-    // "gathering in" rather than "expanding out".
+    // Unformed start. Direction is uniform on the sphere either way; only the
+    // radius differs, and it is the radius that carries the meaning.
     const theta = rand() * Math.PI * 2;
     const phi = Math.acos(rand() * 2 - 1);
-    const radius = 2.4 + rand() * 2.2;
-    scatter[i3] = Math.sin(phi) * Math.cos(theta) * radius;
-    scatter[i3 + 1] = Math.sin(phi) * Math.sin(theta) * radius * 0.7;
-    scatter[i3 + 2] = Math.cos(phi) * radius * 0.5;
+
+    if (scatterMode === "ember") {
+      // Tight and hot. Cubed so the distribution crowds toward the centre —
+      // sparks off a burning object are dense at the source and sparse at the
+      // edges, and a uniform shell reads as a decorative ring instead.
+      const radius = 0.06 + rand() ** 3 * 0.5;
+      scatter[i3] = Math.sin(phi) * Math.cos(theta) * radius;
+      scatter[i3 + 1] = Math.sin(phi) * Math.sin(theta) * radius;
+      scatter[i3 + 2] = Math.cos(phi) * radius;
+    } else {
+      // A loose shell, biased outward so convergence reads as "gathering in"
+      // rather than "expanding out".
+      const radius = 2.4 + rand() * 2.2;
+      scatter[i3] = Math.sin(phi) * Math.cos(theta) * radius;
+      scatter[i3 + 1] = Math.sin(phi) * Math.sin(theta) * radius * 0.7;
+      scatter[i3 + 2] = Math.cos(phi) * radius * 0.5;
+    }
 
     // The centre column (fissure) and everything below the brain must hold
     // still while the hemispheres part, or the mark tears apart.

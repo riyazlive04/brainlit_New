@@ -132,7 +132,18 @@ export const brainVertexShader = /* glsl */ `
     // as a cloud of thought. Field dots are all EXACTLY the same size — varying
     // them is the single strongest cue that a pattern is accidental rather than
     // drawn.
-    float sizeVariation = mix(0.8 + s * 0.45, 1.2, aAmbient);
+    //
+    // NOTE: this whole shader is a JS template literal, so a backtick anywhere
+    // in these comments terminates the string and the file stops parsing.
+    // Quote GLSL in comments with plain text, never with backticks.
+    //
+    // The logo term was raised from 0.8 + s * 0.45 to darken the mark: on a
+    // white page the mark is mostly gaps, so coverage does as much work as
+    // colour does. Roughly a third more diameter is about 70% more area per
+    // dot. The AMBIENT term is deliberately untouched — the background lattice
+    // was tuned separately and enlarging it brings back the dust it took
+    // several attempts to get rid of.
+    float sizeVariation = mix(1.05 + s * 0.5, 1.2, aAmbient);
     float size = uSize * sizeVariation;
     size *= mix(0.7, 1.0, form);
     size += aIgnite * uIgnite * uSize * 0.35;

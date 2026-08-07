@@ -9,6 +9,19 @@
 export const scrollState = {
   /** 0..1 across the 3D zone of the page */
   progress: 0,
+  /**
+   * 0..1 across the hero cinematic zone.
+   *
+   * Separate from `progress` rather than replacing it: the two zones are
+   * different elements with different heights, and `/lab/*` still drives the old
+   * logo composition from `progress`. Both are written by the same effect and
+   * only one of them is ever non-zero on a given route.
+   *
+   * This is the ONLY input to the cinematic. Everything the camera, the boy, the
+   * rocket and the mark do is computed from this number — see the note in
+   * components/three/lib/shots.ts for why nothing there may use a clock.
+   */
+  cinematic: 0,
   /** Cursor position, normalised to -1..1 from the viewport centre */
   pointerX: 0,
   pointerY: 0,

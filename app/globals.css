@@ -231,6 +231,35 @@ p {
 }
 
 /* ---------------------------------------------------------------------------
+   Text scrim — legibility where copy sits over the particle field.
+
+   The 3D mark is centred and fixed, so on the philosophy screen the headline
+   crosses the densest part of the dot cloud. Darkening the mark (which the
+   brand wanted) made that collision worse: dark type over dark dots.
+
+   Three fixes were possible — move the mark, fade the mark, or lift the text.
+   Moving it loses the centred composition the client chose. Fading it undoes
+   the darkening that was just asked for. So the text gets lifted instead.
+
+   A soft radial of the page's own white, with no hard edge anywhere. Over bare
+   background it is invisible; over dots it thins them just enough for type to
+   sit clear. Sized in percentages so it tracks the text block rather than
+   needing a magic pixel value per breakpoint.
+--------------------------------------------------------------------------- */
+@utility text-scrim {
+  position: absolute;
+  inset: -14% -10%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    var(--color-paper) 0%,
+    color-mix(in oklab, var(--color-paper) 88%, transparent) 42%,
+    color-mix(in oklab, var(--color-paper) 55%, transparent) 66%,
+    transparent 82%
+  );
+}
+
+/* ---------------------------------------------------------------------------
    Number count-up — CSS only, zero JavaScript.
 
    A plain custom property is a string as far as the browser is concerned, so it

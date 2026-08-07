@@ -265,17 +265,108 @@ export const PROOF_STATS: ProofStat[] = [
 export const FOUNDER = {
   name: "Haja Najmudeen",
   role: "Founder & CEO",
-  // Written from the mission in the discovery document. Replace with the
-  // founder's own words before launch.
-  quote:
-    "AI will handle the routine. What it cannot replace is a child who knows how to think, question, create and solve a problem worth solving. That is the whole reason BrainLIT exists.",
-  /** Long-form, first person. Paragraphs, in order. */
-  story: [] as string[],
-  /** Short, factual. e.g. "15 years in education" — verifiable claims only. */
-  credentials: [] as string[],
+
+  eyebrow: "Meet the founder",
+  heading: "Helping children think in the age of AI.",
+
+  /**
+   * The pull quote. Supplied by the founder and left exactly as written — it is
+   * the sharpest line on the page and any editing would only blunt it.
+   */
+  quote: "Technology changes fast. Thinking lasts forever.",
+
+  /**
+   * Long-form, first person, in the founder's own words. Paragraphs in order.
+   * The pull quote above is lifted out of the middle of this, so it is not
+   * repeated in the prose.
+   */
+  story: [
+    "Hi, I'm Haja Najmudeen, Founder of BrainLIT.",
+    "I'm an Electronics & Communication Engineer and a lifelong technology enthusiast. Over the years I've worked in technology, in software testing, and built several businesses. Through every one of those experiences I kept arriving at the same lesson.",
+    "When AI became part of everyday life, I noticed something worrying. Children were learning how to get answers from AI — but very few were learning how to ask better questions, think critically, verify what they were told, solve real problems, or explain their own ideas with confidence.",
+    "That is why I started BrainLIT. Not to teach children another AI tool, but to teach them how to think with AI instead of depending on it.",
+  ] as string[],
+
+  /**
+   * The founder's own framing of what a session develops.
+   *
+   * Verb-led on purpose — these are things a child does, where the seven
+   * pillars higher up the page are things we build. The overlap is deliberate
+   * and it reads as conviction rather than repetition because it arrives in his
+   * voice, in the middle of a personal story.
+   */
+  mission: [
+    "Ask powerful questions",
+    "Think logically",
+    "Research deeply",
+    "Solve meaningful problems",
+    "Build real projects",
+    "Present ideas with confidence",
+    "Use AI responsibly and ethically",
+  ] as string[],
+
+  /** Closes the section. First person, and deliberately a promise, not a claim. */
+  promise: {
+    heading: "My promise to every parent",
+    body: [
+      "I don't want children to become dependent on AI. I want them to become the kind of thinkers who can lead it.",
+      "In the future, AI won't replace children. But children who know how to think, create and lead with AI will stand out. That is the future we're building at BrainLIT.",
+    ] as string[],
+  },
+
+  /** Short, factual. Verifiable claims only. */
+  credentials: [
+    "Electronics & Communication Engineer",
+    "Background in technology and software testing",
+    "Founder of several businesses",
+  ] as string[],
   bio: null as string | null,
-  photoUrl: null as string | null,
+  /** 1254×1254. Cropped to 4:5 by the section, so keep the face off-centre-high. */
+  photoUrl: "/founder.jpg" as string | null,
 };
+
+/* ═══════════════════════════════════════════════════════════════ Hero ══ */
+
+/**
+ * The hero artwork, beside the headline on the first screen.
+ *
+ * Cropped from the client's `image.png`, which arrived as a partial export with
+ * half-words orphaned along the left and bottom edges. The top band was removed
+ * as well — it repeated the same "AI Literacy for the next generation of
+ * Thinkers & Leaders" line as the <h1> directly beside it, and text baked into
+ * an image is unselectable, untranslatable, invisible to search and does not
+ * reflow on a phone.
+ *
+ * NEEDS INPUT: the full-resolution original. At 477px wide this is upscaled in
+ * the hero column on any large screen and will look soft — and the hero is the
+ * one image on the site that every visitor sees.
+ *
+ * The alt text describes the illustration rather than asserting these are
+ * BrainLIT students. The figures are AI-generated, which is why no DPDP consent
+ * question arises, and equally why nothing may present them as a real class.
+ */
+export const HERO = {
+  photo: {
+    src: "/programme.png",
+    width: 477,
+    height: 582,
+    alt: "Illustration of a class working with AI: one student questioning an AI assistant, another writing by hand, and a third presenting a real-world case study on plastic waste.",
+  },
+} as const;
+
+/*
+ * The "At a glance" panel was removed at the client's request.
+ *
+ * It was built to hold a photograph beside the programme facts. The artwork
+ * then went to the hero instead — the right call — which left the panel with a
+ * placeholder drawing and two facts (ages, format) that a parent had already
+ * read in the hero strapline two screens earlier. It was not earning its place.
+ *
+ * If it comes back, what would make it worth having is the facts that are still
+ * missing: batch size, session length, number of weeks. Those are the numbers a
+ * parent comparing two academies actually scans for, and nothing else on the
+ * page states them.
+ */
 
 /* ═════════════════════════════════════════════ Interactive demo ══ */
 

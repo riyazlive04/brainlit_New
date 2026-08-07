@@ -3,7 +3,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { PillarIcon } from "@/components/brand/PillarIcon";
-import { SceneMount } from "@/components/three/SceneMount";
+import { CinematicMount } from "@/components/three/CinematicMount";
 import { StickyCta } from "@/components/layout/StickyCta";
 import { WhyNow } from "@/components/sections/WhyNow";
 import { Comparison } from "@/components/sections/Comparison";
@@ -37,12 +37,34 @@ export const metadata: Metadata = {
 /**
  * Homepage.
  *
- * The 3D zone spans the first three screens. One fixed canvas sits behind them
- * at z-0 while the copy rides above at z-10; those sections stay transparent so
- * the scene shows through, and everything after is opaque white.
+ * The cinematic zone spans the first three and a half screens. One fixed canvas
+ * sits behind them at z-0 while the copy rides above at z-10; those sections
+ * stay transparent so the scene shows through, and everything after is opaque
+ * white, which is what hides the canvas for the rest of the page.
  *
- * Layout is centred: copy sits in the middle of the viewport with the mark
- * centred behind it. Chosen by the client over the offset "aside" arrangement.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE HERO IS A FILM, AND THE COPY IS NOT WAITING FOR IT
+ *
+ * Five shots play across this zone as the visitor scrolls: a boy throws a paper
+ * rocket, the camera moves to his eyeline, the rocket burns, and the embers
+ * become the BrainLIT mark. See components/three/lib/shots.ts.
+ *
+ * The client's brief said the site content should "pop up" once the sequence
+ * lands. It does — but the HERO is not part of what waits. Headline, lead, both
+ * CTAs and the trust facts are all painted in the first viewport, before a
+ * single frame of 3D has loaded, for two reasons that are not negotiable:
+ *
+ *   1. The lead paragraph is the LCP element. It is server-rendered text and it
+ *      must stay that way. See the note in components/three/CinematicMount.tsx
+ *      for what happened the last time 3D got in front of it.
+ *   2. A large share of traffic arrives from an ad, on a phone, intending to
+ *      book the webinar. Making that person scroll three screens of film before
+ *      they can find a button is a conversion decision, not a design one.
+ *
+ * What arrives on the mark instead is the philosophy screen at the end of the
+ * zone — the line the whole sequence has been building toward. That is the
+ * "pop", and it lands on the one screen where it means something.
+ * ─────────────────────────────────────────────────────────────────────────────
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * ORDER IS THE ARGUMENT
@@ -69,84 +91,148 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <div data-three-zone className="relative">
-        <SceneMount />
+      <div data-cinematic className="relative">
+        <CinematicMount />
 
-        {/* ------------------------------------------------------------- Hero */}
+        {/* ------------------------------------------------- Shot 1 · the boy
+            The hero copy, and the first frame of the film behind it.
+
+            One column, capped and left-aligned from lg, deliberately leaving
+            the right half of a desktop viewport empty. That empty half is the
+            composition — it is where the boy stands and where the rocket has
+            room to climb. The camera rig frames it explicitly; see the
+            `narrow` handling in components/three/Cinematic.tsx for how it
+            collapses on a phone, where he moves below the copy instead.
+
+            The static artwork that used to occupy this space is gone. Two
+            depictions of children on one screen, one of them animated, is one
+            too many.
+
+            `min-h` rather than `h`, because the stacked layout is taller than
+            a small phone viewport and must be allowed to grow. */}
         <section className="relative z-10 flex min-h-[100svh] items-center">
-          <Container className="py-32 text-center">
-            <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
-              AI Thinking Academy · Ages {SITE.ageRange.min}–{SITE.ageRange.max}
-            </p>
+          <Container size="wide" className="py-20 sm:py-24">
+            <div className="lg:max-w-[36rem] xl:max-w-[40rem]">
+              <div className="text-center lg:text-left">
+                <p className="font-display text-xs font-semibold tracking-[0.22em] text-violet uppercase sm:text-sm">
+                  AI Thinking Academy · Ages {SITE.ageRange.min}–
+                  {SITE.ageRange.max}
+                </p>
 
-            <h1 className="mx-auto mt-6 max-w-4xl text-[length:var(--text-display)] text-ink">
-              {/* Capitalised with CSS, not by typing NEXT GENERATION into the
-                  DOM. Screen readers pronounce short all-caps strings as
-                  initialisms — "N-E-X-T" — and the text also stops matching a
-                  search for "next generation". Styling gets the look without
-                  either cost. `tracking-normal` cancels the -0.02em on h1,
-                  which reads as cramped once the letters are caps. */}
-              AI Literacy for{" "}
-              <span className="tracking-normal uppercase">next generation</span>{" "}
-              <span className="text-brand-gradient">Thinkers and Leaders</span>
-            </h1>
+                {/* Smaller than --text-display, which is sized for a headline
+                    spanning the full page. In a column it would wrap to six
+                    lines and swamp the CTAs. */}
+                <h1 className="mt-4 text-[clamp(2.35rem,4.5vw,3.5rem)] text-ink">
+                  AI Literacy for{" "}
+                  {/* Capitalised with CSS, not by typing NEXT GENERATION into
+                      the DOM. Screen readers pronounce short all-caps strings
+                      as initialisms — "N-E-X-T" — and the text also stops
+                      matching a search for "next generation". Styling gets the
+                      look without either cost.
 
-            <p className="mx-auto mt-7 max-w-2xl text-[length:var(--text-lead)] leading-relaxed text-slate">
-              AI can already do the homework. It cannot do the thinking.
-              BrainLIT builds the one thing that stays valuable — a child who
-              can question, create and solve.
-            </p>
+                      `whitespace-nowrap` because the line was breaking after
+                      "NEXT", splitting the phrase across two lines; and
+                      `tracking-normal` cancels the -0.02em on h1, which reads
+                      as cramped once the letters are caps. */}
+                  <span className="tracking-normal whitespace-nowrap uppercase">
+                    next generation
+                  </span>{" "}
+                  <span className="text-brand-gradient">
+                    Thinkers and Leaders
+                  </span>
+                </h1>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button href="/webinar" variant="spark" size="lg">
-                Join the free webinar
-              </Button>
-              <Button href="/courses" variant="outline" size="lg">
-                Explore programs
-              </Button>
+                {/* Capped near 50 characters a line. Left at max-w-2xl the
+                    measure runs long enough to hurt readability at this size —
+                    but too narrow and it stacks into five airy lines, which is
+                    what made the block read as loose. `leading-[1.55]` for the
+                    same reason: --text-lead is already large, and 1.625 on top
+                    of it opens gaps the eye reads as unfinished. */}
+                <p className="mx-auto mt-6 max-w-[36rem] text-[length:var(--text-lead)] leading-[1.55] text-slate lg:mx-0">
+                  AI can already do the homework. It cannot do the thinking.
+                  BrainLIT builds the one thing that stays valuable — a child
+                  who can question, create and solve.
+                </p>
+
+                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+                  <Button href="/webinar" variant="spark" size="lg">
+                    Join the free webinar
+                  </Button>
+                  <Button href="/courses" variant="outline" size="lg">
+                    Explore programs
+                  </Button>
+                </div>
+
+                {/* Three separate facts, so three list items with drawn
+                    separators — not one string with "·" typed into it. The
+                    dividers are decorative and a screen reader skips them. */}
+                <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-sm text-slate lg:justify-start">
+                  {[
+                    "Live online",
+                    "Small batches",
+                    `For parents in ${SITE.city} and across India`,
+                  ].map((fact, i) => (
+                    <li key={fact} className="flex items-center gap-3">
+                      {i > 0 && (
+                        <span
+                          aria-hidden="true"
+                          className="h-3.5 w-px bg-mist"
+                        />
+                      )}
+                      {fact}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-
-            <p className="mt-6 text-sm text-slate">
-              Live online · Small batches · For parents in {SITE.city} and
-              across India
-            </p>
           </Container>
         </section>
 
-        {/* -------------------------------------------------------- The problem */}
-        <section className="relative z-10 flex min-h-[90svh] items-center">
-          <Container size="narrow" className="py-24 text-center">
-            <Reveal>
-              <h2 className="text-[length:var(--text-h2)] text-ink">
-                The homework is no longer the hard part.
-              </h2>
-              <p className="mt-6 text-[length:var(--text-lead)] leading-relaxed text-slate">
-                A child can now get a finished essay in four seconds. What they
-                cannot get is the judgement to know whether it is any good, the
-                curiosity to ask a better question, or the confidence to
-                disagree with it.
-              </p>
-              <p className="mt-5 text-[length:var(--text-lead)] leading-relaxed text-slate">
-                Those are the skills that decide what happens next. They are
-                also the ones nobody is teaching.
-              </p>
-            </Reveal>
-          </Container>
-        </section>
+        {/* --------------------------------------- Shots 2, 3 and 4 · the film
+            Empty scroll, on purpose.
 
-        {/* ------------------------------------------------------- The ignition */}
+            This is the throw, the move to his eyeline, and the burn. It carries
+            no copy at all, and that is the point: shot 3 puts the camera behind
+            a child's eyes watching something he made climb out of sight, and
+            there is no sentence worth putting on top of that.
+
+            It is also the only part of the page that exists purely to be
+            scrolled through, so it is kept as short as the sequence can bear.
+            Roughly 160svh here plus the tail of the hero gives shots 2–4 about
+            two screens between them.
+
+            `aria-hidden` and empty: a screen reader gets nothing from it, and
+            there is nothing here to get. The argument resumes below. */}
+        <div aria-hidden="true" className="h-[160svh]" />
+
+        {/* The "homework is no longer the hard part" screen was removed at the
+            client's request. Its argument is not lost — Why Now, immediately
+            after this zone, makes the same case with more force and concrete
+            detail, so the page now gets there one screen sooner. */}
+
+        {/* --------------------------------------------------- Shot 5 · the mark
+            The line the film has been building toward, arriving as the embers
+            settle into the logo behind it.
+
+            This is the one screen where copy sits directly over the densest
+            part of the mark. The scrim behind the text block is what keeps it
+            legible — see the note on `text-scrim` in globals.css. */}
         <section className="relative z-10 flex min-h-[90svh] items-center">
           <Container size="narrow" className="py-24 text-center">
-            <Reveal>
-              <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
-                Our whole philosophy
-              </p>
-              <p className="mt-8 font-display text-[length:var(--text-h1)] leading-[1.1] font-semibold tracking-tight text-ink">
-                We don&apos;t teach children to depend on AI. We teach them to{" "}
-                <span className="text-brand-gradient">think</span>, so they can
-                lead it.
-              </p>
-            </Reveal>
+            <div className="relative">
+              <div aria-hidden="true" className="text-scrim" />
+
+              <Reveal className="relative">
+                <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
+                  Our whole philosophy
+                </p>
+                <p className="mt-8 font-display text-[length:var(--text-h1)] leading-[1.1] font-semibold tracking-tight text-ink">
+                  We don&apos;t teach children to depend on AI. We teach them to{" "}
+                  <span className="text-brand-gradient">think</span>, so they
+                  can lead it.
+                </p>
+              </Reveal>
+            </div>
           </Container>
         </section>
       </div>

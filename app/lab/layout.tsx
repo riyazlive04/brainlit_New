@@ -6,7 +6,14 @@ import { SmoothScrollMount } from "@/components/providers/SmoothScrollMount";
  * Internal layout lab. Not part of the site.
  *
  * Four arrangements of the same copy over the same 3D scene, so the layout can
- * be judged by scrolling it rather than from a mockup.
+ * be judged by scrolling it rather than from a mockup — plus a scrubber for the
+ * hero cinematic, which is the only practical way to look at one frame of a
+ * three-and-a-half-screen scroll sequence twice.
+ *
+ * NOTE: the first four variants and the dot patterns study the OLD hero, which
+ * the homepage no longer uses. They are kept because the composition questions
+ * they answer are still live, but they are no longer previews of anything
+ * shipping.
  *
  * Delete this route before launch, or leave it — `noindex` keeps it out of
  * search either way.
@@ -22,6 +29,7 @@ const VARIANTS = [
   { href: "/lab/scrim", label: "3 · Scrim" },
   { href: "/lab/aside", label: "4 · Quiet aside" },
   { href: "/lab/dots", label: "Dot patterns" },
+  { href: "/lab/cinematic", label: "Hero cinematic" },
 ];
 
 export default function LabLayout({ children }: LayoutProps<"/lab">) {
