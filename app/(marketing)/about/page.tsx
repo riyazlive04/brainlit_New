@@ -9,7 +9,7 @@ import { PILLARS, SITE } from "@/lib/site";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "BrainLIT is an AI Thinking Academy for children aged 10–14. We teach children to think before they use AI — not how to operate the latest tool.",
+    "BrainLIT is an AI Thinking Academy for children aged 10-14. We teach children to think before they use AI - not how to operate the latest tool.",
   alternates: { canonical: "/about" },
 };
 

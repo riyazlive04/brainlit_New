@@ -15,7 +15,7 @@ export function HeroCopy({ align = "center" }: { align?: "center" | "left" }) {
   return (
     <>
       <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
-        AI Thinking Academy · Ages {SITE.ageRange.min}–{SITE.ageRange.max}
+        AI Thinking Academy · Ages {SITE.ageRange.min}-{SITE.ageRange.max}
       </p>
 
       <h1
@@ -34,7 +34,7 @@ export function HeroCopy({ align = "center" }: { align?: "center" | "left" }) {
         }`}
       >
         AI can already do the homework. It cannot do the thinking. BrainLIT
-        builds the one thing that stays valuable — a child who can question,
+        builds the one thing that stays valuable - a child who can question,
         create and solve.
       </p>
 

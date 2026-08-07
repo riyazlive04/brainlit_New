@@ -87,7 +87,7 @@ export default async function CourseDetailPage({
       />
 
       <PageHeader
-        eyebrow={`Ages ${course.age_min}–${course.age_max}${
+        eyebrow={`Ages ${course.age_min}-${course.age_max}${
           course.duration_weeks ? ` · ${course.duration_weeks} weeks` : ""
         }`}
         title={course.title}

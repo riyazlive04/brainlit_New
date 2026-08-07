@@ -33,7 +33,7 @@ const PATTERNS: Array<{
     key: "stagger",
     label: "Staggered",
     blurb:
-      "In use on the site. Alternate rows offset by half a cell — a triangular lattice.",
+      "In use on the site. Alternate rows offset by half a cell - a triangular lattice.",
     detail:
       "Softer than a square grid because no unbroken horizontal or vertical line runs across the screen. Same regularity, less rigidity. This is how halftone printing actually lays out its dots.",
   },
@@ -62,7 +62,7 @@ export default function DotPatternLab() {
               Background dot patterns
             </h1>
             <p className="mt-4 text-[0.975rem] leading-relaxed text-slate">
-              Pick one. Then scroll — the logo forms over it — and click
+              Pick one. Then scroll - the logo forms over it - and click
               anywhere to fire the ripple.
             </p>
 
@@ -105,7 +105,7 @@ export default function DotPatternLab() {
       <section className="relative z-10 flex min-h-[90svh] items-center">
         <Container size="narrow" className="text-center">
           <p className="text-[length:var(--text-lead)] leading-relaxed text-slate">
-            Keep scrolling. The mark assembles here — watch how much the pattern
+            Keep scrolling. The mark assembles here - watch how much the pattern
             behind it helps or distracts.
           </p>
         </Container>

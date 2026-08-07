@@ -55,7 +55,7 @@ export const requireAdmin = cache(async function requireAdmin(): Promise<AdminPr
   // function, which would send it to itself forever.
   if (!profile || (profile.role !== "admin" && profile.role !== "super_admin")) {
     console.warn(
-      `[admin] ${user.email ?? user.id} is signed in but has no profile row — run supabase/create-admin.sql`,
+      `[admin] ${user.email ?? user.id} is signed in but has no profile row - run supabase/create-admin.sql`,
     );
     redirect("/admin/no-access");
   }

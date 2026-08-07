@@ -51,7 +51,7 @@ export function DraftNotice() {
       className="mb-10 rounded-2xl border border-spark-deep/40 bg-spark/15 p-5"
     >
       <p className="font-display text-sm font-semibold text-ink">
-        Draft — pending legal review
+        Draft - pending legal review
       </p>
       <p className="mt-1.5 text-[0.925rem] leading-relaxed text-slate">
         This document describes how the site actually handles data, but it has

@@ -42,7 +42,7 @@ export default function Error({
         </h1>
 
         <p className="mx-auto mt-6 max-w-lg text-[length:var(--text-lead)] leading-relaxed text-slate">
-          The fault is ours, not yours. Try again — and if it keeps happening,
+          The fault is ours, not yours. Try again - and if it keeps happening,
           tell us and we will sort it out directly.
         </p>
 

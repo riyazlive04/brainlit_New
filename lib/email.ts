@@ -62,17 +62,17 @@ export async function sendWebinarConfirmation({
     sessionTitle ? `Session: ${sessionTitle}` : "",
     joinUrl ? `\nJoin here: ${joinUrl}` : "\nWe'll email your join link before the session.",
     "",
-    "This session is for parents, not children. Come with your questions —",
+    "This session is for parents, not children. Come with your questions -",
     "we would rather answer those than deliver a pitch.",
     "",
-    `— The ${SITE.name} team`,
+    `- The ${SITE.name} team`,
   ].filter(Boolean);
 
   try {
     const { error } = await resend.emails.send({
       from: fromEmail,
       to,
-      subject: `You're registered — free ${SITE.name} session for parents`,
+      subject: `You're registered - free ${SITE.name} session for parents`,
       text: lines.join("\n"),
     });
 

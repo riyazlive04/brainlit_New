@@ -105,7 +105,7 @@ export default async function ProgramsPage() {
               <input type="hidden" name="id" value={course.id} />
               <AdminRecord
                 heading={course.title}
-                meta={`/courses/${course.slug} · ages ${course.age_min}–${course.age_max}`}
+                meta={`/courses/${course.slug} · ages ${course.age_min}-${course.age_max}`}
                 published={course.is_published}
                 actions={<AdminDelete id={course.id} action={deleteCourse} />}
               >

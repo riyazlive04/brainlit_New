@@ -8,7 +8,7 @@ import { CONTACT_EMAIL } from "@/lib/legal";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Questions about BrainLIT's AI thinking programs for children aged 10–14? Message us on WhatsApp or send an enquiry.",
+    "Questions about BrainLIT's AI thinking programs for children aged 10-14? Message us on WhatsApp or send an enquiry.",
   alternates: { canonical: "/contact" },
 };
 
@@ -70,7 +70,7 @@ export default function ContactPage() {
                     Where we are
                   </dt>
                   <dd className="mt-1 text-[1.0125rem] text-ink">
-                    {SITE.city}, India — teaching online across the country
+                    {SITE.city}, India - teaching online across the country
                   </dd>
                 </div>
               </dl>
@@ -81,7 +81,7 @@ export default function ContactPage() {
                 </h3>
                 <p className="mt-2 text-[0.95rem] leading-relaxed text-slate">
                   The free parent session answers most questions better than we
-                  can over email — and there is nothing to sit through.
+                  can over email - and there is nothing to sit through.
                 </p>
                 <a
                   href="/webinar"

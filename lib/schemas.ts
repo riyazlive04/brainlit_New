@@ -21,7 +21,7 @@ const phone = z
   .string()
   .transform(normalizeIndianMobile)
   .refine(isValidIndianMobile, {
-    message: "Enter a valid 10-digit mobile number, starting with 6–9",
+    message: "Enter a valid 10-digit mobile number, starting with 6-9",
   });
 
 const name = z
@@ -64,8 +64,8 @@ export const leadSchema = z
     childAge: z.coerce
       .number()
       .int()
-      .min(6, "This program is designed for ages 10–14")
-      .max(18, "This program is designed for ages 10–14")
+      .min(6, "This program is designed for ages 10-14")
+      .max(18, "This program is designed for ages 10-14")
       .optional(),
     message: z.string().trim().max(1200).optional(),
     consent: z

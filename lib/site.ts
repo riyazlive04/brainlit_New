@@ -46,7 +46,7 @@ export const SITE = {
   legalName: "BrainLIT",
   tagline: "AI Thinking Academy for children",
   description:
-    "BrainLIT teaches children aged 10–14 to think before they use AI — building critical thinking, creativity, problem solving and ethical AI habits through live online programs.",
+    "BrainLIT teaches children aged 10-14 to think before they use AI - building critical thinking, creativity, problem solving and ethical AI habits through live online programs.",
   url: resolveSiteUrl(),
   locale: "en_IN",
   ageRange: { min: 10, max: 14 },

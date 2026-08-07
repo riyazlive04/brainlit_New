@@ -74,7 +74,7 @@ export default function CinematicLab() {
         <div className="pointer-events-auto w-full max-w-sm rounded-2xl bg-white/90 p-5 shadow-[0_8px_40px_-20px_rgba(11,16,32,0.4)] backdrop-blur-md">
           <div className="flex items-baseline justify-between gap-4">
             <h1 className="font-display text-[length:var(--text-h3)] font-semibold text-ink">
-              {current ? SHOT_LABELS[current] : "—"}
+              {current ? SHOT_LABELS[current] : "-"}
             </h1>
             <p className="font-mono text-sm tabular-nums text-slate">
               {p.toFixed(3)}
@@ -117,7 +117,7 @@ export default function CinematicLab() {
 
           <p className="mt-4 text-[0.85rem] leading-relaxed text-slate">
             Drag to scrub. Every value here is exactly what the homepage computes
-            at the same scroll position — the sequence is positional, so there is
+            at the same scroll position - the sequence is positional, so there is
             no playhead and no state to get out of sync. Append{" "}
             <code className="rounded bg-mist px-1.5 py-0.5 text-[0.8em]">?p=0.64</code>{" "}
             to open on a specific frame.

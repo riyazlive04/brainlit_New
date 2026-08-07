@@ -46,7 +46,7 @@ export default async function ProjectsPage() {
       <div className="mt-6">
         <AdminNotice tone="warn">
           <strong>A consent reference is required to publish.</strong> The
-          database enforces it — publishing a child&apos;s work is processing
+          database enforces it - publishing a child&apos;s work is processing
           their personal data, and the DPDP Act 2023 requires verifiable
           parental consent. First name and age only: never a full name, school
           or photograph.

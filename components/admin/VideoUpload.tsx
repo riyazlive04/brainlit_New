@@ -60,7 +60,7 @@ export function VideoUpload({
     if (file.size > MAX_BYTES) {
       setState({
         kind: "error",
-        message: `That file is ${mb(file.size)}. The limit is 100 MB — compress it first (HandBrake, "Fast 720p30").`,
+        message: `That file is ${mb(file.size)}. The limit is 100 MB - compress it first (HandBrake, "Fast 720p30").`,
       });
       return;
     }
@@ -86,7 +86,7 @@ export function VideoUpload({
         path,
         warn:
           file.size > COMFORTABLE_BYTES
-            ? `${mb(file.size)} is large. Every parent who presses play downloads all of it — consider compressing to 720p.`
+            ? `${mb(file.size)} is large. Every parent who presses play downloads all of it - consider compressing to 720p.`
             : undefined,
       });
     } catch (error) {
@@ -106,7 +106,7 @@ export function VideoUpload({
         Video testimonial
       </span>
       <p className="mt-0.5 text-xs text-slate">
-        MP4, WebM or MOV, up to 100 MB. Compress to 720p first — the file you
+        MP4, WebM or MOV, up to 100 MB. Compress to 720p first - the file you
         upload is exactly what every visitor downloads.
       </p>
 
@@ -150,7 +150,7 @@ export function VideoUpload({
           <p className="text-sm text-ink">
             <span className="font-medium">Video attached.</span>{" "}
             <span className="text-slate">
-              Remember a consent reference — the database will not publish a
+              Remember a consent reference - the database will not publish a
               video without one.
             </span>
           </p>

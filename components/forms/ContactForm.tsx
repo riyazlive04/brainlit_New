@@ -74,7 +74,7 @@ export function ContactForm() {
           className="success-rise mt-6 font-display text-[length:var(--text-h3)] text-ink"
           style={{ animationDelay: "420ms" }}
         >
-          Thank you — we have your message.
+          Thank you - we have your message.
         </h2>
         <p
           className="success-rise mt-3 text-[0.975rem] leading-relaxed text-slate"
@@ -130,7 +130,7 @@ export function ContactForm() {
         <AgePicker
           registration={register("childAge")}
           error={errors.childAge?.message}
-          hint="Optional — helps us point you at the right programme."
+          hint="Optional - helps us point you at the right programme."
         />
 
         <Field

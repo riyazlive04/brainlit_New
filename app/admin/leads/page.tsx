@@ -63,7 +63,7 @@ export default async function LeadsPage({
             ? "most recent 200"
             : (leads?.length ?? 0) + " shown"
         }
-        description="Every enquiry and registration, newest first. Tap a phone number to open WhatsApp — the fastest way this team actually reaches a parent."
+        description="Every enquiry and registration, newest first. Tap a phone number to open WhatsApp - the fastest way this team actually reaches a parent."
       />
 
       <nav aria-label="Filter by status" className="mt-6 flex flex-wrap gap-2">
@@ -153,7 +153,7 @@ export default async function LeadsPage({
                     </a>
                   </td>
                   <td className="px-5 py-4 text-slate">
-                    {lead.child_name ?? "—"}
+                    {lead.child_name ?? "-"}
                     {lead.child_age ? ` (${lead.child_age})` : ""}
                   </td>
                   <td className="px-5 py-4 text-slate">

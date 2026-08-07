@@ -22,7 +22,7 @@ import { PILLARS, SITE } from "@/lib/site";
 export const metadata: Metadata = {
   // `absolute` bypasses the root layout's "%s · BrainLIT" template, which would
   // otherwise render "BrainLIT — AI Thinking Academy for children · BrainLIT".
-  title: { absolute: `${SITE.name} — ${SITE.tagline}` },
+  title: { absolute: `${SITE.name} - ${SITE.tagline}` },
   description: SITE.description,
   alternates: { canonical: "/" },
 };
@@ -196,7 +196,7 @@ export default function HomePage() {
             <div className="lg:max-w-[36rem] xl:max-w-[40rem]">
               <div className="text-center lg:text-left">
                 <p className="font-display text-xs font-semibold tracking-[0.22em] text-violet uppercase sm:text-sm">
-                  AI Thinking Academy · Ages {SITE.ageRange.min}–
+                  AI Thinking Academy · Ages {SITE.ageRange.min}-
                   {SITE.ageRange.max}
                 </p>
 
@@ -231,7 +231,7 @@ export default function HomePage() {
                     of it opens gaps the eye reads as unfinished. */}
                 <p className="mx-auto mt-6 max-w-[36rem] text-[length:var(--text-lead)] leading-[1.55] text-slate lg:mx-0">
                   AI can already do the homework. It cannot do the thinking.
-                  BrainLIT builds the one thing that stays valuable — a child
+                  BrainLIT builds the one thing that stays valuable - a child
                   who can question, create and solve.
                 </p>
 

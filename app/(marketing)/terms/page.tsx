@@ -65,7 +65,7 @@ export default function TermsPage() {
               <li>Live online sessions delivered on the published schedule</li>
               <li>Materials and activities that support those sessions</li>
               <li>
-                A learning experience aimed at developing thinking skills — not
+                A learning experience aimed at developing thinking skills - not
                 a guarantee of any particular academic or career outcome
               </li>
             </ul>

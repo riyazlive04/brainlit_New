@@ -82,21 +82,21 @@ export default async function SettingsPage() {
 
       <AdminCard
         title="Managed outside the admin panel"
-        description="Deliberately not editable here — each one either needs a code review or is a secret that should never live in a database row."
+        description="Deliberately not editable here - each one either needs a code review or is a secret that should never live in a database row."
         className="mt-4"
       >
         <ul className="space-y-2 text-sm text-slate">
           <li>
-            <strong className="text-ink">Team accounts</strong> — Supabase
+            <strong className="text-ink">Team accounts</strong> - Supabase
             dashboard, then grant the role with{" "}
             <code className="text-xs">supabase/create-admin.sql</code>
           </li>
           <li>
-            <strong className="text-ink">API keys, GTM, email</strong> —
+            <strong className="text-ink">API keys, GTM, email</strong> -
             environment variables in Vercel
           </li>
           <li>
-            <strong className="text-ink">Legal pages</strong> — in code, so
+            <strong className="text-ink">Legal pages</strong> - in code, so
             changes are reviewed and version-controlled
           </li>
         </ul>

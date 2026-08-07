@@ -252,7 +252,7 @@ export async function sampleLogoCloud(
   }
 
   if (opaque.length === 0) {
-    throw new Error("logo rasterised to nothing — check the SVG path");
+    throw new Error("logo rasterised to nothing - check the SVG path");
   }
 
   const rand = mulberry32(seed);

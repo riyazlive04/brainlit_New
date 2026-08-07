@@ -31,7 +31,7 @@ export function OrganizationSchema() {
     audience: {
       "@type": "EducationalAudience",
       educationalRole: "student",
-      audienceType: `Children aged ${SITE.ageRange.min}–${SITE.ageRange.max}`,
+      audienceType: `Children aged ${SITE.ageRange.min}-${SITE.ageRange.max}`,
     },
     knowsLanguage: ["en", "ta"],
   };

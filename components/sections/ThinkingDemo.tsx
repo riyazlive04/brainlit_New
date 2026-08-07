@@ -150,7 +150,7 @@ export function ThinkingDemo() {
               {answered && (
                 <div className="success-rise mt-8 border-t border-mist pt-8">
                   <p className="font-display text-[1.0625rem] font-semibold text-ink">
-                    {isRight ? "That's it." : "Not quite — and that's the point."}
+                    {isRight ? "That's it." : "Not quite - and that's the point."}
                   </p>
                   <p className="mt-3 text-[0.975rem] leading-relaxed text-slate">
                     {challenge.explanation}

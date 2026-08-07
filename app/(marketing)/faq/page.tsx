@@ -9,7 +9,7 @@ import { SITE } from "@/lib/site";
 export const metadata: Metadata = {
   title: "FAQ",
   description:
-    "Answers to what parents ask about BrainLIT — whether it is a coding class, screen time, ages, language, and what your child actually does.",
+    "Answers to what parents ask about BrainLIT - whether it is a coding class, screen time, ages, language, and what your child actually does.",
   alternates: { canonical: "/faq" },
 };
 
@@ -40,7 +40,7 @@ export default function FaqPage() {
       <PageHeader
         eyebrow="Questions"
         title="The things parents actually ask."
-        lead="If yours is not here, ask it at the free session — or message us."
+        lead="If yours is not here, ask it at the free session - or message us."
         breadcrumbs={[{ label: "FAQ" }]}
       />
 
@@ -109,7 +109,7 @@ export default function FaqPage() {
           </Reveal>
 
           <p className="mt-10 text-center text-sm text-slate">
-            {SITE.name} teaches children aged {SITE.ageRange.min}–
+            {SITE.name} teaches children aged {SITE.ageRange.min}-
             {SITE.ageRange.max}, live and online.
           </p>
         </Container>

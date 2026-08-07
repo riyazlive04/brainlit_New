@@ -54,7 +54,7 @@ export default async function NoAccessPage() {
         <div className="mt-6 rounded-xl border border-mist bg-mist/30 p-4">
           <p className="text-sm leading-relaxed text-slate">
             Creating the login and granting the role are two separate steps, on
-            purpose — an account is never an administrator just because it
+            purpose - an account is never an administrator just because it
             exists. Whoever set this up needs to run{" "}
             <code className="rounded bg-white px-1.5 py-0.5 text-xs">
               supabase/create-admin.sql

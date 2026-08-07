@@ -11,7 +11,7 @@ import { SITE, whatsappHref } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Programs",
   description:
-    "Live online AI thinking programs for children aged 10–14. Small batches, real projects, and a focus on judgement rather than tools.",
+    "Live online AI thinking programs for children aged 10-14. Small batches, real projects, and a focus on judgement rather than tools.",
   alternates: { canonical: "/courses" },
 };
 
@@ -40,7 +40,7 @@ export default async function CoursesPage() {
       <PageHeader
         eyebrow="Programs"
         title="Live online, small batches, and a project your child can defend."
-        lead={`For ages ${SITE.ageRange.min}–${SITE.ageRange.max}. Every program teaches the same seven habits of mind — they differ in depth, not in philosophy.`}
+        lead={`For ages ${SITE.ageRange.min}-${SITE.ageRange.max}. Every program teaches the same seven habits of mind - they differ in depth, not in philosophy.`}
         breadcrumbs={[{ label: "Programs" }]}
       />
 
@@ -55,7 +55,7 @@ export default async function CoursesPage() {
                       {course.title}
                     </h2>
                     <p className="mt-2 text-sm text-violet">
-                      Ages {course.age_min}–{course.age_max}
+                      Ages {course.age_min}-{course.age_max}
                       {course.duration_weeks ? ` · ${course.duration_weeks} weeks` : ""}
                     </p>
                     <p className="mt-4 flex-1 text-[0.95rem] leading-relaxed text-slate">
@@ -85,7 +85,7 @@ export default async function CoursesPage() {
               <p className="mt-4 text-[1.0125rem] leading-relaxed text-slate">
                 The next batch is being scheduled now. The free parent session
                 is where we walk through exactly what is taught, how long it
-                runs and what it costs — and you can ask whatever you like
+                runs and what it costs - and you can ask whatever you like
                 before deciding anything.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

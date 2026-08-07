@@ -88,7 +88,7 @@ export default function RefundPage() {
             <h2>Exceptional circumstances</h2>
             <p>
               Illness, a family emergency, or something else that makes a
-              program genuinely unworkable — talk to us. We would rather find a
+              program genuinely unworkable - talk to us. We would rather find a
               fair answer, such as deferring to a later batch, than hide behind
               a policy.
             </p>

@@ -15,7 +15,7 @@ import { LEGAL_LINKS, SITE } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Free session for parents",
   description:
-    "A free live session for parents: how to raise a child who thinks before they use AI. Ask us anything — no pitch to sit through.",
+    "A free live session for parents: how to raise a child who thinks before they use AI. Ask us anything - no pitch to sit through.",
   alternates: { canonical: "/webinar" },
   // Ad landing pages should not compete with the homepage for the same terms.
   robots: { index: false, follow: true },
@@ -105,8 +105,8 @@ export default async function WebinarPage() {
               </h1>
 
               <p className="mt-6 max-w-xl text-[length:var(--text-lead)] leading-relaxed text-slate">
-                A free session for parents of {SITE.ageRange.min}–
-                {SITE.ageRange.max} year olds. No pitch to sit through — bring
+                A free session for parents of {SITE.ageRange.min}-
+                {SITE.ageRange.max} year olds. No pitch to sit through - bring
                 the questions you have actually been worrying about.
               </p>
 

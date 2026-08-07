@@ -41,13 +41,13 @@ export default async function TestimonialsPage() {
     <>
       <AdminPageHeader
         title="Testimonials"
-        description="Parents buy on trust from other parents, so this is one of the highest-value sections on the site — and the one where invented content would do the most damage."
+        description="Parents buy on trust from other parents, so this is one of the highest-value sections on the site - and the one where invented content would do the most damage."
       />
 
       <div className="mt-6">
         <AdminNotice tone="warn">
           <strong>Only publish what a parent actually said</strong>, with their
-          permission. Naming a child requires a consent reference — the database
+          permission. Naming a child requires a consent reference - the database
           refuses to publish without one, because publishing a child&apos;s name
           is processing their personal data under the DPDP Act.
         </AdminNotice>
@@ -74,7 +74,7 @@ export default async function TestimonialsPage() {
             name="consent_ref"
             hint="Where the signed permission is filed"
           />
-          <AdminField label="Rating (1–5)" name="rating" type="number" min={1} max={5} />
+          <AdminField label="Rating (1-5)" name="rating" type="number" min={1} max={5} />
           <AdminField label="Sort order" name="sort_order" type="number" defaultValue={0} />
           <div className="sm:col-span-2">
             <VideoUpload name="video_path" />
@@ -111,7 +111,7 @@ export default async function TestimonialsPage() {
                 <AdminTextarea label="What they said" name="quote" rows={3} defaultValue={item.quote} required className="sm:col-span-2" />
                 <AdminField label="Child's first name" name="child_first_name" defaultValue={item.child_first_name} />
                 <AdminField label="Consent reference" name="consent_ref" defaultValue={item.consent_ref} />
-                <AdminField label="Rating (1–5)" name="rating" type="number" defaultValue={item.rating} min={1} max={5} />
+                <AdminField label="Rating (1-5)" name="rating" type="number" defaultValue={item.rating} min={1} max={5} />
                 <AdminField label="Sort order" name="sort_order" type="number" defaultValue={item.sort_order} />
                 <div className="sm:col-span-2">
                   <VideoUpload name="video_path" defaultPath={item.video_path} />

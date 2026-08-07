@@ -153,7 +153,7 @@ export default async function AdminOverview() {
                     <span className="font-medium text-ink">
                       {nextSession.title}
                     </span>{" "}
-                    — {formatSessionDate(nextSession.starts_at)} at{" "}
+                    - {formatSessionDate(nextSession.starts_at)} at{" "}
                     {formatSessionTime(nextSession.starts_at)} IST
                   </>
                 ) : (

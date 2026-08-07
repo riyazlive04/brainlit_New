@@ -42,7 +42,7 @@ export function FinalCta() {
 
           <p className="mx-auto mt-7 max-w-xl text-[length:var(--text-lead)] leading-relaxed text-mist/75">
             Start with the free session for parents. No pitch you have to sit
-            through — see how we teach thinking, ask what you want to ask, then
+            through - see how we teach thinking, ask what you want to ask, then
             decide.
           </p>
 

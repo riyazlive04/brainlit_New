@@ -197,7 +197,7 @@ export function Wordmark({
   }
 
   return (
-    <Link href={href} className={classes} aria-label={`${SITE.name} — home`}>
+    <Link href={href} className={classes} aria-label={`${SITE.name} - home`}>
       {content}
     </Link>
   );

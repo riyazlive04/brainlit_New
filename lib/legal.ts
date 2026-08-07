@@ -44,7 +44,7 @@ export const CONTACT_EMAIL = "support@brainlit.in";
 export const REFUND_TERMS = {
   coolingOffDays: 7,
   sessionsAttendedLimit: 2,
-  processingDays: "7–10 business days",
+  processingDays: "7-10 business days",
 };
 
 export const JURISDICTION = {
@@ -78,12 +78,12 @@ export const PROCESSORS = [
   {
     name: "Google Analytics & Google Tag Manager",
     purpose: "Website analytics",
-    data: "Usage data, device and approximate location — only with consent",
+    data: "Usage data, device and approximate location - only with consent",
   },
   {
     name: "Meta Pixel",
     purpose: "Advertising measurement",
-    data: "Usage data — only with consent, and never for ads directed at children",
+    data: "Usage data - only with consent, and never for ads directed at children",
   },
   {
     name: "WhatsApp (Meta)",

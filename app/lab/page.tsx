@@ -8,7 +8,7 @@ const VARIANTS = [
     summary:
       "Copy holds the left column, the mark holds the right. Nothing ever overlaps.",
     tradeoff:
-      "Safest and most readable. Familiar — it is what most 3D product sites do.",
+      "Safest and most readable. Familiar - it is what most 3D product sites do.",
   },
   {
     href: "/lab/stacked",
@@ -24,7 +24,7 @@ const VARIANTS = [
     summary:
       "The mark stays centred behind the copy, but each text block sits on a soft white card.",
     tradeoff:
-      "Most dramatic — the brain stays the focus. The cards are a visible admission that text and particles are fighting.",
+      "Most dramatic - the brain stays the focus. The cards are a visible admission that text and particles are fighting.",
   },
   {
     href: "/lab/aside",
@@ -44,7 +44,7 @@ export default function LabIndex() {
       </h1>
       <p className="mt-5 max-w-2xl text-[length:var(--text-lead)] leading-relaxed text-slate">
         Same words, same scene, same scroll beats in all four. Only the
-        arrangement changes. Scroll each one properly — the problem only shows
+        arrangement changes. Scroll each one properly - the problem only shows
         up in the second and third screens, where body copy currently lands on
         top of the particles.
       </p>

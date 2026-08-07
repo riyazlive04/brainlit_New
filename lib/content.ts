@@ -105,7 +105,7 @@ async function safeQuery<T>(run: Runner<T>, label: string): Promise<T[]> {
   if (error) {
     if (isMissingTable(error)) {
       console.warn(
-        `[content] ${label}: table not found — apply the pending migrations in supabase/migrations. Section will render nothing.`,
+        `[content] ${label}: table not found - apply the pending migrations in supabase/migrations. Section will render nothing.`,
       );
     } else {
       console.error(`[content] ${label} failed:`, error);
@@ -175,7 +175,7 @@ export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
 
   if (isMissingColumn(first.error)) {
     console.warn(
-      "[content] testimonials: video_path is missing — apply supabase/migrations/0004_testimonial_video.sql to enable video. Falling back to text-only.",
+      "[content] testimonials: video_path is missing - apply supabase/migrations/0004_testimonial_video.sql to enable video. Falling back to text-only.",
     );
 
     const fallback = await runQuery<Omit<PublicTestimonial, "video_path">>(
@@ -198,7 +198,7 @@ export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
 
   if (isMissingTable(first.error)) {
     console.warn(
-      "[content] testimonials: table not found — apply the pending migrations in supabase/migrations.",
+      "[content] testimonials: table not found - apply the pending migrations in supabase/migrations.",
     );
     return [];
   }

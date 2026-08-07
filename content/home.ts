@@ -45,7 +45,7 @@ export const WHY_NOW = {
     { label: "Mathematics", body: "Solved, with the working shown underneath." },
     { label: "Essays", body: "Written in any voice, on any book, at any length." },
     { label: "Code", body: "Generated, explained and debugged on request." },
-    { label: "Almost any question", body: "Answered instantly — confidently, and sometimes wrongly." },
+    { label: "Almost any question", body: "Answered instantly - confidently, and sometimes wrongly." },
   ],
   turn: "So the question is no longer whether your child will use AI.",
   punch:
@@ -101,7 +101,7 @@ export const TRANSFORMATION = {
       "Asks the AI for options, then chooses",
       "Uses it to get unstuck, not to skip the work",
       "Notices when the answer is wrong and says so",
-      "Pushes further — and knows when to close the laptop",
+      "Pushes further - and knows when to close the laptop",
     ],
   },
 } as const;
@@ -131,7 +131,7 @@ export const CURRICULUM: CurriculumWeek[] = [
   {
     week: "03",
     title: "Problem Solving",
-    body: "Breaking a hard, vague problem into small solvable pieces — the skill that makes everything else possible.",
+    body: "Breaking a hard, vague problem into small solvable pieces - the skill that makes everything else possible.",
   },
   {
     week: "04",
@@ -287,7 +287,7 @@ export const FOUNDER = {
   story: [
     "Hi, I'm Haja Najmudeen, Founder of BrainLIT.",
     "I'm an Electronics & Communication Engineer and a lifelong technology enthusiast. Over the years I've worked in technology, in software testing, and built several businesses. Through every one of those experiences I kept arriving at the same lesson.",
-    "When AI became part of everyday life, I noticed something worrying. Children were learning how to get answers from AI — but very few were learning how to ask better questions, think critically, verify what they were told, solve real problems, or explain their own ideas with confidence.",
+    "When AI became part of everyday life, I noticed something worrying. Children were learning how to get answers from AI - but very few were learning how to ask better questions, think critically, verify what they were told, solve real problems, or explain their own ideas with confidence.",
     "That is why I started BrainLIT. Not to teach children another AI tool, but to teach them how to think with AI instead of depending on it.",
   ] as string[],
 
@@ -420,11 +420,11 @@ export const CHALLENGES: Challenge[] = [
     options: [
       "The year is wrong",
       "The year is right, the person is wrong",
-      "Nothing is wrong — this is correct",
+      "Nothing is wrong - this is correct",
     ],
     correct: 1,
     explanation:
-      "ISRO really was established in 1969 — but by Vikram Sarabhai, who is the person usually called the father of the Indian space programme. Dr. Kalam was a major figure in it later, which is exactly why the sentence sounds right.",
+      "ISRO really was established in 1969 - but by Vikram Sarabhai, who is the person usually called the father of the Indian space programme. Dr. Kalam was a major figure in it later, which is exactly why the sentence sounds right.",
     lesson:
       "Half-true is the most convincing kind of wrong. Check the part you did not doubt.",
   },
@@ -436,11 +436,11 @@ export const CHALLENGES: Challenge[] = [
     options: [
       "The arithmetic is wrong",
       "The arithmetic is right, but the conclusion is not",
-      "Nothing is wrong — this is correct",
+      "Nothing is wrong - this is correct",
     ],
     correct: 1,
     explanation:
-      "450 ÷ 5 really is 90, and the team has never once scored anywhere near it. One enormous innings drags the average up. In four matches out of five they scored between 40 and 55 — that is what 'usually' means.",
+      "450 ÷ 5 really is 90, and the team has never once scored anywhere near it. One enormous innings drags the average up. In four matches out of five they scored between 40 and 55 - that is what 'usually' means.",
     lesson:
       "Correct maths can still produce a false statement. Ask what the number is being used to claim.",
   },
@@ -451,11 +451,11 @@ export const CHALLENGES: Challenge[] = [
     options: [
       "It picked the wrong language",
       "The question cannot be answered as asked",
-      "Nothing is wrong — this is correct",
+      "Nothing is wrong - this is correct",
     ],
     correct: 1,
     explanation:
-      "Every fact given about Python is true. But 'best' depends entirely on best for what — a game console, a website, a satellite and a school project all have different answers. The AI answered a question nobody could answer rather than saying so.",
+      "Every fact given about Python is true. But 'best' depends entirely on best for what - a game console, a website, a satellite and a school project all have different answers. The AI answered a question nobody could answer rather than saying so.",
     lesson:
       "These tools will almost never tell you that your question was the problem. That part is your job.",
   },
@@ -560,13 +560,13 @@ export const FAQS: Faq[] = [
     category: "The approach",
     question: "Is this a coding class?",
     answer:
-      "No. Coding tools change every few months, and AI already writes most routine code. We teach the layer underneath — how to question an answer, frame a problem, judge whether something is any good, and decide when AI should not be used at all. Those skills outlast any tool.",
+      "No. Coding tools change every few months, and AI already writes most routine code. We teach the layer underneath - how to question an answer, frame a problem, judge whether something is any good, and decide when AI should not be used at all. Those skills outlast any tool.",
   },
   {
     category: "The approach",
     question: "How is this different from other AI courses for children?",
     answer:
-      "Most teach children to operate a tool — this prompt, that button, this app. We teach the thinking that decides what to ask for in the first place. A child who can only operate today's tools has to be retrained every time the tools change.",
+      "Most teach children to operate a tool - this prompt, that button, this app. We teach the thinking that decides what to ask for in the first place. A child who can only operate today's tools has to be retrained every time the tools change.",
   },
   {
     category: "The approach",
@@ -578,7 +578,7 @@ export const FAQS: Faq[] = [
     category: "The approach",
     question: "Is this just critical thinking with AI attached for marketing?",
     answer:
-      "It is critical thinking taught in the situation children now actually face — where a confident answer is always one sentence away. That context changes what has to be taught. Recognising a plausible-sounding wrong answer is a specific skill, and it did not need teaching at this scale five years ago.",
+      "It is critical thinking taught in the situation children now actually face - where a confident answer is always one sentence away. That context changes what has to be taught. Recognising a plausible-sounding wrong answer is a specific skill, and it did not need teaching at this scale five years ago.",
   },
 
   /* ── AI and screens ────────────────────────────────────────────────── */
@@ -586,13 +586,13 @@ export const FAQS: Faq[] = [
     category: "AI and screens",
     question: "Are you teaching children to use ChatGPT?",
     answer:
-      "We teach them to think before they reach for it. Children will use these tools regardless of what any of us prefer. The question is whether they can tell a good answer from a confident wrong one — and that has to be taught deliberately.",
+      "We teach them to think before they reach for it. Children will use these tools regardless of what any of us prefer. The question is whether they can tell a good answer from a confident wrong one - and that has to be taught deliberately.",
   },
   {
     category: "AI and screens",
     question: "Will this just mean more screen time?",
     answer:
-      "It is a fair worry. Sessions are live and discussion-led rather than a child alone with a screen, and much of the work — questioning, planning, arguing a position — happens away from the keyboard. The aim is a child who uses AI deliberately instead of reflexively.",
+      "It is a fair worry. Sessions are live and discussion-led rather than a child alone with a screen, and much of the work - questioning, planning, arguing a position - happens away from the keyboard. The aim is a child who uses AI deliberately instead of reflexively.",
   },
   {
     category: "AI and screens",
@@ -604,7 +604,7 @@ export const FAQS: Faq[] = [
     category: "AI and screens",
     question: "Will my child stop doing their own homework?",
     answer:
-      "We work on the opposite. A recurring theme is the difference between using AI to get unstuck and using it to skip the work — and why the second one costs you later, in the child's own words rather than ours.",
+      "We work on the opposite. A recurring theme is the difference between using AI to get unstuck and using it to skip the work - and why the second one costs you later, in the child's own words rather than ours.",
   },
   {
     category: "AI and screens",
@@ -650,7 +650,7 @@ export const FAQS: Faq[] = [
     category: "How classes run",
     question: "Are classes live or recorded?",
     answer:
-      "Live. Thinking is taught through back-and-forth — a question asked at the moment a child is confused is most of the value, and a recording cannot do that.",
+      "Live. Thinking is taught through back-and-forth - a question asked at the moment a child is confused is most of the value, and a recording cannot do that.",
   },
   {
     category: "How classes run",
@@ -662,13 +662,13 @@ export const FAQS: Faq[] = [
     category: "How classes run",
     question: "Do you teach in Tamil?",
     answer:
-      "Sessions are conducted in English, and our team speaks Tamil — so parent conversations, questions and support happen in whichever you are more comfortable with.",
+      "Sessions are conducted in English, and our team speaks Tamil - so parent conversations, questions and support happen in whichever you are more comfortable with.",
   },
   {
     category: "How classes run",
     question: "Do parents need to sit in?",
     answer:
-      "No, and mostly it is better if you do not — children argue more freely without an audience. The free session is the one built for you, and we will tell you what to look for at home afterwards.",
+      "No, and mostly it is better if you do not - children argue more freely without an audience. The free session is the one built for you, and we will tell you what to look for at home afterwards.",
   },
   {
     category: "How classes run",
@@ -680,7 +680,7 @@ export const FAQS: Faq[] = [
     category: "How classes run",
     question: "Is there homework?",
     answer:
-      "Small things between sessions, and closer to a challenge than an assignment — notice something, try something, come back with an opinion. The project work builds up across the program.",
+      "Small things between sessions, and closer to a challenge than an assignment - notice something, try something, come back with an opinion. The project work builds up across the program.",
   },
 
   /* ── Fees and refunds ──────────────────────────────────────────────── */
@@ -688,7 +688,7 @@ export const FAQS: Faq[] = [
     category: "Fees and refunds",
     question: "How much does it cost?",
     answer:
-      "Fees depend on the program and age group, and we go through them at the end of the free parent session — after you have seen how we teach rather than before. If you would rather know first, message us and we will tell you.",
+      "Fees depend on the program and age group, and we go through them at the end of the free parent session - after you have seen how we teach rather than before. If you would rather know first, message us and we will tell you.",
   },
   {
     category: "Fees and refunds",
@@ -700,7 +700,7 @@ export const FAQS: Faq[] = [
     category: "Fees and refunds",
     question: "What if we want to stop after starting?",
     answer:
-      "The Refund Policy sets out the terms and is the binding version — please read it before enrolling rather than relying on a summary here.",
+      "The Refund Policy sets out the terms and is the binding version - please read it before enrolling rather than relying on a summary here.",
   },
 
   /* ── Safety and privacy ────────────────────────────────────────────── */
@@ -720,13 +720,13 @@ export const FAQS: Faq[] = [
     category: "Safety and privacy",
     question: "Would you ever publish my child's work or photograph?",
     answer:
-      "Not without your written consent, recorded against that specific piece of work — and it is enforced in the database, not just promised in a policy. Consent can be withdrawn at any time and the work comes down.",
+      "Not without your written consent, recorded against that specific piece of work - and it is enforced in the database, not just promised in a policy. Consent can be withdrawn at any time and the work comes down.",
   },
   {
     category: "Safety and privacy",
     question: "Do you advertise to children?",
     answer:
-      "No. Everything on this site is addressed to parents, and behavioural advertising aimed at children is prohibited under the DPDP Act 2023 — we do not do it and our analytics are configured not to.",
+      "No. Everything on this site is addressed to parents, and behavioural advertising aimed at children is prohibited under the DPDP Act 2023 - we do not do it and our analytics are configured not to.",
   },
 ];
 

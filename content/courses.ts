@@ -19,11 +19,11 @@ export const PROGRAM_ESSENTIALS = [
     body: "Small enough that every child has to speak, and cannot hide at the back.",
   },
   {
-    title: "Ages 10–14",
+    title: "Ages 10-14",
     body: "Old enough to reason about their own thinking, young enough that the habits still form easily.",
   },
   {
     title: "A real project to show",
-    body: "Every child finishes with work they scoped, built and can explain — not a certificate of attendance.",
+    body: "Every child finishes with work they scoped, built and can explain - not a certificate of attendance.",
   },
 ];

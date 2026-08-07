@@ -16,7 +16,7 @@ import {
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How BrainLIT collects, uses and protects personal data — including our approach to children's data under India's DPDP Act 2023.",
+    "How BrainLIT collects, uses and protects personal data - including our approach to children's data under India's DPDP Act 2023.",
   alternates: { canonical: "/privacy" },
   robots: { index: true, follow: true },
 };
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       <PageHeader
         eyebrow="Legal"
         title="Privacy Policy"
-        lead={`How we handle your information — and, more importantly, how little we hold about your child.`}
+        lead={`How we handle your information - and, more importantly, how little we hold about your child.`}
         breadcrumbs={[{ label: "Privacy Policy" }]}
       />
 
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
             <p>
               We collect the <strong>parent&apos;s</strong> details, not the
               child&apos;s. From your child we store, at most, a first name and
-              an age — enough to have a useful conversation with you, and not
+              an age - enough to have a useful conversation with you, and not
               enough to identify or contact a minor. We never sell data, and we
               do not run behavioural advertising aimed at children.
             </p>
@@ -169,7 +169,7 @@ export default function PrivacyPage() {
             <p>
               Analytics and advertising tools load{" "}
               <strong>only after you consent</strong>. Decline, and they are
-              never loaded — not merely ignored. Cookies strictly necessary to
+              never loaded - not merely ignored. Cookies strictly necessary to
               make the site work are always active.
             </p>
             <p>You can change your choice at any time from the cookie banner.</p>
@@ -177,16 +177,16 @@ export default function PrivacyPage() {
             <h2>How long we keep things</h2>
             <ul>
               <li>
-                <strong>Enquiries and registrations</strong> — while we are in
+                <strong>Enquiries and registrations</strong> - while we are in
                 contact with you and for a reasonable period after, so we can
                 answer follow-up questions
               </li>
               <li>
-                <strong>Student records</strong> — for the duration of the
+                <strong>Student records</strong> - for the duration of the
                 program and as long as required for certificates and support
               </li>
               <li>
-                <strong>Server logs</strong> — a short period, for security
+                <strong>Server logs</strong> - a short period, for security
               </li>
             </ul>
             <p>
@@ -233,7 +233,7 @@ export default function PrivacyPage() {
 
             <h2>Contact</h2>
             <p>
-              <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> — or see
+              <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> - or see
               our <Link href="/contact">contact page</Link>.
             </p>
           </Prose>

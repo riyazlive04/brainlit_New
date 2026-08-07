@@ -169,7 +169,7 @@ export function Founder() {
                   ))}
                 </div>
                 <p className="mt-6 font-display text-sm font-semibold text-slate">
-                  — {FOUNDER.name}
+                  - {FOUNDER.name}
                 </p>
               </Reveal>
             )}

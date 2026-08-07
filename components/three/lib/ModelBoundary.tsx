@@ -33,7 +33,7 @@ export class ModelBoundary extends Component<Props, State> {
   componentDidCatch(error: unknown) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        `[${this.props.label ?? "ModelBoundary"}] Falling back — the model did not load.`,
+        `[${this.props.label ?? "ModelBoundary"}] Falling back - the model did not load.`,
         error,
       );
     }

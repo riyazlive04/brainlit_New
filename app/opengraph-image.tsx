@@ -14,7 +14,7 @@ import { SITE } from "@/lib/site";
  * system sans — acceptable for an image nobody inspects closely.
  */
 export const runtime = "edge";
-export const alt = `${SITE.name} — ${SITE.tagline}`;
+export const alt = `${SITE.name} - ${SITE.tagline}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,7 +23,7 @@ export default function OpengraphImage() {
   // separate child node, so `ages {min}–{max}` inside a plain <div> trips the
   // "more than one child needs explicit display" rule and the whole image
   // fails to render.
-  const subline = `An AI Thinking Academy for ages ${SITE.ageRange.min}–${SITE.ageRange.max}. Live online, small batches.`;
+  const subline = `An AI Thinking Academy for ages ${SITE.ageRange.min}-${SITE.ageRange.max}. Live online, small batches.`;
 
   return new ImageResponse(
     (
