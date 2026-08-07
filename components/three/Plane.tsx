@@ -38,9 +38,9 @@ import { range, smootherstep } from "./lib/ease";
  */
 
 /**
- * EXIT_FRACTION now lives in lib/flightPath.ts, alongside PLANE_EXIT — the
- * camera rig has to frame this run and therefore has to know where it is, and
- * PlaneBody has to fade the aircraft out over the end of it.
+ * EXIT_FRACTION lives in lib/flightPath.ts, alongside the exit path itself —
+ * the camera rig has to frame this run and therefore has to know where it is,
+ * and PlaneBody has to fade the aircraft out over the end of it.
  */
 
 /** The model's own axis. It is built and exported nose-toward +Z. */
@@ -102,15 +102,21 @@ export function Plane({ reducedMotion }: Props) {
        * The run at the viewer.
        *
        * "The aeroplane launches into the website" — so it does: it leaves the
-       * curve, accelerates toward the eyeline it was thrown from, and passes
-       * overhead. Eased rather than linear, because an aircraft that changes
-       * direction instantly reads as a sprite being moved rather than a thing
-       * with mass.
+       * curve, accelerates toward the eyeline it was thrown from, and comes
+       * straight down the lens.
+       *
+       * BOTH TAKE `pass`, THE RAW SCROLL POSITION, and do their own easing.
+       * They used to take a pre-eased `run`, which was fine while the exit was
+       * a fixed vector. It is not one any more — the path now homes on the lens
+       * as the lens actually moves — so the position needs the scroll value
+       * itself. See `exitEase` and `lensAt` in lib/flightPath.ts; between them
+       * they own why the approach is paced the way it is and why it stays in
+       * the middle of frame while it closes.
        */
-      const run = smootherstep(Math.min(1, closing / EXIT_FRACTION));
-      planeAt(run, pos);
+      const exitPass = Math.min(1, closing / EXIT_FRACTION);
+      planeAt(exitPass, pos);
       // Where it is AND where that path is heading, from the same function.
-      planeTangentAt(run, tangent);
+      planeTangentAt(exitPass, tangent);
     }
 
     group.position.copy(pos);

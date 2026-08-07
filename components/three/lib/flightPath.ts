@@ -208,7 +208,7 @@ const CLOSE_EYE = EYE.clone().add(CLOSE_DRIFT);
  * put the vertical component there in the first place.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-const FLYBY_SIDESTEP = 0.25;
+const FLYBY_SIDESTEP = 0.1;
 
 /**
  * Where in the run the aeroplane and the camera actually meet.
@@ -237,32 +237,78 @@ const FLYBY_SIDESTEP = 0.25;
 const FLYBY_CARRY = 1.35;
 
 /**
- * Pass at which the eased run reaches `target`.
+ * The point in the RUN at which the aircraft reaches the lens.
  *
- * Bisection because `smootherstep` has no closed-form inverse, and forty
- * iterations of it once at module load is free.
+ * The exit vector is FLYBY_CARRY times the distance to the lens, so the run
+ * parameter passes the camera at 1/FLYBY_CARRY and everything above that is
+ * behind the viewer's head. Derived, so the carry cannot be changed without
+ * this following it.
  */
-function passForRun(target: number): number {
-  let lo = 0;
-  let hi = 1;
-  for (let i = 0; i < 40; i++) {
-    const mid = (lo + hi) / 2;
-    if (smootherstep(mid) < target) lo = mid;
-    else hi = mid;
+const ARRIVAL_RUN = 1 / FLYBY_CARRY;
+
+/** How much of the scroll is spent on the approach, before the lens. */
+const ARRIVAL_PASS = 0.88;
+
+/**
+ * Easing for the exit run — and the reason it is not just `smootherstep`.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE APPROACH WAS OVER IN A FLICK. Measured on captured frames, the aircraft
+ * went from 26% to 70% of frame width inside a tenth of a second of scrolling.
+ * Two non-linearities were compounding:
+ *
+ *   1. apparent size goes as 1/distance, so nearly all the growth is in the
+ *      last stretch no matter how the run is eased, and
+ *   2. smootherstep is FASTEST THROUGH THE MIDDLE — exactly where the aircraft
+ *      starts closing.
+ *
+ * The fix is an ease-out, so scroll is spent where the aircraft is large. But
+ * an ease-out applied to the run as a whole IS WRONG HERE, and wrong in a way
+ * that looks right in the algebra: an ease-out decelerates approaching run = 1,
+ * and run = 1 is 35% PAST THE LENS. It would spend its slow, expensive stretch
+ * behind the viewer's head and rush the part they can see — the exact fault
+ * being fixed, moved rather than removed.
+ *
+ * So the deceleration is aimed at ARRIVAL_RUN instead. The approach gets its own
+ * ease-out over [0, ARRIVAL_PASS], and the carry past the lens — invisible, and
+ * needed only so the aircraft passes rather than stops — gets the leftover
+ * scroll linearly.
+ *
+ * MEASURED, as scroll spent with the aircraft at 25% of frame width or more,
+ * over the 400svh zone:
+ *
+ *      smootherstep across the whole run     5.6svh
+ *      ease-out into the lens, k = 2        26.9svh
+ *
+ * k = 2 rather than 3: at 3 the run covers 98% of the approach by three
+ * quarters of the scroll and then crawls, which trades the flick for a stall.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+const EXIT_EASE_K = 2;
+
+export function exitEase(pass: number): number {
+  if (pass <= ARRIVAL_PASS) {
+    const u = pass / ARRIVAL_PASS;
+    return ARRIVAL_RUN * (1 - Math.pow(1 - u, EXIT_EASE_K));
   }
-  return (lo + hi) / 2;
+  const u = (pass - ARRIVAL_PASS) / (1 - ARRIVAL_PASS);
+  return ARRIVAL_RUN + (1 - ARRIVAL_RUN) * u;
 }
 
 /**
- * DERIVED, not chosen. The run is eased, so the aircraft covers the whole exit
- * vector when `smootherstep(pass) = 1 / FLYBY_CARRY` — that, and only that, is
- * the moment it reaches the aim point. Picking the aim pass by hand and the
- * carry separately is how the two got out of step: aiming at the camera's
- * position at 0.62 while the aircraft did not actually arrive until 0.66 left
- * it passing 0.9m wide again, just less than before.
+ * Where the aeroplane and the camera meet, which is now true BY CONSTRUCTION.
+ *
+ * This used to be solved by bisecting `smootherstep` for the pass at which the
+ * run reached 1/FLYBY_CARRY, because the ease was fixed and the arrival fell
+ * wherever it fell. `exitEase` inverts that relationship — the arrival is the
+ * input and the ease is built around it — so the bisection has nothing left to
+ * find and the two can no longer drift apart.
+ *
+ * The failure this guards against is worth keeping in mind if the ease is ever
+ * replaced: aiming at the camera's position at one pass while the aircraft
+ * actually arrives at another left it passing nearly a metre wide of the lens,
+ * which made it both stay small and climb off the top of frame.
  */
-const FLYBY_AIM_AT = passForRun(1 / FLYBY_CARRY);
-
 /**
  * The camera's position at a given point through the exit run.
  *
@@ -270,63 +316,69 @@ const FLYBY_AIM_AT = passForRun(1 / FLYBY_CARRY);
  * smootherstep, same MARK_SETTLE, same lerp from EYE to EYE+CLOSE_DRIFT. If
  * that move ever changes, this has to change with it or the aim drifts again.
  */
-function cameraAt(pass: number): THREE.Vector3 {
+function cameraAt(pass: number, out: THREE.Vector3): THREE.Vector3 {
   const settle = smootherstep(
     Math.min(1, (pass * EXIT_FRACTION) / MARK_SETTLE),
   );
-  return EYE.clone().lerp(CLOSE_EYE, settle);
+  return out.copy(EYE).lerp(CLOSE_EYE, settle);
 }
 
-/** The lens, at the moment the aeroplane reaches it. */
-const AIM_EYE = cameraAt(FLYBY_AIM_AT);
-
-/** The camera's view axis at the moment the aeroplane arrives. */
-const VIEW_AXIS = MARK_ANCHOR.clone().sub(AIM_EYE).normalize();
-
 /**
- * Screen-right for that view. Perpendicular to both the view axis and world up,
- * which is exactly the direction that carries no screen-up component.
- */
-const SCREEN_RIGHT = new THREE.Vector3()
-  .crossVectors(VIEW_AXIS, new THREE.Vector3(0, 1, 0))
-  .normalize();
-
-const FLYBY_MISS = SCREEN_RIGHT.clone().multiplyScalar(FLYBY_SIDESTEP);
-
-/**
- * How far beyond the lens the run carries. Above 1, or it stops at your face.
- * FLYBY_AIM_AT above is solved from this, so the two cannot drift apart.
- */
-
-/**
- * The aeroplane's departure vector, from MARK_ANCHOR.
+ * Where the aeroplane is trying to get to, at a given point through the run:
+ * the lens, plus a small deliberate miss.
  *
- * Aimed at the CLOSING camera position plus a deliberate small miss, so the
- * plane he launched comes back straight at the viewer. That is the shot the
- * whole sequence has been building to now that the logo assembly is gone.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * A MOVING TARGET, AND IT HAS TO BE. This was a fixed vector until the run's
+ * easing changed, and swapping it is what stopped the aircraft leaving frame.
+ *
+ * The camera does not sit still through this shot: CLOSE_DRIFT carries it
+ * (0.35, -0.25, 0.9) — nearly a metre — while the aeroplane is inbound. Aiming
+ * at any single point on that path means aiming at somewhere the lens is NOT
+ * for all but one instant of the approach, and the error is angular, so it
+ * grows as the aircraft gets closer. It was invisible while the aircraft was
+ * only briefly close. Ease the run so it is close for longer and it dominates.
+ *
+ * MEASURED, centroid y at 1900x920 with the frame centre at 460:
+ *
+ *      aim fixed at one point on the drift    460 → 376 → 253 →  95 → -171
+ *      camera drift removed entirely          460 → 460 → 460 → 460 →  460
+ *      aim tracks the lens (this)             460 → 460 → 460 → 460 →  460
+ *
+ * The second row is the control: it proves the climb is the drift beating
+ * against a fixed aim, not the sidestep and not the pull, both of which were
+ * suspected first and cleared by measurement.
+ *
+ * NOT CIRCULAR, which is why the older comment here refused to do it. That
+ * objection was about chasing `camera.position` live — the rig cannot frame the
+ * plane if the plane's path depends on where the rig ended up. This reads
+ * `cameraAt`, an ANALYTIC function of scroll that mirrors the rig, and in this
+ * shot the rig is not framing the plane anyway: it holds, aimed at MARK_ANCHOR.
+ * Nothing depends on anything.
+ * ─────────────────────────────────────────────────────────────────────────────
  *
  * THE MISS IS NOT THERE TO AVOID A COLLISION READ. It used to be, and the
  * comment used to say so — "dead centre reads as a collision rather than a
- * fly-past" — which is now exactly backwards. A collision read IS the intent:
- * the aircraft should look like it is going to hit you. The miss survives for
- * two mechanical reasons only, neither of them aesthetic:
+ * fly-past" — which is now exactly backwards. A collision read IS the intent.
+ * The miss survives for two mechanical reasons only, neither aesthetic:
  *
  *   1. dead centre would fly THROUGH the camera, and
  *   2. something has to decide which way it breaks at the end.
  *
- * It is therefore as small as it can be, and pointed along screen-right so that
- * the break costs no vertical drift. See FLYBY_MISS above.
- *
- * Fixed rather than computed from the live camera. An earlier version chased
- * `camera.position` each frame, which was correct but circular — the camera rig
- * needs to know where the plane IS in order to frame it, and it cannot if the
- * plane's path depends on where the camera ended up. CLOSE_EYE is the
- * ANALYTICAL end of that move, which is not circular.
+ * It is taken along screen-right, recomputed per pass from the lens's own view
+ * axis, so that it carries no screen-up component at any point of the approach
+ * rather than only at one.
  */
-export const PLANE_EXIT = AIM_EYE.clone()
-  .add(FLYBY_MISS)
-  .sub(MARK_ANCHOR)
-  .multiplyScalar(FLYBY_CARRY);
+function lensAt(pass: number, out: THREE.Vector3): THREE.Vector3 {
+  cameraAt(pass, out);
+  SCRATCH_AXIS.copy(MARK_ANCHOR).sub(out).normalize();
+  SCRATCH_RIGHT.crossVectors(SCRATCH_AXIS, WORLD_UP).normalize();
+  return out.addScaledVector(SCRATCH_RIGHT, FLYBY_SIDESTEP);
+}
+
+const WORLD_UP = /* @__PURE__ */ new THREE.Vector3(0, 1, 0);
+const SCRATCH_AXIS = /* @__PURE__ */ new THREE.Vector3();
+const SCRATCH_RIGHT = /* @__PURE__ */ new THREE.Vector3();
+const SCRATCH_LENS = /* @__PURE__ */ new THREE.Vector3();
 
 /**
  * The aeroplane's departure.
@@ -366,7 +418,7 @@ export const PLANE_EXIT = AIM_EYE.clone()
  * the obvious suspect for the climb was this constant — and MEASURING IT CLEARED
  * IT. Setting PULL_UP to 0 and capturing the frames moved the centroid at
  * p=0.850 from y=167 to y=163: no change worth the name. The climb was coming
- * from the aim being wrong (see FLYBY_AIM_AT), not from the pull.
+ * from the aim being wrong (see `lensAt`), not from the pull.
  *
  * Zero is safe, and this is the check that says so — the floor argument above is
  * real, so it cannot just be deleted on taste:
@@ -393,23 +445,44 @@ const TURN_IN = 0.35;
 /** The heading it inherits from the rocket's flight, at the moment it is born. */
 const ARRIVAL_HEADING = FLIGHT_CURVE.getTangent(1).normalize();
 
-/** Where the aeroplane is, `run` being 0..1 through its departure. */
-export function planeAt(run: number, out: THREE.Vector3): THREE.Vector3 {
-  out.copy(MARK_ANCHOR).addScaledVector(PLANE_EXIT, run);
+/**
+ * Where the aeroplane is, `pass` being 0..1 through its departure.
+ *
+ * TAKES `pass`, NOT `run`. The two used to be interchangeable here because the
+ * destination was a constant and only the distance along it varied. It is not a
+ * constant any more — see `lensAt` — so the position needs the scroll position
+ * itself, and applying the easing is this function's job rather than the
+ * caller's. Handing it a pre-eased value would ease the run twice.
+ */
+export function planeAt(pass: number, out: THREE.Vector3): THREE.Vector3 {
+  const run = exitEase(pass);
+  lensAt(pass, SCRATCH_LENS);
+
+  // FLYBY_CARRY takes it PAST the lens rather than up to it: at run
+  // ARRIVAL_RUN it is exactly on the lens, and it keeps going.
+  out.copy(MARK_ANCHOR).addScaledVector(
+    SCRATCH_LENS.sub(MARK_ANCHOR),
+    run * FLYBY_CARRY,
+  );
 
   // Squared, so it is imperceptible at the pass and dominant by the time it
   // leaves frame — an aircraft rotating out of a dive, not one changing its
-  // mind.
+  // mind. PULL_UP is zero; see the note on it for why that is safe.
   const pull = Math.max(0, (run - PULL_START) / (1 - PULL_START));
   out.y += PULL_UP * pull * pull;
 
   return out;
 }
 
-/** Which way it is POINTING at `run`. */
-export function planeTangentAt(run: number, out: THREE.Vector3): THREE.Vector3 {
-  // The path's own direction: the derivative of `planeAt`.
-  out.copy(PLANE_EXIT);
+/** Which way it is POINTING at `pass`. */
+export function planeTangentAt(pass: number, out: THREE.Vector3): THREE.Vector3 {
+  // Down the line to the lens. The lens creeps, so this is not quite the
+  // derivative of `planeAt` any more — but the difference is a fraction of a
+  // degree, and pointing AT the viewer is the read this shot is built on.
+  lensAt(pass, SCRATCH_LENS);
+  out.copy(SCRATCH_LENS).sub(MARK_ANCHOR).normalize();
+
+  const run = exitEase(pass);
   const pull = Math.max(0, (run - PULL_START) / (1 - PULL_START));
   out.y += (2 * PULL_UP * pull) / (1 - PULL_START);
   out.normalize();

@@ -2,7 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { hasWebGL } from "./lib/deviceTier";
+import { detectDeviceTier, hasWebGL } from "./lib/deviceTier";
+import {
+  CHARACTER_MODEL_URL,
+  MODEL_TIERS,
+  MODEL_USES_DRACO,
+} from "./lib/modelAssets";
 import { usePageVisible } from "@/lib/hooks/usePageVisible";
 
 /**
@@ -17,6 +22,55 @@ const CinematicScene = dynamic(
   { ssr: false, loading: () => null },
 );
 
+/**
+ * Start the character download as soon as the page hydrates.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * DELIBERATELY OUTSIDE THE IDLE GATE BELOW, and that is the entire point.
+ * Nothing used to ask for boy.glb until the Canvas mounted, so an 841KB
+ * download the hero cannot do without did not START until ~2.0s. The fetch was
+ * queued behind a gate that exists to protect the MAIN THREAD, not the network.
+ * Those are different resources and they need not contend: bytes can be in
+ * flight while the CPU is busy painting text.
+ *
+ * `useGLTF.preload` RATHER THAN `<link rel="preload">`. The link tag has to
+ * match GLTFLoader's request mode exactly or the browser fetches the file
+ * twice and warns about an unused preload. This goes through the same loader
+ * and the same cache `useGLTF` in BoyModel reads from, so the hit is
+ * guaranteed by construction — provided MODEL_USES_DRACO is passed, which is
+ * part of drei's cache key. See modelAssets.ts.
+ *
+ * TIER-GATED, and NOT optional. `MODEL_TIERS` excludes low-tier devices, which
+ * render the procedural boy and never touch the GLB. An unconditional preload
+ * therefore ships 841KB to exactly the phones the gate was written to protect,
+ * which is worse than the problem being fixed.
+ *
+ * DYNAMIC IMPORT, so drei stays out of the eager bundle. A static import here
+ * would pull three into the chunk the homepage loads before it paints — the
+ * 234KB of parse work the idle gate below exists to defer. The chunk is on its
+ * way regardless; this only stops it blocking the hero text.
+ *
+ * ONLY THE BOY. The rocket and the aeroplane are requested at the same late
+ * moment he is, but they are 380KB and 879KB. Preloading all three makes them
+ * share the pipe and the boy arrives LATER than he does today. He is on screen
+ * first; the other two have until shot 2 and shot 4, with a procedural
+ * stand-in until then.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+function usePreloadCharacter() {
+  useEffect(() => {
+    if (!MODEL_TIERS.includes(detectDeviceTier())) return;
+
+    let cancelled = false;
+    void import("@react-three/drei").then(({ useGLTF }) => {
+      if (!cancelled) useGLTF.preload(CHARACTER_MODEL_URL, MODEL_USES_DRACO);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+}
+
 /** WebGL availability never changes within a page life, so there is nothing to
  *  subscribe to — but `useSyncExternalStore` still gives us a clean, tear-free
  *  "client knows, server doesn't" read without a setState-in-effect. */
@@ -24,6 +78,8 @@ const noopSubscribe = () => () => {};
 const noWebGLOnServer = () => false;
 
 export function CinematicMount() {
+  usePreloadCharacter();
+
   const webglAvailable = useSyncExternalStore(
     noopSubscribe,
     hasWebGL,

@@ -14,11 +14,15 @@
  * avoid claiming it rather than inventing a plausible number.
  * Search for NEEDS INPUT.
  *
- * Several arrays ship EMPTY on purpose: PROOF_STATS, PODCAST_EPISODES,
- * RESOURCES, TRUST_MARKS. Their sections render nothing until real content is
- * supplied. An empty section costs a conversion; a fabricated statistic on a
- * site selling education to parents is a different kind of thing entirely, and
- * it is also the sort of claim that gets an ad account rejected.
+ * Several arrays ship EMPTY on purpose: PROOF_STATS and RESOURCES. Their
+ * sections render nothing until real content is supplied. An empty section
+ * costs a conversion; a fabricated statistic on a site selling education to
+ * parents is a different kind of thing entirely, and it is also the sort of
+ * claim that gets an ad account rejected.
+ *
+ * Removed Aug 2026 along with their sections — see the cut list in
+ * app/(marketing)/page.tsx before re-adding any of them: TRUST_MARKS,
+ * ARTICLES, PODCAST.episodes and HOW_IT_WORKS.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -290,19 +294,22 @@ export const FOUNDER = {
   /**
    * The founder's own framing of what a session develops.
    *
-   * Verb-led on purpose — these are things a child does, where the seven
-   * pillars higher up the page are things we build. The overlap is deliberate
-   * and it reads as conviction rather than repetition because it arrives in his
-   * voice, in the middle of a personal story.
+   * Cut from seven items to three. Seven was the whole pillar list restated in
+   * his voice — "solve meaningful problems", "build real projects", "present
+   * ideas with confidence" and "use AI responsibly" are Problem Solving,
+   * Portfolio Building, Communication and Ethical AI Usage, read a screen
+   * earlier under their own heading. The argument for keeping them was that a
+   * personal voice makes repetition read as conviction. It does not; it reads
+   * as a page with less to say than it appears to.
+   *
+   * What is left is the part the pillars do not already cover, in his words.
+   * The section's own guard handles a shorter list, and the two-column grid
+   * takes three items without a gap.
    */
   mission: [
     "Ask powerful questions",
     "Think logically",
     "Research deeply",
-    "Solve meaningful problems",
-    "Build real projects",
-    "Present ideas with confidence",
-    "Use AI responsibly and ethically",
   ] as string[],
 
   /** Closes the section. First person, and deliberately a promise, not a claim. */
@@ -321,8 +328,16 @@ export const FOUNDER = {
     "Founder of several businesses",
   ] as string[],
   bio: null as string | null,
-  /** 1254×1254. Cropped to 4:5 by the section, so keep the face off-centre-high. */
-  photoUrl: "/founder.jpg" as string | null,
+  /**
+   * 1254×1254 square.
+   *
+   * The section renders it into an `aspect-[4/5]` box with `object-cover`, and
+   * a square source is WIDER than that box — so the crop is HORIZONTAL: the
+   * full height survives and about 10% is trimmed from each side. Keep the
+   * subject centred left-to-right and allow room at the shoulders; there is no
+   * need to bias the face upward, because nothing is cut off the top or bottom.
+   */
+  photoUrl: "/founder.png" as string | null,
 };
 
 /* ═══════════════════════════════════════════════════════════════ Hero ══ */
@@ -446,40 +461,22 @@ export const CHALLENGES: Challenge[] = [
   },
 ];
 
-/* ══════════════════════════════════════════════════ Podcast & writing ══ */
+/* ═══════════════════════════════════════════════════════════ Podcast ══ */
 
 /**
- * NEEDS INPUT. Section hides while empty.
- * `youtubeUrl` null hides the channel CTA independently.
+ * The podcast channel, linked from the footer.
+ *
+ * NEEDS INPUT: `channelUrl`. The footer link hides itself while it is null.
+ *
+ * There was also an `episodes` list and an `ARTICLES` list feeding a "Library"
+ * band on the homepage. Both are gone. Episodes and articles are worth having
+ * — they are just not a homepage section; they belong on /podcast and /blog,
+ * which the discovery docs ask for and which do not exist yet. Hand-listing
+ * them on the homepage was standing in for a build that still has to happen.
  */
-export type PodcastEpisode = {
-  title: string;
-  blurb: string;
-  url: string;
-  /** e.g. "24 min" */
-  duration?: string;
-};
-
 export const PODCAST = {
   channelUrl: null as string | null,
-  episodes: [] as PodcastEpisode[],
 };
-
-/**
- * NEEDS INPUT. Section hides while empty.
- *
- * There is no blog engine yet — these are hand-listed until one exists. See
- * docs/LAUNCH.md; a real blog is a separate build, not a homepage section.
- */
-export type Article = {
-  title: string;
-  blurb: string;
-  href: string;
-  /** ISO date */
-  date: string;
-};
-
-export const ARTICLES: Article[] = [];
 
 /* ═════════════════════════════════════════════════════════ Resources ══ */
 
@@ -524,52 +521,17 @@ export const COMMUNITY = {
   ],
 } as const;
 
-/* ═══════════════════════════════════════════════════════════ Trust ══ */
-
-/**
- * Featured in, partner schools, guest talks, awards.
- * SHIPS EMPTY. Every entry is a verifiable claim about a third party — the one
- * category where an invented item is not just dishonest but actionable.
+/*
+ * TRUST_MARKS ("featured in", partner schools, guest talks, awards) was removed
+ * with its section. Logos of third parties are the weakest trust signal
+ * available to us, and every entry is a claim about someone who did not agree
+ * to appear here. Testimonials and StudentProjects do that job far harder and
+ * are already built and waiting on content.
+ *
+ * HOW_IT_WORKS was removed with its section too. Its four steps — free session,
+ * choose a program, live small batches, build something real — are stages 2 to
+ * 5 of JOURNEY above, which says the same thing at more length and in order.
  */
-export type TrustMark = {
-  label: string;
-  /** "media" | "school" | "talk" | "award" — drives the grouping heading */
-  kind: "media" | "school" | "talk" | "award";
-  url?: string;
-};
-
-export const TRUST_MARKS: TrustMark[] = [];
-
-/* ══════════════════════════════════════════════════════ How it works ══ */
-
-export type HowItWorksStep = {
-  step: string;
-  title: string;
-  body: string;
-};
-
-export const HOW_IT_WORKS: HowItWorksStep[] = [
-  {
-    step: "01",
-    title: "Start with the free parent session",
-    body: "Before anything else, you see how we teach. Bring your questions about raising a child alongside AI — we would rather answer those first than sell you a course.",
-  },
-  {
-    step: "02",
-    title: "Choose the right program",
-    body: "Programs are grouped by age and readiness, not by school grade. We will tell you honestly if your child is better served waiting a year.",
-  },
-  {
-    step: "03",
-    title: "Live online, small batches",
-    body: "Sessions are live, not recorded. Small groups, because thinking is taught through argument and questions — which does not happen in a room of a hundred.",
-  },
-  {
-    step: "04",
-    title: "Your child builds something real",
-    body: "Every child leaves with work they can show: a project they scoped, questioned, made and can explain. Not a certificate of attendance.",
-  },
-];
 
 /* ═════════════════════════════════════════════════════════════ FAQ ══ */
 

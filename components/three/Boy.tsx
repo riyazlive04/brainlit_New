@@ -8,6 +8,7 @@ import { CartoonBoy } from "./CartoonBoy";
 import { BoyModel } from "./BoyModel";
 import { ModelBoundary } from "./lib/ModelBoundary";
 import { CHARACTER_MODEL_URL, useModelAvailable } from "./lib/characterModel";
+import { MODEL_TIERS } from "./lib/modelAssets";
 import { BOY_FACING, BOY_FEET, BOY_HEIGHT } from "./lib/flightPath";
 import { DOLLY_FRACTION, shotProgress } from "./lib/shots";
 import type { DeviceTier } from "./lib/deviceTier";
@@ -39,19 +40,6 @@ import type { DeviceTier } from "./lib/deviceTier";
 /** CartoonBoy is authored 2.0 units tall; the rig frames against BOY_HEIGHT. */
 const PROCEDURAL_SCALE = BOY_HEIGHT / 2.0;
 
-/**
- * Tiers that attempt the download.
- *
- * The model is the only asset in the hero and by far the largest thing on the
- * page. `detectDeviceTier` classifies most phones and any machine with four
- * cores or less as low, and those get the procedural character — same
- * composition, same throw, none of the bytes and none of the skinning.
- *
- * DO NOT WIDEN THIS without re-running Lighthouse on a throttled mid-range
- * Android. It is the gate that keeps a character model off the devices that
- * cannot afford one.
- */
-const MODEL_TIERS: readonly DeviceTier[] = ["high", "mid"];
 
 type Props = {
   reducedMotion: boolean;

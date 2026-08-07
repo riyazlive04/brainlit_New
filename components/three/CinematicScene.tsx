@@ -52,6 +52,20 @@ export function CinematicScene({ active, onContextLost }: Props) {
     <Canvas
       dpr={dpr}
       frameloop={active ? "always" : "never"}
+      // react-three-fiber writes `pointer-events: auto` INLINE on its root div,
+      // which beats the `pointer-events-none` class on the fixed wrapper in
+      // CinematicMount — inline styles win over classes regardless of source
+      // order. The result was an invisible, full-viewport click shield: this
+      // canvas is `fixed inset-0` and never unmounts, it only fades to
+      // `opacity: 0`, and an element at zero opacity still hit-tests. Every
+      // control in the footer — the newsletter field, Subscribe, all four link
+      // columns — was silently dead, because the footer is the one landmark on
+      // the page that sits under the canvas rather than above it.
+      //
+      // This `style` merges into that same root div and puts the declaration
+      // back. The scene is decorative and has no interaction of its own, so it
+      // must never take a pointer event anywhere on the page.
+      style={{ pointerEvents: "none" }}
       // Position and FOV are overwritten on the first frame by the camera rig
       // in Cinematic.tsx. These match CAM.boyPos / CAM.boyLook — the framing
       // shot 1 now holds — so the very first painted frame is already correct

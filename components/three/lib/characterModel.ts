@@ -39,8 +39,17 @@ import * as THREE from "three";
  * "mixamorig:RightArm" and "right_arm" are all the same string here.
  */
 
-/** Where the model is served from. */
-export const CHARACTER_MODEL_URL = "/boy.glb";
+/**
+ * Asset facts (URL, Draco flag, tier gate) live in modelAssets.ts, which does
+ * NOT import three — so CinematicMount can preload the character without
+ * pulling the whole library into the eager bundle. Re-exported so every
+ * existing call site keeps working unchanged.
+ */
+export {
+  CHARACTER_MODEL_URL,
+  MODEL_USES_DRACO,
+  MODEL_TIERS,
+} from "./modelAssets";
 
 /**
  * The paper rocket, same arrangement: drop `rocket.glb` into `public/` and it
@@ -146,16 +155,6 @@ export const PROP_SPIN_RATE = 34;
  */
 export const PROP_DISC_OPACITY = 0.22;
 
-/**
- * Draco compression.
- *
- * OFF, because drei fetches the Draco decoder from a Google CDN, and a hero
- * that cannot render until a third-party script arrives is a hero that breaks
- * whenever that CDN is blocked — which on a site aimed at schools and parents
- * is not rare. If the model must be Draco-compressed, set this true AND host
- * the decoder yourself via `useGLTF.setDecoderPath('/draco/')`.
- */
-export const MODEL_USES_DRACO = false;
 
 /**
  * Yaw correction, in radians, applied before BOY_FACING.

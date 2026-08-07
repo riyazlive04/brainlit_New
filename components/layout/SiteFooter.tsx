@@ -34,24 +34,15 @@ export function SiteFooter() {
   ].filter(Boolean) as { href: string; label: string; external: boolean }[];
 
   return (
-    <footer className="mt-auto border-t border-mist bg-paper">
+    // `relative z-10` is not decorative. The homepage mounts a `fixed inset-0
+    // z-0` canvas that never unmounts, and a positioned z-0 element paints
+    // above a static one no matter where it sits in the document. Every
+    // marketing section carries this pair for that reason; the footer did not,
+    // so the canvas covered it and swallowed every click in here.
+    <footer className="relative z-10 mt-auto border-t border-mist bg-paper">
       <Container size="wide" className="py-16">
-        {/* ------------------------------------------------------ Newsletter */}
-        <div className="grid gap-8 border-b border-mist pb-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-center lg:gap-16">
-          <div>
-            <h2 className="font-display text-[length:var(--text-h3)] text-ink">
-              The AI parenting newsletter
-            </h2>
-            <p className="mt-2.5 max-w-md text-[0.95rem] leading-relaxed text-slate">
-              Once a week: what changed in AI, what it means for a child, and
-              what to do about it. Unsubscribe in one click.
-            </p>
-          </div>
-          <NewsletterForm source="footer" />
-        </div>
-
         {/* ----------------------------------------------------------- Links */}
-        <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <Wordmark />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate">
@@ -135,11 +126,28 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-2 border-t border-mist pt-6 text-xs text-slate sm:flex-row sm:items-center sm:justify-between">
+        {/* Three items rather than two, so the build credit gets its own slot
+            at the end of the row instead of being tacked onto the Chennai line.
+            They stack in source order on a phone. */}
+        <div className="mt-12 flex flex-col gap-2 border-t border-mist pt-6 text-xs text-slate sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <p>
             © {year} {SITE.legalName}. All rights reserved.
           </p>
           <p>Made for curious minds in {SITE.city}.</p>
+          {/* Only the studio name is the link — "Developed by" is not part of
+              the click target, and a two-word target is easier to hit than a
+              four-word one on a phone. */}
+          <p>
+            Developed by{" "}
+            <a
+              href="https://sirahdigital.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-slate transition-colors hover:text-violet"
+            >
+              Sirah Digital
+            </a>
+          </p>
         </div>
       </Container>
     </footer>

@@ -9,7 +9,6 @@ import { WhyNow } from "@/components/sections/WhyNow";
 import { Comparison } from "@/components/sections/Comparison";
 import { Transformation } from "@/components/sections/Transformation";
 import { Curriculum } from "@/components/sections/Curriculum";
-import { HowItWorks } from "@/components/sections/HowItWorks";
 import { Journey } from "@/components/sections/Journey";
 import { ThinkingDemo } from "@/components/sections/ThinkingDemo";
 import { ProofStats } from "@/components/sections/ProofStats";
@@ -18,10 +17,8 @@ import { Testimonials } from "@/components/sections/Testimonials";
 import { Founder } from "@/components/sections/Founder";
 import { WebinarValue } from "@/components/sections/WebinarValue";
 import { Pricing } from "@/components/sections/Pricing";
-import { Library } from "@/components/sections/Library";
 import { Resources } from "@/components/sections/Resources";
 import { Community } from "@/components/sections/Community";
-import { TrustMarks } from "@/components/sections/TrustMarks";
 import { FaqPreview } from "@/components/sections/FaqPreview";
 import { FinalCta } from "@/components/sections/FinalCta";
 import { PILLARS, SITE } from "@/lib/site";
@@ -37,7 +34,7 @@ export const metadata: Metadata = {
 /**
  * Homepage.
  *
- * The cinematic zone spans the first three and a half screens. One fixed canvas
+ * The cinematic zone spans the first three screens. One fixed canvas
  * sits behind them at z-0 while the copy rides above at z-10; those sections
  * stay transparent so the scene shows through, and everything after is opaque
  * white, which is what hides the canvas for the rest of the page.
@@ -83,15 +80,65 @@ export const metadata: Metadata = {
  *      final CTA.
  *
  * Sections whose content has not been supplied render nothing — ProofStats,
- * StudentProjects, Testimonials, Library, Community, TrustMarks. The live page
- * is therefore shorter than this file suggests, and gets longer as real
- * material arrives rather than shipping placeholders. See content/home.ts.
+ * StudentProjects, Testimonials, Community. The live page is therefore shorter
+ * than this file suggests, and gets longer as real material arrives rather than
+ * shipping placeholders. See content/home.ts.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * WHAT WAS CUT, AND WHY IT IS NOT COMING BACK BY ACCIDENT (Aug 2026)
+ *
+ * Six blocks were removed as doing no work for the site's actual jobs — build
+ * trust, capture leads, fill the webinar, convert to enrolment, show student
+ * work. Recorded here so nobody re-adds them thinking they were an oversight:
+ *
+ *   - The 160svh spacer inside the cinematic zone. Dead markup: the zone's own
+ *     height sets the scrub length, so the spacer bought no film and cost a
+ *     screen of scroll. The zone also came down 400svh → 300svh.
+ *   - TrustMarks. Third-party logos are the weakest trust signal available to
+ *     us, and Testimonials and StudentProjects do that job far harder.
+ *   - Library (podcast + articles). Right content, wrong container — it belongs
+ *     on /podcast and /blog, which are still to be built.
+ *   - HowItWorks. Its four steps were a strict subset of Journey's eight
+ *     stages. Journey kept; the same argument is not made twice.
+ *   - The Positioning block. It said "Thinking academy, not a coding academy" —
+ *     which the philosophy screen says above it and Comparison proves in five
+ *     rows below it. Three statements of one idea in a row.
+ *   - Four of the seven items in FOUNDER.mission, which restated the seven
+ *     pillars in the founder's voice one screen after the pillars themselves.
+ *
+ * Transformation and Comparison BOTH stay, despite looking alike: one contrasts
+ * us against other academies, the other contrasts a child before against after.
+ * Different arguments, both load-bearing.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export default function HomePage() {
   return (
     <>
-      <div data-cinematic className="relative h-[400svh]">
+      {/* 500svh, up from 300, to HALVE the speed of the film.
+          ─────────────────────────────────────────────────────────────────────
+          THIS IS THE ONLY NUMBER THAT SETS THE PACE. ScrollTrigger runs this
+          zone `top top` -> `bottom bottom`, so progress is scroll position over
+          (zone height − viewport). Nothing inside the zone can change that: the
+          box has a height of its own and its children do not add to it. See the
+          note further down about the spacer that used to sit here.
+
+          Measured at 1440x900:
+
+                        scrub      screens/shot   empty scroll
+              300svh    1800px     0.36–0.44      1.23 screens
+              500svh    3600px     0.72–0.88      3.23 screens
+
+          The cost is stated in that last column and it is the real trade: two
+          extra screens of nothing for a reader who does not care about the
+          animation. 500 rather than higher because the empty run grows one
+          screen for every 100svh added here, and past about three screens it
+          stops reading as a slow film and starts reading as a broken page.
+
+          `min-h` rather than `h`: the hero inside is `min-h-[100svh]` and can
+          outgrow a short phone viewport. With a fixed height that overflows;
+          with a minimum the zone grows, and a longer zone only makes the film
+          slower, which is the direction that is safe. */}
+      <div data-cinematic className="relative min-h-[500svh]">
         <CinematicMount />
 
         {/* ------------------------------------------------- Shot 1 · the boy
@@ -188,28 +235,20 @@ export default function HomePage() {
           </Container>
         </section>
 
-        {/* --------------------------------------- Shots 2, 3 and 4 · the film
-            Empty scroll, on purpose.
+        {/* Shots 2, 3 and 4 — the throw, the move to his eyeline, and the burn
+            — play across the rest of this zone with no copy over them, which is
+            the point: shot 3 puts the camera behind a child's eyes watching
+            something he made climb out of sight, and there is no sentence worth
+            putting on top of that.
 
-            This is the throw, the move to his eyeline, and the burn. It carries
-            no copy at all, and that is the point: shot 3 puts the camera behind
-            a child's eyes watching something he made climb out of sight, and
-            there is no sentence worth putting on top of that.
+            There is deliberately no spacer element here. One used to sit in
+            this position and it did nothing: the zone is a fixed height, so its
+            children cannot lengthen the scroll the film is scrubbed against.
+            It bought no extra frames and cost a screen of scrolling.
 
-            It is also the only part of the page that exists purely to be
-            scrolled through, so it is kept as short as the sequence can bear.
-            Roughly 160svh here plus the tail of the hero gives shots 2–4 about
-            two screens between them.
-
-            `aria-hidden` and empty: a screen reader gets nothing from it, and
-            there is nothing here to get. The argument resumes below. */}
-        <div aria-hidden="true" className="h-[160svh]" />
-
-        {/* The "homework is no longer the hard part" screen was removed at the
-            client's request. Its argument is not lost — Why Now, immediately
-            after this zone, makes the same case with more force and concrete
-            detail, so the page now gets there one screen sooner. */}
-
+            The "homework is no longer the hard part" screen was removed earlier
+            at the client's request. Its argument is not lost — Why Now, just
+            below, makes the same case with more force and concrete detail. */}
       </div>
 
       {/* ------------------------------------------------------ The philosophy
@@ -228,8 +267,8 @@ export default function HomePage() {
           clean page. It is the last thing said rather than a caption over the
           last thing shown.
 
-          The zone keeps its own 400svh, so the sequence still gets the full
-          three screens of scrub — moving this out costs the animation nothing.
+          The zone keeps its own height, so the sequence still gets its full
+          scrub — moving this out costs the animation nothing.
           `text-scrim` is left in place: harmless here, and still correct if the
           copy is ever moved back over artwork. */}
       <section className="relative z-10 flex min-h-[90svh] items-center">
@@ -254,23 +293,11 @@ export default function HomePage() {
       {/* ── The case ─────────────────────────────────────────────────────── */}
       <WhyNow />
 
-      {/* --------------------------------------------------------- Positioning */}
-      <section className="relative z-10 bg-paper py-24 sm:py-32">
-        <Container size="narrow" className="text-center">
-          <Reveal>
-            <h2 className="text-[length:var(--text-h2)] text-ink">
-              An AI <em className="text-brand-gradient not-italic">Thinking</em>{" "}
-              Academy — not another coding academy.
-            </h2>
-            <p className="mt-6 text-[length:var(--text-lead)] leading-relaxed text-slate">
-              Most programs teach children to operate AI tools. Tools change
-              every six months. We teach the thinking underneath — the part that
-              still matters in ten years.
-            </p>
-          </Reveal>
-        </Container>
-      </section>
-
+      {/* Why Now goes straight into Comparison. A "Positioning" screen used to
+          sit between them, saying "an AI Thinking Academy, not another coding
+          academy" — which is what the philosophy screen says above it and what
+          Comparison demonstrates in five rows immediately below. Removing the
+          middle statement of three loses no argument and saves a screen. */}
       <Comparison />
 
       {/* ------------------------------------------------------------- Pillars */}
@@ -312,7 +339,8 @@ export default function HomePage() {
       {/* ── What actually happens ────────────────────────────────────────── */}
       <Transformation />
       <Curriculum />
-      <HowItWorks />
+      {/* Journey carries the process on its own. HowItWorks sat here and its
+          four steps were a strict subset of Journey's eight stages. */}
       <Journey />
 
       {/* ── Proof ───────────────────────────────────────────────────────── */}
@@ -327,10 +355,8 @@ export default function HomePage() {
       <Pricing />
 
       {/* ── Reasons to stay in touch ────────────────────────────────────── */}
-      <Library />
       <Resources />
       <Community />
-      <TrustMarks />
 
       {/* ── Close ───────────────────────────────────────────────────────── */}
       <FaqPreview />

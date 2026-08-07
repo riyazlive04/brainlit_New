@@ -72,29 +72,32 @@ const HEAT_WINDOW = { from: 0.42, to: 0.86 } as const;
  * IT HAS TO STAY SOLID UNTIL IT IS ENORMOUS. This window is the difference
  * between an aircraft flying towards you and one that is about to hit you.
  *
- * THIS WINDOW IS DOWNSTREAM OF THE AIM, and the two have been wrong together.
- * The path arrives at the lens at pass 0.635 — that is `FLYBY_AIM_AT` in
- * flightPath.ts, derived from FLYBY_CARRY rather than typed in. A fade that
- * finishes before then dissolves the aircraft over exactly the stretch that
- * carries the effect. At 0.45–0.66 it was down to 0.14 while the plane was at
- * its largest; it read as approaching politely and giving up.
+ * THIS WINDOW IS DOWNSTREAM OF THE RUN'S EASING, and the two have been wrong
+ * together. A fade that finishes before the aircraft arrives dissolves it over
+ * exactly the stretch that carries the effect — at 0.45–0.66 it was down to
+ * 0.14 while the plane was at its largest, and it read as approaching politely
+ * and giving up.
  *
- * So the window now OPENS at the arrival and closes just after it. Measured on
- * captured frames at 1900x920, span as a percentage of frame width:
+ * `exitEase` and `lensAt` in flightPath.ts changed where every one of these
+ * moments falls, so the window is placed against THEIR numbers, in pass space:
  *
- *      p 0.850   19%
- *      p 0.858   33%
- *      p 0.862   63%   ← still fully opaque
- *      p 0.866   clipped by the frame edge, whipping past to the right
- *      p 0.870   gone
+ *      pass 0.698   aircraft reaches 100% of frame width
+ *      pass 0.771   250%
+ *      pass 0.777   centre leaves the frame, breaking to the right
+ *      pass 0.880   passes the lens — behind the viewer, nothing left to draw
+ *      pass 0.921   path drops through the floor (see PULL_UP, which is zero)
  *
- * If you move `from` earlier you will shrink that peak, which is the entire
- * shot. If you move `to` later the aircraft is still on screen when the path
- * drops through the floor at pass 0.70 — see PULL_UP in flightPath.ts, which is
- * zero and relies on this window closing first.
+ * So the fade OPENS at 0.74, by which point the aircraft is already wider than
+ * the frame and there is no detail left to lose, and CLOSES at 0.83 — after it
+ * has broken out of frame, comfortably before it passes the lens. That is what
+ * stops the pass being a blink: `group.visible` in Plane.tsx flips hard at the
+ * end of the run, and this has taken the aircraft to zero long before it does.
+ *
+ * Moving `from` earlier costs frame-filling size directly. Moving `to` past
+ * 0.921 puts the aircraft back on screen while the path is below the floor.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-const FADE = { from: 0.64, to: 0.69 } as const;
+const FADE = { from: 0.74, to: 0.83 } as const;
 
 export function PlaneBody({ reducedMotion }: { reducedMotion: boolean }) {
   const rootRef = useRef<THREE.Group>(null);
