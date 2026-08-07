@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { CookieSettingsLink } from "@/components/consent/CookieSettingsLink";
-import { NewsletterForm } from "@/components/forms/NewsletterForm";
 import { COMMUNITY, PODCAST } from "@/content/home";
 import { LEGAL_LINKS, NAV_LINKS, SITE, whatsappHref } from "@/lib/site";
 

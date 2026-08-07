@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { BackLink } from "@/components/ui/BackLink";
 import { WebinarForm } from "@/components/forms/WebinarForm";
+import { FaqPreview } from "@/components/sections/FaqPreview";
 import {
   formatSessionDate,
   formatSessionTime,
@@ -170,6 +171,15 @@ export default async function WebinarPage() {
             </div>
           </div>
         </Container>
+
+        {/* Objection handling, after the offer and the form rather than before
+            them. A parent who is already convinced should never have to scroll
+            past six questions to reach the thing they came to do; a parent who
+            is hesitating gets the answers without leaving the page — which is
+            the whole reason the link through to /faq is suppressed here. */}
+        <div className="border-t border-mist">
+          <FaqPreview showAllLink={false} includeSchema={false} />
+        </div>
       </main>
 
       <footer className="border-t border-mist py-8">

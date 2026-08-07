@@ -7,7 +7,6 @@ import { CinematicMount } from "@/components/three/CinematicMount";
 import { StickyCta } from "@/components/layout/StickyCta";
 import { WhyNow } from "@/components/sections/WhyNow";
 import { Comparison } from "@/components/sections/Comparison";
-import { Transformation } from "@/components/sections/Transformation";
 import { Curriculum } from "@/components/sections/Curriculum";
 import { Journey } from "@/components/sections/Journey";
 import { ThinkingDemo } from "@/components/sections/ThinkingDemo";
@@ -15,11 +14,8 @@ import { ProofStats } from "@/components/sections/ProofStats";
 import { StudentProjects } from "@/components/sections/StudentProjects";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Founder } from "@/components/sections/Founder";
-import { WebinarValue } from "@/components/sections/WebinarValue";
 import { Pricing } from "@/components/sections/Pricing";
-import { Resources } from "@/components/sections/Resources";
 import { Community } from "@/components/sections/Community";
-import { FaqPreview } from "@/components/sections/FaqPreview";
 import { FinalCta } from "@/components/sections/FinalCta";
 import { PILLARS, SITE } from "@/lib/site";
 
@@ -73,8 +69,8 @@ export const metadata: Metadata = {
  *
  * Two rules held while assembling it:
  *   1. Every claim is followed by the evidence for it, not three screens later.
- *      Transformation sits next to Curriculum; ProofStats sits next to
- *      Testimonials and StudentProjects.
+ *      Curriculum sits next to Journey; ProofStats sits next to Testimonials
+ *      and StudentProjects.
  *   2. Nothing asks for money or an email before it has given something. The
  *      interactive demo comes before Pricing; the free guides come before the
  *      final CTA.
@@ -87,7 +83,7 @@ export const metadata: Metadata = {
  * ─────────────────────────────────────────────────────────────────────────────
  * WHAT WAS CUT, AND WHY IT IS NOT COMING BACK BY ACCIDENT (Aug 2026)
  *
- * Six blocks were removed as doing no work for the site's actual jobs — build
+ * Eleven blocks were removed as doing no work for the site's actual jobs — build
  * trust, capture leads, fill the webinar, convert to enrolment, show student
  * work. Recorded here so nobody re-adds them thinking they were an oversight:
  *
@@ -105,10 +101,48 @@ export const metadata: Metadata = {
  *     rows below it. Three statements of one idea in a row.
  *   - Four of the seven items in FOUNDER.mission, which restated the seven
  *     pillars in the founder's voice one screen after the pillars themselves.
+ *   - Resources ("Useful things, on the way"), removed at the client's request.
+ *     Its guide list shipped empty — RESOURCES in content/home.ts has no
+ *     entries — so the band was a heading promising future files next to a
+ *     subscribe box. NOTE: it carried the only NewsletterForm on the site, the
+ *     footer's signup having been removed separately, so the site now captures
+ *     no email addresses at all. components/forms/NewsletterForm.tsx and
+ *     /api/newsletter both still work; nothing renders them.
+ *   - Transformation ("The same tool, used two completely different ways"),
+ *     removed at the client's request. It was the before/after contrast on a
+ *     child — asks for the answer → asks for options and chooses. TRANSFORMATION
+ *     in content/home.ts is now unused; nothing renders it.
+ *   - WebinarValue ("One hour, for parents…"), removed at the client's request.
+ *     It was the only place the free session was EXPLAINED rather than merely
+ *     linked: the AI myths, screen time, the careers question, the thinking
+ *     framework, the live Q&A and the programme walkthrough. Filling the
+ *     webinar is one of this page's stated jobs and four CTAs still point at
+ *     it, but nothing now says what an hour of it actually contains — the ask
+ *     is made without the offer. WEBINAR_VALUE survives in content/home.ts,
+ *     unused, if that argument is ever wanted back.
+ *   - The outcomes block inside Curriculum ("Six things, and none of them is a
+ *     certificate of attendance"), removed at the client's request. It was not
+ *     its own section — it sat under the week-by-week roadmap, pairing "what
+ *     happens" with "so what". Curriculum now describes the schedule only.
+ *     OUTCOMES survives in content/home.ts, rendered by nothing.
+ *   - FaqPreview, removed at the client's request: the same questions are
+ *     answered on the webinar landing page, which is where the traffic that
+ *     asks them is going. THE COMPONENT STAYS — app/webinar/page.tsx still
+ *     renders it, and /faq is unaffected.
+ *     One cost, since it is not obvious: the homepage instance was the one
+ *     emitting FAQPage structured data (`includeSchema` defaults true; the
+ *     webinar page turns it off because that page is noindex). /faq has its own
+ *     copy of that markup, so the site keeps it — but it is no longer on the
+ *     highest-authority page, which is where these questions, searched almost
+ *     verbatim by parents, had the best chance of a rich result.
  *
- * Transformation and Comparison BOTH stay, despite looking alike: one contrasts
- * us against other academies, the other contrasts a child before against after.
- * Different arguments, both load-bearing.
+ * Note what went with all of that, so the gaps are decisions and not surprises.
+ * Comparison contrasts US against other academies, and Transformation was the
+ * only block contrasting A CHILD before against after — item 7 of the homepage
+ * improvement brief, and no longer made anywhere on the page. With OUTCOMES
+ * gone too, nothing now states what a child ends up holding: Curriculum lists
+ * the weeks, and the portfolio, the presentation and the finished project are
+ * only mentioned in passing in the Comparison table.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export default function HomePage() {
@@ -337,7 +371,6 @@ export default function HomePage() {
       </section>
 
       {/* ── What actually happens ────────────────────────────────────────── */}
-      <Transformation />
       <Curriculum />
       {/* Journey carries the process on its own. HowItWorks sat here and its
           four steps were a strict subset of Journey's eight stages. */}
@@ -351,15 +384,12 @@ export default function HomePage() {
       <Founder />
 
       {/* ── The offer ───────────────────────────────────────────────────── */}
-      <WebinarValue />
       <Pricing />
 
       {/* ── Reasons to stay in touch ────────────────────────────────────── */}
-      <Resources />
       <Community />
 
       {/* ── Close ───────────────────────────────────────────────────────── */}
-      <FaqPreview />
       <FinalCta />
 
       <StickyCta />

@@ -36,7 +36,7 @@ export function Pricing() {
           <h2 className="mt-5 text-[length:var(--text-h2)] text-ink">
             {hasPrice
               ? "What it costs, before you ask."
-              : "Let's talk about cost properly."}
+              : "Let's talk about your investment in detail."}
           </h2>
         </Reveal>
 

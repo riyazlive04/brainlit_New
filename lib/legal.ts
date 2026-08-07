@@ -34,7 +34,7 @@ export const GRIEVANCE = {
   email: "privacy@brainlit.in",
 };
 
-export const CONTACT_EMAIL = "hello@brainlit.in";
+export const CONTACT_EMAIL = "support@brainlit.in";
 
 /**
  * NEEDS INPUT — commercial terms, which are the client's decision and not

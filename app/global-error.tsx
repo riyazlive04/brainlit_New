@@ -67,8 +67,13 @@ export default function GlobalError({
             }}
           >
             Please try again. If it keeps happening, email{" "}
-            <a href="mailto:hello@brainlit.in" style={{ color: "#854fb4" }}>
-              hello@brainlit.in
+            {/* brainLit, not brainit — the domain has an L in it. Hard-coded
+                rather than read from CONTACT_EMAIL in lib/legal.ts on purpose:
+                this is the boundary that catches a failure in the root layout,
+                so it imports as close to nothing as it can. That is exactly why
+                the typo below survived — nothing links the two spellings. */}
+            <a href="mailto:support@brainlit.in" style={{ color: "#854fb4" }}>
+              support@brainlit.in
             </a>{" "}
             and we will help you directly.
           </p>

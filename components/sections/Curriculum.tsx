@@ -1,14 +1,22 @@
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
-import { CURRICULUM, OUTCOMES } from "@/content/home";
+import { CURRICULUM } from "@/content/home";
 
 /**
- * The roadmap, followed by what a child leaves with.
+ * The roadmap: what happens, week by week.
  *
- * These two belong together: the weeks answer "what happens", the outcomes
- * answer "so what". Split across separate sections they read as filler; side by
- * side they are the closest thing on the page to a syllabus, which is what a
- * parent comparing options is actually looking for.
+ * IT USED TO ANSWER "SO WHAT" TOO. A second block sat below the weeks — "Six
+ * things, and none of them is a certificate of attendance" — pairing the
+ * schedule with the six outcomes a child leaves holding. The two were kept in
+ * one section deliberately, on the argument that the weeks answer "what
+ * happens" and the outcomes answer "so what", and that split apart they each
+ * read as filler. It was removed at the client's request; see the cut list in
+ * app/(marketing)/page.tsx. OUTCOMES is still in content/home.ts and is now
+ * rendered by nothing.
+ *
+ * What is left is the schedule alone, which is the weaker half of that pair:
+ * it tells a parent comparing options what their child will DO, and no longer
+ * what their child will HAVE at the end.
  *
  * Horizontal connector on desktop, vertical rail on mobile — a four-column grid
  * squeezed onto a 360px Android is unreadable, and a stack on desktop loses the
@@ -69,30 +77,6 @@ export function Curriculum() {
           ))}
         </ol>
 
-        {/* --------------------------------------------------- The outcomes */}
-        <div className="mt-24 rounded-3xl border border-mist bg-mist/25 p-8 sm:mt-28 sm:p-12">
-          <Reveal className="max-w-2xl">
-            <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
-              What they leave with
-            </p>
-            <h2 className="mt-5 text-[length:var(--text-h2)] text-ink">
-              Six things, and none of them is a certificate of attendance.
-            </h2>
-          </Reveal>
-
-          <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-            {OUTCOMES.map((outcome, i) => (
-              <Reveal as="li" key={outcome.title} delay={i * 60}>
-                <h3 className="font-display text-[1.0625rem] font-semibold text-ink">
-                  {outcome.title}
-                </h3>
-                <p className="mt-2 text-[0.95rem] leading-relaxed text-slate">
-                  {outcome.body}
-                </p>
-              </Reveal>
-            ))}
-          </ul>
-        </div>
       </Container>
     </section>
   );
