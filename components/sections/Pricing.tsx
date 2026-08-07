@@ -27,7 +27,7 @@ export function Pricing() {
   const hasPrice = PRICING.startingFromInr !== null;
 
   return (
-    <section className="relative z-10 bg-mist/30 py-24 sm:py-32">
+    <section className="relative z-10 bg-mist/30 py-16 sm:py-20">
       <Container size="default">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">

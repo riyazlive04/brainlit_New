@@ -29,7 +29,7 @@ export function Founder() {
   const hasStory = FOUNDER.story.length > 0;
 
   return (
-    <section className="relative z-10 bg-mist/30 py-24 sm:py-32">
+    <section className="relative z-10 bg-mist/30 py-16 sm:py-20">
       <Container>
         <div className="grid gap-12 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] md:gap-16">
           {/* ------------------------------------------------------- Portrait */}

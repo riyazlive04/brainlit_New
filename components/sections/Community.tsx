@@ -18,7 +18,7 @@ export function Community() {
   if (!COMMUNITY.inviteUrl) return null;
 
   return (
-    <section className="relative z-10 bg-paper py-24 sm:py-32">
+    <section className="relative z-10 bg-paper py-16 sm:py-20">
       <Container size="default">
         <Reveal className="overflow-hidden rounded-3xl border border-mist">
           <div className="grid gap-10 p-8 sm:p-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:items-center lg:gap-16">

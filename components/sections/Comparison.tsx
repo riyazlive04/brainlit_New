@@ -15,7 +15,7 @@ import { COMPARISON } from "@/content/home";
  */
 export function Comparison() {
   return (
-    <section className="relative z-10 bg-paper pb-24 sm:pb-32">
+    <section className="relative z-10 bg-paper pb-16 sm:pb-20">
       <Container size="default">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">

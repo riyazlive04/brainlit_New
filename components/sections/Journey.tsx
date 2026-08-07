@@ -15,7 +15,7 @@ import { JOURNEY } from "@/content/home";
  */
 export function Journey() {
   return (
-    <section className="relative z-10 bg-paper py-24 sm:py-32">
+    <section className="relative z-10 bg-paper py-16 sm:py-20">
       <Container>
         <Reveal className="max-w-2xl">
           <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">

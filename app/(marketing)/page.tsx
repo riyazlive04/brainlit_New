@@ -7,13 +7,11 @@ import { CinematicMount } from "@/components/three/CinematicMount";
 import { StickyCta } from "@/components/layout/StickyCta";
 import { WhyNow } from "@/components/sections/WhyNow";
 import { Comparison } from "@/components/sections/Comparison";
-import { Curriculum } from "@/components/sections/Curriculum";
 import { Journey } from "@/components/sections/Journey";
 import { ThinkingDemo } from "@/components/sections/ThinkingDemo";
 import { ProofStats } from "@/components/sections/ProofStats";
 import { StudentProjects } from "@/components/sections/StudentProjects";
 import { Testimonials } from "@/components/sections/Testimonials";
-import { Founder } from "@/components/sections/Founder";
 import { Pricing } from "@/components/sections/Pricing";
 import { Community } from "@/components/sections/Community";
 import { FinalCta } from "@/components/sections/FinalCta";
@@ -69,8 +67,8 @@ export const metadata: Metadata = {
  *
  * Two rules held while assembling it:
  *   1. Every claim is followed by the evidence for it, not three screens later.
- *      Curriculum sits next to Journey; ProofStats sits next to Testimonials
- *      and StudentProjects.
+ *      ProofStats sits next to Testimonials and StudentProjects. Curriculum
+ *      used to sit next to Journey for the same reason; it has since been cut.
  *   2. Nothing asks for money or an email before it has given something. The
  *      interactive demo comes before Pricing; the free guides come before the
  *      final CTA.
@@ -83,7 +81,7 @@ export const metadata: Metadata = {
  * ─────────────────────────────────────────────────────────────────────────────
  * WHAT WAS CUT, AND WHY IT IS NOT COMING BACK BY ACCIDENT (Aug 2026)
  *
- * Eleven blocks were removed as doing no work for the site's actual jobs — build
+ * Thirteen blocks were removed as doing no work for the site's actual jobs — build
  * trust, capture leads, fill the webinar, convert to enrolment, show student
  * work. Recorded here so nobody re-adds them thinking they were an oversight:
  *
@@ -120,11 +118,21 @@ export const metadata: Metadata = {
  *     it, but nothing now says what an hour of it actually contains — the ask
  *     is made without the offer. WEBINAR_VALUE survives in content/home.ts,
  *     unused, if that argument is ever wanted back.
- *   - The outcomes block inside Curriculum ("Six things, and none of them is a
- *     certificate of attendance"), removed at the client's request. It was not
- *     its own section — it sat under the week-by-week roadmap, pairing "what
- *     happens" with "so what". Curriculum now describes the schedule only.
- *     OUTCOMES survives in content/home.ts, rendered by nothing.
+ *   - Curriculum ("What the weeks actually look like"), removed at the client's
+ *     request, in two steps. First the outcomes card under it went — "Six
+ *     things, and none of them is a certificate of attendance" — which had been
+ *     kept in the same section deliberately, the weeks answering "what happens"
+ *     and the outcomes answering "so what". Then the roadmap itself. Between
+ *     them they were the only syllabus on the page: the four weekly themes and
+ *     the six things a child ends up holding. CURRICULUM and OUTCOMES both
+ *     survive in content/home.ts, rendered by nothing.
+ *   - Founder, removed at the client's request because the same section runs on
+ *     /about. THE COMPONENT STAYS — app/(marketing)/about/page.tsx renders it.
+ *     Worth knowing what this costs here specifically: ProofStats,
+ *     StudentProjects and Testimonials all render nothing until real content is
+ *     supplied, so Founder was the only human evidence the homepage actually
+ *     showed. Until testimonials or student work arrive, the page asks a parent
+ *     to book a session without ever showing them a person.
  *   - FaqPreview, removed at the client's request: the same questions are
  *     answered on the webinar landing page, which is where the traffic that
  *     asks them is going. THE COMPONENT STAYS — app/webinar/page.tsx still
@@ -139,10 +147,14 @@ export const metadata: Metadata = {
  * Note what went with all of that, so the gaps are decisions and not surprises.
  * Comparison contrasts US against other academies, and Transformation was the
  * only block contrasting A CHILD before against after — item 7 of the homepage
- * improvement brief, and no longer made anywhere on the page. With OUTCOMES
- * gone too, nothing now states what a child ends up holding: Curriculum lists
- * the weeks, and the portfolio, the presentation and the finished project are
- * only mentioned in passing in the Comparison table.
+ * improvement brief, and no longer made anywhere on the page. With Curriculum
+ * and its outcomes card gone too, the page no longer says what is taught week
+ * by week, nor what a child ends up holding. Journey describes the process from
+ * enquiry to finished project; the portfolio, the presentation and the project
+ * itself now appear only in passing, in one row of the Comparison table.
+ *
+ * That is the largest remaining gap. A parent comparing academies is looking
+ * for a syllabus, and there is not one on this page any more.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export default function HomePage() {
@@ -305,8 +317,27 @@ export default function HomePage() {
           scrub — moving this out costs the animation nothing.
           `text-scrim` is left in place: harmless here, and still correct if the
           copy is ever moved back over artwork. */}
-      <section className="relative z-10 flex min-h-[90svh] items-center">
-        <Container size="narrow" className="py-24 text-center">
+      {/* min-h 60svh, down from 90, and py-16 rather than py-24.
+          ─────────────────────────────────────────────────────────────────────
+          THIS IS ABOUT WHEN THE LINE ARRIVES, not how much room it has.
+
+          ScrollTrigger ends this zone `bottom bottom`, so progress reaches 1.0
+          when the zone's bottom edge reaches the viewport's bottom — which is
+          exactly the moment this section's top edge appears. The film and this
+          line are already structurally adjacent; nothing sits between them.
+
+          What the reader experienced as a gap was this section's own centring.
+          The copy is vertically centred in the block, so at 90svh it sat 323px
+          below the top edge and did not appear until well after the aeroplane
+          had gone. Measured at 1440x900: aircraft gone by scrollY 3450, copy
+          not entering frame until 3923.
+
+          Shrinking the block moves the copy up without moving the section. It
+          still fills most of a screen, which is what the beat needs — this is
+          the line the whole sequence builds to. Do not shrink it much further:
+          the heading runs to four lines at --text-h1 and needs the room. */}
+      <section className="relative z-10 flex min-h-[60svh] items-center">
+        <Container size="narrow" className="py-16 text-center">
           <div className="relative">
             <div aria-hidden="true" className="text-scrim" />
 
@@ -335,7 +366,7 @@ export default function HomePage() {
       <Comparison />
 
       {/* ------------------------------------------------------------- Pillars */}
-      <section className="relative z-10 bg-paper pb-24 sm:pb-32">
+      <section className="relative z-10 bg-paper pb-16 sm:pb-20">
         <Container>
           <Reveal className="mx-auto max-w-2xl text-center">
             <h2 className="text-[length:var(--text-h2)] text-ink">
@@ -371,9 +402,9 @@ export default function HomePage() {
       </section>
 
       {/* ── What actually happens ────────────────────────────────────────── */}
-      <Curriculum />
       {/* Journey carries the process on its own. HowItWorks sat here and its
-          four steps were a strict subset of Journey's eight stages. */}
+          four steps were a strict subset of Journey's eight stages; Curriculum
+          sat here too and is also gone. */}
       <Journey />
 
       {/* ── Proof ───────────────────────────────────────────────────────── */}
@@ -381,7 +412,6 @@ export default function HomePage() {
       <ProofStats />
       <StudentProjects />
       <Testimonials />
-      <Founder />
 
       {/* ── The offer ───────────────────────────────────────────────────── */}
       <Pricing />

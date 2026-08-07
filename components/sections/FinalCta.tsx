@@ -19,7 +19,7 @@ export function FinalCta() {
   const whatsapp = whatsappHref();
 
   return (
-    <section className="relative z-10 overflow-hidden bg-ink py-28 sm:py-36">
+    <section className="relative z-10 overflow-hidden bg-ink py-20 sm:py-24">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-30"

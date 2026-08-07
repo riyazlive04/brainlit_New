@@ -40,7 +40,7 @@ export function ThinkingDemo() {
   }
 
   return (
-    <section className="relative z-10 bg-paper py-24 sm:py-32">
+    <section className="relative z-10 bg-paper py-16 sm:py-20">
       <Container size="default">
         <div className="mx-auto max-w-2xl text-center">
           <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">

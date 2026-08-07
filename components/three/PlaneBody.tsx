@@ -81,23 +81,28 @@ const HEAT_WINDOW = { from: 0.42, to: 0.86 } as const;
  * `exitEase` and `lensAt` in flightPath.ts changed where every one of these
  * moments falls, so the window is placed against THEIR numbers, in pass space:
  *
- *      pass 0.698   aircraft reaches 100% of frame width
- *      pass 0.771   250%
- *      pass 0.777   centre leaves the frame, breaking to the right
+ *      pass 0.702   aircraft reaches 100% of frame width
  *      pass 0.880   passes the lens — behind the viewer, nothing left to draw
- *      pass 0.921   path drops through the floor (see PULL_UP, which is zero)
+ *      pass 0.920   path drops through the floor (see PULL_UP, which is zero)
  *
- * So the fade OPENS at 0.74, by which point the aircraft is already wider than
- * the frame and there is no detail left to lose, and CLOSES at 0.83 — after it
- * has broken out of frame, comfortably before it passes the lens. That is what
- * stops the pass being a blink: `group.visible` in Plane.tsx flips hard at the
- * end of the run, and this has taken the aircraft to zero long before it does.
+ * The window is 0.80–0.90, and both ends are pinned by that list. It OPENS at
+ * 0.80, by which point the aircraft is wider than the frame and there is no
+ * detail left to lose. It CLOSES at 0.90 — as late as it can, because every
+ * frame the aircraft is still on screen is a frame the reader is not scrolling
+ * through nothing, but still before the path drops through the floor at 0.920.
+ *
+ * LATER THAN IT WAS (0.74–0.83), and the reason is the tail rather than the
+ * look: EXIT_FRACTION is now 1.0 so the run fills the whole mark shot, and
+ * holding the fade open to 0.90 keeps the aircraft alive almost to the end of
+ * the cinematic zone. What is left after it — 95px on a 500svh zone — is the
+ * stretch between passing the lens at 0.880 and the zone ending, and no fade
+ * setting can reclaim it. See EXIT_FRACTION in flightPath.ts.
  *
  * Moving `from` earlier costs frame-filling size directly. Moving `to` past
- * 0.921 puts the aircraft back on screen while the path is below the floor.
+ * 0.920 puts the aircraft back on screen while the path is below the floor.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-const FADE = { from: 0.74, to: 0.83 } as const;
+const FADE = { from: 0.8, to: 0.9 } as const;
 
 export function PlaneBody({ reducedMotion }: { reducedMotion: boolean }) {
   const rootRef = useRef<THREE.Group>(null);

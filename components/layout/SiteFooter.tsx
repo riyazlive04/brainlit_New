@@ -132,7 +132,7 @@ export function SiteFooter() {
           <p>
             © {year} {SITE.legalName}. All rights reserved.
           </p>
-          <p>Made for curious minds in {SITE.city}.</p>
+          <p>Made for curious {SITE.city} minds </p>
           {/* Only the studio name is the link — "Developed by" is not part of
               the click target, and a two-word target is easier to hit than a
               four-word one on a phone. */}

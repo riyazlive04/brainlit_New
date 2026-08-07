@@ -19,7 +19,7 @@ import { WHY_NOW } from "@/content/home";
  */
 export function WhyNow() {
   return (
-    <section className="relative z-10 overflow-hidden bg-ink py-24 sm:py-32">
+    <section className="relative z-10 overflow-hidden bg-ink py-16 sm:py-20">
       {/* Ambient wash, echoing the hero canvas so the two read as one product */}
       <div
         aria-hidden="true"

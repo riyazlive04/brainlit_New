@@ -68,7 +68,7 @@ export function FaqPreview({
   };
 
   return (
-    <section className="relative z-10 bg-paper py-24 sm:py-32">
+    <section className="relative z-10 bg-paper py-16 sm:py-20">
       {includeSchema && (
         <script
           type="application/ld+json"

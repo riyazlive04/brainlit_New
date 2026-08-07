@@ -171,11 +171,38 @@ export const CLOSE_DRIFT = new THREE.Vector3(0.35, -0.25, 0.9);
 /**
  * Fraction of the final shot the plane spends flying at the viewer.
  *
- * Lives here rather than in Plane.tsx, where it was, because PlaneBody now
- * needs it too — it fades the aircraft out over the last stretch of the run.
- * Importing it from Plane.tsx would be circular: Plane renders PlaneBody.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * 1.0, UP FROM 0.62, SO THE FILM ENDS WHEN THE ZONE DOES.
+ *
+ * At 0.62 the run finished at 62% of the mark shot and the remaining 38% was
+ * empty — a leftover from when the mark assembled there, a beat that no longer
+ * exists. Measured on a 500svh zone at a 900px viewport, that left 390px of
+ * scrolling after the aircraft had gone and before the philosophy screen
+ * below the zone could arrive. The reader scrolled half a screen of nothing
+ * between the two things the sequence is built to connect.
+ *
+ * At 1.0 the same run is spread across the whole shot, which both removes that
+ * tail and slows the approach further:
+ *
+ *      EXIT_FRACTION 0.62   plane gone at p 0.892   390px of dead scroll
+ *      EXIT_FRACTION 1.00   plane gone at p 0.974    95px
+ *
+ * The residual 95px cannot be removed from here. The aircraft passes the lens
+ * at pass 0.88 and there is nothing left to draw after that no matter how the
+ * fade is set — see FADE in PlaneBody.tsx.
+ *
+ * ONE KNOCK-ON WORTH KNOWING. `cameraAt` divides by MARK_SETTLE (0.72), so with
+ * EXIT_FRACTION at 1.0 the camera finishes its drift, and the FOV finishes
+ * opening, at pass 0.72 rather than never. That is harmless here only because
+ * `lensAt` aims at the camera's LIVE position: a fixed aim would now be wrong
+ * for the whole of the last third of the approach.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * Lives here rather than in Plane.tsx, where it was, because PlaneBody needs it
+ * too — it fades the aircraft out over the last stretch of the run. Importing
+ * it from Plane.tsx would be circular: Plane renders PlaneBody.
  */
-export const EXIT_FRACTION = 0.62;
+export const EXIT_FRACTION = 1.0;
 
 /** Where the lens actually is by the time the aeroplane reaches it. */
 const CLOSE_EYE = EYE.clone().add(CLOSE_DRIFT);
