@@ -49,7 +49,13 @@ export const emberVertexShader = /* glsl */ `
     gl_Position = projectionMatrix * mvPosition;
 
     // How far out this spark has got, 0..1 across the whole burst.
-    float reach = clamp(travel / 2.2, 0.0, 1.0);
+    //
+    // THE DIVISOR IS THE MAXIMUM aSpeed AND MUST TRACK IT. Cooling, the core
+    // and the fringe fade are all driven from reach, so a divisor larger than
+    // the fastest spark means nothing ever reaches 1 and the outer half of
+    // every curve is dead code — sparks stay hot and opaque out to the fringe,
+    // which is the other half of why the burst read as confetti.
+    float reach = clamp(travel / 1.35, 0.0, 1.0);
 
     // Sparks flicker, and shrink as they cool.
     //

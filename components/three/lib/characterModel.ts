@@ -106,6 +106,47 @@ export const AEROPLANE_MODEL_ORIENTATION: [number, number, number] = [0, 0, 0];
 export const AEROPLANE_SPAN = 0.9;
 
 /**
+ * The propeller that the model does not have.
+ *
+ * `aeroplane.glb` arrives as a single fused mesh with the propeller welded to
+ * the fuselage, so AeroplaneModel builds one and places it over the top. See
+ * the block comment there for why. Everything is expressed as a FRACTION of the
+ * model's own measured size rather than in absolute units, so a re-export at a
+ * different scale does not leave a propeller hanging in front of the nose.
+ *
+ * RADIUS_FRACTION is of the wingspan. Real single-engine aircraft sit between
+ * 0.28 and 0.36 of span; 0.15 here is the radius, so 0.30 of span across.
+ *
+ * NOSE_REACH is how far past the measured front of the fuselage the disc sits,
+ * as a fraction of fuselage length. Small and positive: far enough forward that
+ * the fused geometry is behind it, close enough that it still looks attached.
+ *
+ * NOSE_LIFT is the height of the hub above the model's centre, as a fraction of
+ * its height. Zero puts it on the centreline, which is right for most low-wing
+ * models and wrong for a high-wing one — TUNE THIS FIRST if the disc looks like
+ * it is floating off the chin.
+ */
+export const PROP_RADIUS_FRACTION = 0.15;
+export const PROP_NOSE_REACH = 0.02;
+export const PROP_NOSE_LIFT = 0.0;
+export const PROP_BLADES = 3;
+
+/**
+ * Radians per second. Fast enough that no individual blade is ever readable,
+ * which is the point: a propeller you can count the blades on reads as stopped.
+ */
+export const PROP_SPIN_RATE = 34;
+
+/**
+ * How solid the blur disc is.
+ *
+ * The whole illusion fails in both directions. Too transparent and the dead
+ * geometry underneath shows through; too solid and the aircraft has a dinner
+ * plate bolted to its nose.
+ */
+export const PROP_DISC_OPACITY = 0.22;
+
+/**
  * Draco compression.
  *
  * OFF, because drei fetches the Draco decoder from a Google CDN, and a hero
@@ -224,30 +265,59 @@ export function useModelAvailable(url: string): Availability {
  * SCALE: `armAngle` describes a real throw, sweeping about 220 degrees from the
  * top of the wind-up to the end of the follow-through. No single joint with
  * linear blend skinning survives that — past roughly 60 degrees the shoulder
- * collapses in on itself and the sleeve tears away from the chest. 0.42 keeps
- * the swing inside what one joint can hold. A properly rigged model, with a
- * shoulder AND an elbow and weights painted against the mesh's own topology,
- * takes the full range; this is the ceiling of what can be inferred from
- * geometry alone.
+ * collapses in on itself and the sleeve tears away from the chest.
+ *
+ * This was 0.42 while the limits below were a hard clamp, chosen so the swing
+ * never reached them. It does not have to be that cautious now that `softLimit`
+ * bends the ends of the curve instead of cutting them: the scale can be set for
+ * how the MIDDLE of the throw reads, and the limiter takes care of the extremes.
+ * 0.55 gives a visibly faster whip through the release without ever presenting
+ * the skinning with an angle it cannot hold.
  */
 export const THROW_AXIS: [number, number, number] = [0, 0, 1];
-export const THROW_SCALE = 0.42;
+export const THROW_SCALE = 0.55;
 
 /**
- * Hard limits on the swing, and they are ASYMMETRIC on purpose.
+ * Limits on the swing, as MAGNITUDES, and asymmetric on purpose.
+ *
+ * NOTE — these changed sign. They were `{ back: 0.8, forward: -0.3 }`, a pair
+ * of bounds fed to Math.min/Math.max. They are now both positive because
+ * `softLimit` takes a magnitude and preserves the sign of what it is given.
+ * Anything reading THROW_LIMIT.forward expecting a negative number is wrong.
  *
  * Measured by rendering both ends. Backwards, the arm swings away from the body
  * into open space and holds its shape to about 45 degrees. Forwards it collapses
  * INTO the torso, where the feathered vertices belong to both the arm and the
  * chest at once, and linear blend skinning resolves that by stretching the limb
- * into a thin rod — visible at −45° as the forearm pulling out from under the
+ * into a thin rod — visible at 45° as the forearm pulling out from under the
  * hoodie like a stick.
  *
- * So the wind-up gets room and the follow-through is cut short. That is the
- * honest ceiling for weights inferred from geometry on a mesh whose arms are
- * fused to its body. A rig with an elbow and painted weights has no such limit.
+ * So the wind-up gets room and the follow-through is cut short. Both are a
+ * little wider than they were, because an asymptotic approach spends far less
+ * time near the limit than a clamp spends sitting on it. That is the honest
+ * ceiling for weights inferred from geometry on a mesh whose arms are fused to
+ * its body. A rig with an elbow and painted weights has no such limit.
  */
-export const THROW_LIMIT = { back: 0.8, forward: -0.3 } as const;
+export const THROW_LIMIT = { back: 0.82, forward: 0.36 } as const;
+
+/**
+ * The arm's SECOND axis, and why one is not enough.
+ *
+ * Rotation about a single axis is the tell that separates a rigged throw from a
+ * puppet: the arm sweeps a perfect plane, the silhouette never changes shape,
+ * and the eye reads a hinge. `armSwing` already describes the outward drift
+ * that fixes it — the procedural boy has used it since the beginning — and
+ * there is no reason the loaded model cannot have the same thing.
+ *
+ * Small on purpose. This is the axis that pulls the upper arm away from the rib
+ * cage, which is exactly where the auto-generated weights are most confused
+ * about which vertices belong to which bone, so it gets a tight limit and a
+ * scale that keeps it under ten degrees at the peak. It is not meant to be
+ * noticed on its own.
+ */
+export const THROW_DRIFT_AXIS: [number, number, number] = [1, 0, 0];
+export const THROW_DRIFT_SCALE = 0.3;
+export const THROW_DRIFT_LIMIT = 0.22;
 
 /** Right upper arm, for the fallback swing. */
 export const THROW_ARM_NAMES = [

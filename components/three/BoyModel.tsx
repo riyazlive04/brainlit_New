@@ -13,12 +13,27 @@ import {
   MODEL_YAW_OFFSET,
   THROW_ARM_NAMES,
   THROW_AXIS,
+  THROW_DRIFT_AXIS,
+  THROW_DRIFT_LIMIT,
+  THROW_DRIFT_SCALE,
   THROW_LIMIT,
   THROW_SCALE,
   findNode,
   fitToHeight,
 } from "./lib/characterModel";
-import { armAngle, bodyLean } from "./lib/throwPose";
+import {
+  DIP_DEPTH,
+  LEAN_NO_RIG,
+  LEAN_WITH_ARM,
+  TURN_NO_RIG,
+  TURN_WITH_ARM,
+  armAngle,
+  armSwing,
+  bodyDip,
+  bodyLean,
+  bodyTurn,
+  softLimit,
+} from "./lib/throwPose";
 
 /**
  * The character, loaded from `public/boy.glb`.
@@ -64,12 +79,29 @@ export function BoyModel({ throwRef, handRef }: Props) {
   const armRef = useRef<THREE.Object3D | null>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const throwActionRef = useRef<THREE.AnimationAction | null>(null);
+
+  /**
+   * Two pivots, not one, and both sit on the floor under his feet.
+   *
+   * `turnRef` yaws and takes the vertical weight transfer; `leanRef` pitches
+   * inside it. Nesting them rather than writing both onto one Euler is not
+   * fussiness — a single node applies its rotations in a fixed order, so the
+   * pitch would be taken about an axis the yaw had already moved, and the lean
+   * would drift sideways as he turns. Nested, each rotation is about the axis
+   * it is named for, whatever the other one is doing.
+   */
+  const turnRef = useRef<THREE.Group>(null);
   const leanRef = useRef<THREE.Group>(null);
 
   /** Rest pose of the arm bone, so the swing is applied RELATIVE to the rig. */
   const armRestRef = useRef(new THREE.Quaternion());
   const swingAxis = useMemo(() => new THREE.Vector3(...THROW_AXIS).normalize(), []);
+  const driftAxis = useMemo(
+    () => new THREE.Vector3(...THROW_DRIFT_AXIS).normalize(),
+    [],
+  );
   const swing = useMemo(() => new THREE.Quaternion(), []);
+  const drift = useMemo(() => new THREE.Quaternion(), []);
 
   /**
    * Does this file bring anything that can be posed?
@@ -151,30 +183,68 @@ export function BoyModel({ throwRef, handRef }: Props) {
   useFrame(() => {
     const t = Math.max(0, Math.min(1, throwRef.current));
 
-    // The model's own motion wins when it has one.
+    /**
+     * The model's own motion wins outright when it has one.
+     *
+     * A real clip animates the whole body, so the procedural weight shift below
+     * would double up on it — he would lean twice. Zeroed rather than skipped,
+     * because the character can gain a clip on a hot reload and would otherwise
+     * keep whatever pitch the last procedural frame left on the pivots.
+     */
     const action = throwActionRef.current;
     if (action && mixerRef.current) {
       mixerRef.current.setTime(action.getClip().duration * t);
+
+      if (leanRef.current) leanRef.current.rotation.x = 0;
+      if (turnRef.current) {
+        turnRef.current.rotation.y = 0;
+        turnRef.current.position.y = 0;
+      }
       return;
     }
 
-    // Otherwise swing the arm on the same curve the procedural boy uses.
+    /**
+     * Otherwise: swing what there is to swing, AND shift the weight.
+     *
+     * These used to be alternatives — the arm branch returned early and the
+     * lean was the fallback for a model with no bones at all. That was right
+     * for the case it was written for and wrong for the one that actually
+     * shipped. `boy.glb` HAS an arm bone, so the arm branch always won; but it
+     * is a three-joint auto-rig over a 42k mesh with weights inferred from
+     * geometry, so the bone moves almost nothing. The result was the worst of
+     * both: a swing too weak to see and a lean that never ran. A statue.
+     *
+     * So they compose now. The lean and turn drop to roughly half strength when
+     * there is an arm to help — see LEAN_WITH_ARM — which is enough that the
+     * two support each other instead of fighting.
+     */
     const arm = armRef.current;
+
     if (arm) {
-      // About the rig's own shoulder axis, and scaled to what one joint can
-      // hold — see THROW_AXIS / THROW_SCALE. Composed onto the rest pose rather
-      // than assigned, so a rig that does not start at identity is respected.
-      const angle = Math.max(
-        THROW_LIMIT.forward,
-        Math.min(THROW_LIMIT.back, armAngle(t) * THROW_SCALE),
+      // About the rig's own shoulder axis, then a smaller drift about its
+      // secondary one so the swing is not a plane. Composed onto the rest pose
+      // rather than assigned, so a rig that does not start at identity is
+      // respected.
+      const raw = armAngle(t) * THROW_SCALE;
+      const angle = softLimit(
+        raw,
+        raw >= 0 ? THROW_LIMIT.back : THROW_LIMIT.forward,
       );
+      const out = softLimit(armSwing(t) * THROW_DRIFT_SCALE, THROW_DRIFT_LIMIT);
+
       swing.setFromAxisAngle(swingAxis, angle);
-      arm.quaternion.copy(armRestRef.current).multiply(swing);
-      return;
+      drift.setFromAxisAngle(driftAxis, out);
+      arm.quaternion.copy(armRestRef.current).multiply(swing).multiply(drift);
     }
 
-    // Nothing to pose. Lean the whole body instead — see `bodyLean`.
-    if (leanRef.current) leanRef.current.rotation.x = bodyLean(t);
+    if (leanRef.current) {
+      leanRef.current.rotation.x = bodyLean(t, arm ? LEAN_WITH_ARM : LEAN_NO_RIG);
+    }
+
+    if (turnRef.current) {
+      turnRef.current.rotation.y = bodyTurn(t, arm ? TURN_WITH_ARM : TURN_NO_RIG);
+      turnRef.current.position.y = bodyDip(t) * DIP_DEPTH * BOY_HEIGHT;
+    }
   });
 
   return (
@@ -182,29 +252,34 @@ export function BoyModel({ throwRef, handRef }: Props) {
        offset can be written in the intuitive frame — facing +Z, his hands at
        ±X — rather than in whatever frame the exporter happened to use. */
     <group rotation={[0, MODEL_YAW_OFFSET, 0]}>
-      {/* Leans from the ankles, so the whole figure pivots on the floor rather
-          than about its own middle, which reads as toppling. */}
-      <group ref={leanRef}>
-        <group scale={fit.scale}>
-          <group position={fit.offset}>
-            <primitive object={scene} />
+      {/* Turns on the spot and carries the vertical weight transfer. Outermost
+          of the two pivots so its yaw is about true vertical no matter how far
+          the lean inside it has pitched him. */}
+      <group ref={turnRef}>
+        {/* Leans from the ankles, so the whole figure pivots on the floor rather
+            than about its own middle, which reads as toppling. */}
+        <group ref={leanRef}>
+          <group scale={fit.scale}>
+            <group position={fit.offset}>
+              <primitive object={scene} />
+            </group>
           </group>
-        </group>
 
-        {/* No wrist to hold it? Then a point on the body that at least moves
-            with him. Rendered rather than attached, so React owns the ref and
-            it is torn down cleanly. */}
-        {!handBone && (
-          <object3D
-            ref={handRef}
-            position={[
-              HAND_FALLBACK.x * BOY_HEIGHT,
-              HAND_FALLBACK.y * BOY_HEIGHT,
-              HAND_FALLBACK.z * BOY_HEIGHT,
-            ]}
-            rotation={HAND_EMPTY_ROTATION}
-          />
-        )}
+          {/* No wrist to hold it? Then a point on the body that at least moves
+              with him. Rendered rather than attached, so React owns the ref and
+              it is torn down cleanly. */}
+          {!handBone && (
+            <object3D
+              ref={handRef}
+              position={[
+                HAND_FALLBACK.x * BOY_HEIGHT,
+                HAND_FALLBACK.y * BOY_HEIGHT,
+                HAND_FALLBACK.z * BOY_HEIGHT,
+              ]}
+              rotation={HAND_EMPTY_ROTATION}
+            />
+          )}
+        </group>
       </group>
     </group>
   );

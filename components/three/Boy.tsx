@@ -22,13 +22,14 @@ import type { DeviceTier } from "./lib/deviceTier";
  *   · CartoonBoy — built at runtime from three.js primitives, no download.
  *
  * CartoonBoy is not a placeholder to be deleted once the model lands. It is
- * what plays the part in three situations that all persist forever:
+ * what plays the part in two situations that persist forever:
  *
- *   1. while the model is downloading — a hero that is empty for two seconds on
- *      a slow connection is worse than one that is stylised for two seconds;
- *   2. if the model fails to arrive, or arrives corrupt;
- *   3. on low-tier devices, where the model's bytes and skinning cost more than
+ *   1. if the model fails to arrive, or arrives corrupt;
+ *   2. on low-tier devices, where the model's bytes and skinning cost more than
  *      the whole rest of the scene.
+ *
+ * It is deliberately NOT used for the third case it once covered — the wait
+ * while the model downloads. See the note on `procedural` below.
  *
  * So the two must stay interchangeable. Everything that decides WHERE he is and
  * WHEN he throws lives here, above both of them, and neither may own any of it.
@@ -101,8 +102,18 @@ export function Boy({ reducedMotion, tier, handRef }: Props) {
   });
 
   /**
-   * The stand-in, and the Suspense fallback, and the error fallback. One
-   * element for all three so there is no way for them to drift apart.
+   * The stand-in for FAILURE and for low-tier devices — no longer for the wait.
+   *
+   * It used to be the Suspense fallback too, on the reasoning that a hero which
+   * is empty for two seconds is worse than one that is stylised for two
+   * seconds. Watching it happen, that is wrong: what the visitor sees is a
+   * crude boy made of spheres, and then a polished one replacing him. A
+   * downgrade followed by an upgrade reads as the page being caught
+   * half-finished, which is worse than a character arriving a moment late —
+   * especially now the probe warms the cache and that moment is short.
+   *
+   * It is still exactly the right answer when the model genuinely cannot be
+   * had, which is what the boundary and the tier gate below are for.
    *
    * `idle` is off: idle motion is time-based, and this sequence is strictly
    * positional — a breathing loop would be the one thing in it that does not
@@ -122,7 +133,8 @@ export function Boy({ reducedMotion, tier, handRef }: Props) {
     <group ref={rootRef} position={BOY_FEET} rotation={[0, BOY_FACING, 0]}>
       {useModel ? (
         <ModelBoundary label="Boy" fallback={procedural}>
-          <Suspense fallback={procedural}>
+          {/* Nothing, not the stand-in. See the note on `procedural`. */}
+          <Suspense fallback={null}>
             <BoyModel throwRef={throwRef} handRef={handRef} />
           </Suspense>
         </ModelBoundary>

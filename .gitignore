@@ -52,3 +52,7 @@ og.png
 lh*.json
 
 .vercel
+
+# Raw model exports. The optimised meshopt versions in public/ are what ship;
+# these are the 40MB+ originals straight out of Tripo3D and must not be cloned.
+/*.glb

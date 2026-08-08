@@ -91,7 +91,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <div data-cinematic className="relative">
+      <div data-cinematic className="relative h-[400svh]">
         <CinematicMount />
 
         {/* ------------------------------------------------- Shot 1 · the boy
@@ -210,32 +210,46 @@ export default function HomePage() {
             after this zone, makes the same case with more force and concrete
             detail, so the page now gets there one screen sooner. */}
 
-        {/* --------------------------------------------------- Shot 5 · the mark
-            The line the film has been building toward, arriving as the embers
-            settle into the logo behind it.
-
-            This is the one screen where copy sits directly over the densest
-            part of the mark. The scrim behind the text block is what keeps it
-            legible — see the note on `text-scrim` in globals.css. */}
-        <section className="relative z-10 flex min-h-[90svh] items-center">
-          <Container size="narrow" className="py-24 text-center">
-            <div className="relative">
-              <div aria-hidden="true" className="text-scrim" />
-
-              <Reveal className="relative">
-                <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
-                  Our whole philosophy
-                </p>
-                <p className="mt-8 font-display text-[length:var(--text-h1)] leading-[1.1] font-semibold tracking-tight text-ink">
-                  We don&apos;t teach children to depend on AI. We teach them to{" "}
-                  <span className="text-brand-gradient">think</span>, so they
-                  can lead it.
-                </p>
-              </Reveal>
-            </div>
-          </Container>
-        </section>
       </div>
+
+      {/* ------------------------------------------------------ The philosophy
+          AFTER the cinematic, not inside it.
+
+          This used to be the last screen of the zone, and it was written for a
+          beat that no longer exists: "copy sits directly over the densest part
+          of the mark", back when the sequence ended with embers settling into
+          a logo. A settled logo is a background. What ends the sequence now is
+          an aeroplane flying into the viewer's face, and no scrim makes a
+          sentence readable over that — the two simply competed, and at the
+          moment the plane is largest the line was directly behind it.
+
+          Outside the zone it arrives when the film is over: the aircraft has
+          gone, the canvas has faded with the zone, and the line lands on a
+          clean page. It is the last thing said rather than a caption over the
+          last thing shown.
+
+          The zone keeps its own 400svh, so the sequence still gets the full
+          three screens of scrub — moving this out costs the animation nothing.
+          `text-scrim` is left in place: harmless here, and still correct if the
+          copy is ever moved back over artwork. */}
+      <section className="relative z-10 flex min-h-[90svh] items-center">
+        <Container size="narrow" className="py-24 text-center">
+          <div className="relative">
+            <div aria-hidden="true" className="text-scrim" />
+
+            <Reveal className="relative">
+              <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
+                Our whole philosophy
+              </p>
+              <p className="mt-8 font-display text-[length:var(--text-h1)] leading-[1.1] font-semibold tracking-tight text-ink">
+                We don&apos;t teach children to depend on AI. We teach them to{" "}
+                <span className="text-brand-gradient">think</span>, so they can
+                lead it.
+              </p>
+            </Reveal>
+          </div>
+        </Container>
+      </section>
 
       {/* ── The case ─────────────────────────────────────────────────────── */}
       <WhyNow />

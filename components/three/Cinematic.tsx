@@ -9,6 +9,7 @@ import { Rocket } from "./Rocket";
 import { Plane } from "./Plane";
 import { Embers } from "./Embers";
 import {
+  CLOSE_DRIFT,
   EYE,
   FLIGHT_CURVE,
   MARK_ANCHOR,
@@ -95,9 +96,6 @@ const CAM = {
  * a protagonist.
  */
 
-/** Small drift on the closing shot, so the fly-past has parallax to read against. */
-const CLOSE_DRIFT = new THREE.Vector3(0.35, -0.25, 0.9);
-
 const BASE_FOV = 45;
 
 /**
@@ -135,6 +133,25 @@ const DOLLY_FOV_PUNCH = 21;
  * real work: the embers appear to burst outward as the lens opens.
  */
 const BURN_FOV = 12;
+
+/**
+ * How much of the zoom to BURN_FOV happens during shot 3, before the paper
+ * catches.
+ *
+ * THIS IS THE FIX FOR THE DEAD SCREEN IN THE MIDDLE OF THE FILM.
+ *
+ * The long lens used to be keyed entirely to the burn, which meant the back
+ * three quarters of shot 3 ran at BASE_FOV — and at BASE_FOV a 26cm rocket
+ * eight metres away is about ten pixels. Roughly 37svh of scrolling, a full
+ * phone screen and a half, was a wash of gradient with a speck in it, which
+ * reads as the animation having finished early rather than as anticipation.
+ *
+ * Bringing 70% of the zoom forward into the back half of shot 3 costs nothing
+ * — it is the same move, started sooner — and turns that stretch into the
+ * camera leaning in on something it cannot follow. The remaining 30% still
+ * lands on the burn, so the catch itself is still the moment the lens arrives.
+ */
+const APPROACH_ZOOM = 0.7;
 
 type Props = {
   tier: DeviceTier;
@@ -239,9 +256,16 @@ export function Cinematic({ tier, reducedMotion }: Props) {
       look.copy(rocket);
 
       // The whip that covers the travel, then the long lens that lets us watch
-      // the paper catch. During shot 3 the burn term is zero, so these two do
-      // not fight.
-      const zoom = smootherstep(range(shotProgress(p, "burn"), 0, 0.5));
+      // the paper catch.
+      //
+      // Two terms, and `max` rather than a sum: the approach term has already
+      // reached APPROACH_ZOOM by the time the burn starts, so adding them would
+      // overshoot past BURN_FOV and then come back. Taking the larger is
+      // continuous at the boundary and monotonic across it, which is what keeps
+      // a scrub through the join from showing a kick.
+      const approach = range(shotProgress(p, "eyes"), 0.55, 1) * APPROACH_ZOOM;
+      const catchUp = range(shotProgress(p, "burn"), 0, 0.4);
+      const zoom = smootherstep(Math.max(approach, catchUp));
       fov = lerp(
         BASE_FOV + Math.sin(dolly * Math.PI) * DOLLY_FOV_PUNCH,
         BURN_FOV,

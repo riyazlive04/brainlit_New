@@ -268,11 +268,18 @@ export function Rocket({ tier, reducedMotion, handRef }: Props) {
      * replaces the procedural stand-in mid-scroll and takes the rocket with
      * it. `setReleasePoint` is a no-op when nothing moved.
      *
-     * NOTE FOR WHEN THE BOY IS RIGGED. This samples the hand at its CURRENT
-     * pose, which is exact today only because nothing articulates: `bodyLean`
-     * is all that moves him and it is ~0 at the release instant. With a real
-     * arm swing the hand sweeps through an arc, and this must instead sample
-     * it with the throw scrubbed to RELEASE_PROGRESS.
+     * THE ARM ARTICULATES NOW, and this handles it — see the `moved` branch
+     * below. The hand sweeps a real arc through the wind-up, so its CURRENT
+     * pose is not the release pose for most of the sequence; what makes this
+     * correct anyway is that recalibration keeps running right up to
+     * RELEASE_PROGRESS, so the last value committed is the hand's position on
+     * the final frame before he lets go. That is the release point by
+     * definition, and no separate scrub to sample it is needed.
+     *
+     * The 3cm threshold does real work here. Without it a sweeping hand would
+     * rebuild the curve's length table and the trail's vertex buffer on every
+     * frame of the wind-up; with it, a ~30cm sweep costs about ten rebuilds
+     * spread across that whole stretch of scroll.
      */
     const held = handRef.current;
     if (held) {

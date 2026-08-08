@@ -74,12 +74,16 @@ export function Embers({ tier, reducedMotion }: Props) {
       dir[i * 3 + 1] = Math.cos(phi);
       dir[i * 3 + 2] = sp * Math.sin(theta);
 
-      // Cubed, so most sparks stay near the source and a few fly far. A uniform
-      // spread reads as an expanding shell rather than an explosion.
-      // Cubed, so most sparks stay near the source and a few fly far. Reduced
-      // from 2.6: at the burn's 12-degree lens the old spread filled the whole
-      // frame, which turns an explosion into a slowly opening dandelion.
-      speed[i] = 0.22 + rand() ** 3 * 1.75;
+      // Cubed, so most sparks stay near the source and a few fly far. A
+      // uniform spread reads as an expanding shell rather than an explosion.
+      //
+      // Reduced twice now — 2.6, then 1.75, now 1.15 — and each time for the
+      // same reason, because the lens keeps getting longer. Shot 3 now brings
+      // 70% of the zoom forward (see APPROACH_ZOOM), so by the time the paper
+      // catches, the frame is far tighter than it was when 1.75 was chosen.
+      // The far outliers landed a screen-width from the source and read as
+      // scattered dots rather than as anything thrown by a fire.
+      speed[i] = 0.2 + rand() ** 3 * 1.15;
       seed[i] = rand();
     }
 

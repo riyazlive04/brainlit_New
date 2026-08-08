@@ -5,7 +5,13 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { scrollState } from "@/lib/scrollState";
 import { PlaneBody } from "./PlaneBody";
-import { FLIGHT_CURVE, flightT, planeAt, planeTangentAt } from "./lib/flightPath";
+import {
+  EXIT_FRACTION,
+  FLIGHT_CURVE,
+  flightT,
+  planeAt,
+  planeTangentAt,
+} from "./lib/flightPath";
 import { REDUCED_MOTION_PROGRESS, shotProgress } from "./lib/shots";
 import { range, smootherstep } from "./lib/ease";
 
@@ -32,15 +38,10 @@ import { range, smootherstep } from "./lib/ease";
  */
 
 /**
- * Fraction of the final shot the plane spends flying at the viewer.
- *
- * Its path lives in lib/flightPath.ts as PLANE_EXIT, not here, because the
- * camera rig has to frame it and therefore has to know where it is. An earlier
- * version computed the exit from the live camera position each frame, which was
- * circular — the camera cannot aim at something whose path depends on where the
- * camera ended up.
+ * EXIT_FRACTION now lives in lib/flightPath.ts, alongside PLANE_EXIT — the
+ * camera rig has to frame this run and therefore has to know where it is, and
+ * PlaneBody has to fade the aircraft out over the end of it.
  */
-const EXIT_FRACTION = 0.62;
 
 /** The model's own axis. It is built and exported nose-toward +Z. */
 const LOCAL_FORWARD = new THREE.Vector3(0, 0, 1);
@@ -141,24 +142,87 @@ export function Plane({ reducedMotion }: Props) {
     } else {
       right.normalize();
       up.copy(tangent).cross(right).normalize();
-      // Columns are the axes the model's own X, Y and Z are mapped onto. The
-      // model is nose-toward +Z, so its Z column is the tangent.
-      basis.makeBasis(right.negate(), up, tangent);
+
+      /**
+       * Columns are the axes the model's own X, Y and Z are mapped onto. The
+       * model is nose-toward +Z, so its Z column is the tangent.
+       *
+       * NO NEGATION ON `right`, and that is the whole point of this comment.
+       *
+       * `right` is `WORLD_UP x tangent` and `up` is `tangent x right`, which
+       * makes `right x up = tangent` — the set is ALREADY right-handed.
+       * Negating one column therefore does not fix a handedness problem, it
+       * creates one: the matrix becomes a REFLECTION, determinant −1.
+       *
+       * A quaternion cannot represent a reflection. `setFromRotationMatrix`
+       * does not fail on one, it silently returns the nearest thing it can, and
+       * the nearest thing is wrong by a lot — measured on the fly-past tangent,
+       * it put the nose 51.4 degrees off the direction of travel. That is the
+       * residue behind every "the plane is facing the wrong way" symptom that
+       * survived fixing the path, the heading and the model's own orientation.
+       */
+      basis.makeBasis(right, up, tangent);
       quat.setFromRotationMatrix(basis);
     }
 
     group.quaternion.copy(quat);
 
     /**
-     * Bank into the break-away, and scale in from nothing.
+     * ATTITUDE, and why an aircraft needs one beyond where it is pointing.
      *
-     * Shallower and later than it was. At 0.85 radians it rolled 49 degrees —
-     * an aerobatic angle — and it started rolling the instant the shot began,
-     * so the aircraft was already on its side while still a speck. A fly-past
-     * banks as it passes, not while it approaches.
+     * The basis above aims the nose down the path and levels the wings, which
+     * is geometrically correct and, on its own, lifeless: the plane holds one
+     * attitude for the whole pass and slides across the frame like a decal.
+     * Nothing about a real aeroplane is that still. It rolls into the break, it
+     * pitches as it loads the wing, and its silhouette changes continuously.
+     *
+     * All three below are functions of `pass` — position through the run — and
+     * NOT of time, per the note at the top of this file. Scrub backwards and
+     * the aircraft un-banks.
      */
-    body.rotation.z =
-      -smootherstep(range(closing / EXIT_FRACTION, 0.3, 1)) * 0.5;
+    const pass = closing / EXIT_FRACTION;
+
+    /**
+     * Bank — now a lean, not a break-away.
+     *
+     * It has been 0.85 radians (49 degrees, aerobatic, and held from the first
+     * frame) and then 0.62. Both were tuned when this was a fly-PAST, where a
+     * banked silhouette is the whole read. It is not that shot any more: the
+     * aircraft now comes down the lens at the viewer, and at 35 degrees of bank
+     * what they see is its upper surface, three-quarter on. An aeroplane about
+     * to hit you is square to you.
+     *
+     * 0.2 — about 11 degrees — is enough that it is not a decal pinned to the
+     * frame, and little enough that the propeller stays dead centre.
+     */
+    body.rotation.z = -smootherstep(range(pass, 0.12, 1)) * 0.2;
+
+    /**
+     * NO NOSE-UP. It used to pitch 14 degrees over the back half of the run.
+     *
+     * That existed to acknowledge PULL_UP, back when the path climbed while the
+     * viewer could still see it. PULL_UP now fires at 0.75 — after the pass, and
+     * behind the camera — so there is nothing left to acknowledge, and all the
+     * pitch did was make an aircraft coming straight at you read as climbing
+     * away over your head. Which is the one thing this shot must not do.
+     *
+     * Left as an explicit zero rather than deleted: the property is written
+     * every frame, so a stale value from a previous build would otherwise
+     * persist through a hot reload.
+     */
+    body.rotation.x = 0;
+
+    /**
+     * A whisper of yaw, so the two wings are not pixel-identical.
+     *
+     * Halved along with the bank, and for the same reason. Yaw is the cheapest
+     * silhouette change there is, but every degree of it turns the nose off the
+     * lens — and the nose being ON the lens is the entire point of this shot
+     * now. At 0.04 it is barely two degrees: enough that the near wing reads
+     * nearer, not enough to aim him anywhere but at you.
+     */
+    body.rotation.y = Math.sin(pass * Math.PI) * 0.04;
+
     group.scale.setScalar(born);
   });
 
