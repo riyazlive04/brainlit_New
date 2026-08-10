@@ -115,30 +115,89 @@ export const AEROPLANE_MODEL_ORIENTATION: [number, number, number] = [0, 0, 0];
 export const AEROPLANE_SPAN = 0.9;
 
 /**
- * The propeller that the model does not have.
+ * The propeller that the model cannot TURN.
  *
- * `aeroplane.glb` arrives as a single fused mesh with the propeller welded to
- * the fuselage, so AeroplaneModel builds one and places it over the top. See
- * the block comment there for why. Everything is expressed as a FRACTION of the
- * model's own measured size rather than in absolute units, so a re-export at a
- * different scale does not leave a propeller hanging in front of the nose.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * IT DOES HAVE ONE, AND THAT IS THE WHOLE DIFFICULTY. `aeroplane.glb` is a
+ * single connected surface — one mesh, one material, 36,191 vertices, and a
+ * union-find over its 51,982 triangles returns ONE component. A real three-blade
+ * propeller with a spinner dome is modelled into the nose, welded to the
+ * fuselage it turns in front of. It cannot be hidden, because there is no node
+ * to hide, and it cannot be cut out, because cutting a closed surface leaves a
+ * hole in the aeroplane.
  *
- * RADIUS_FRACTION is of the wingspan. Real single-engine aircraft sit between
- * 0.28 and 0.36 of span; 0.15 here is the radius, so 0.30 of span across.
+ * So this file's propeller does not replace the model's — it turns IN FRONT of
+ * it. Everything below exists to make the two read as one assembly rather than
+ * as an attachment: same radius, same colour, same material family.
  *
- * NOSE_REACH is how far past the measured front of the fuselage the disc sits,
- * as a fraction of fuselage length. Small and positive: far enough forward that
- * the fused geometry is behind it, close enough that it still looks attached.
+ * The honest fix is asset work, not code. See the note at the end of the block
+ * comment in AeroplaneModel.tsx for the exact split to make in Blender.
+ * ─────────────────────────────────────────────────────────────────────────────
  *
- * NOSE_LIFT is the height of the hub above the model's centre, as a fraction of
- * its height. Zero puts it on the centreline, which is right for most low-wing
- * models and wrong for a high-wing one — TUNE THIS FIRST if the disc looks like
- * it is floating off the chin.
+ * NOTHING BELOW SAYS WHERE THE HUB IS OR HOW LONG THE BLADES ARE. Both used to,
+ * and both were wrong, in the way that a typed-in number about someone else's
+ * mesh is always eventually wrong.
+ *
+ * The hub sat at the model's BOUNDING-BOX CENTRE, which on an aircraft with
+ * fixed landing gear is not the engine — it is the wing root, a quarter of the
+ * model's height below the crankshaft. The propeller hung there, off the wing,
+ * with the model's own spinner running dead at the nose above it.
+ *
+ * So AeroplaneModel MEASURES both from the mesh instead, and what is left here
+ * is the recipe for the measurement rather than its answer. See `surveyNose`.
+ *
+ * NOSE_SLICE is how much of the fuselage, from the front, counts as "the tip"
+ * when averaging vertices to find the crankshaft axis. Anything from 0.005 to
+ * 0.05 puts the hub within 0.0015 of a unit-span model of the same spot — the
+ * spinner is a cone, and a cone's cross-sections all share a centre. Past ~0.06
+ * the cowling flares and the average starts to drift.
+ *
+ * SWEEP_DEPTH and SWEEP_QUANTILE measure how far the MODEL'S OWN BLADES reach:
+ * take every vertex in the forward SWEEP_DEPTH of the fuselage, measure how far
+ * each sits from the hub axis, and the quantile of those distances is the disc
+ * they sweep. The quantile is what makes it robust — the max would be one stray
+ * vertex, and the wing's leading edge arrives at 0.11 of fuselage length, so a
+ * max over any slightly-too-deep slice silently measures the WING instead. At
+ * 0.98 the answer holds to within 0.002 of span across depths 0.07 to 0.12.
+ *
+ * This is the PROPELLER's radius and not the cowling's — those are 0.149 and
+ * about 0.115 of span here, and the difference is not an error in either. Real
+ * propellers are wider than the engines behind them. Sizing this file's blades
+ * to the cowling instead would leave the model's own blades sticking out past
+ * them by a third, which is worse than either object on its own.
  */
-export const PROP_RADIUS_FRACTION = 0.15;
+export const PROP_NOSE_SLICE = 0.03;
+export const PROP_SWEEP_DEPTH = 0.1;
+export const PROP_SWEEP_QUANTILE = 0.98;
+
+/**
+ * How far past the measured front of the fuselage the disc sits, as a fraction
+ * of fuselage length. Small and positive: far enough forward that the fused
+ * geometry is behind it, close enough that it still looks attached.
+ */
 export const PROP_NOSE_REACH = 0.02;
-export const PROP_NOSE_LIFT = 0.0;
 export const PROP_BLADES = 3;
+
+/**
+ * Blade shape, as fractions of the blade's own length — which is the sweep
+ * measured above, so the tips land exactly where the model's own tips do.
+ *
+ * CHORD is the root's HALF-width, so a blade is 0.14 of its length across at
+ * the root. That is the proportion of the aircraft's own blades, measured off a
+ * render: 18 pixels across a 130-pixel blade. It was 0.17, which drew something
+ * closer to a paddle than a propeller and made the two sets of blades read as
+ * different objects even once they were the same length.
+ *
+ * TAPER is the tip's share of that, THICKNESS how flat it is front to back. A
+ * propeller blade is a wing, and it is the taper that says so: parallel-sided
+ * rods read as plastic whatever they are coloured. PITCH is the twist about the
+ * blade's own axis, in radians — a blade square to the disc has no bite and,
+ * worse, disappears edge-on every half turn.
+ */
+export const PROP_BLADE_CHORD = 0.07;
+export const PROP_BLADE_TAPER = 0.4;
+export const PROP_BLADE_THICKNESS = 0.3;
+export const PROP_BLADE_PITCH = 0.38;
 
 /**
  * Radians per second. Fast enough that no individual blade is ever readable,
@@ -149,11 +208,37 @@ export const PROP_SPIN_RATE = 34;
 /**
  * How solid the blur disc is.
  *
- * The whole illusion fails in both directions. Too transparent and the dead
- * geometry underneath shows through; too solid and the aircraft has a dinner
- * plate bolted to its nose.
+ * 0.22, when the hub was at the wing root, was a pale oval lying across the
+ * fuselage. Moving it to the nose fixed the placement but not the reading: the
+ * disc is as wide as the propeller, so on a phone at the closest approach it is
+ * a wash across most of the frame.
+ *
+ * The tempting move is the other way — solid enough to HIDE the model's own
+ * dead blades. That was measured too, and it is a dinner plate: at 0.6 the
+ * engine is gone and the wing behind it is milky, at 1.0 the aircraft has a
+ * saucer where its nose was, and neither hides the static blades so much as
+ * bleaches them. There is no opacity at which this disc conceals that geometry
+ * and still looks like air.
+ *
+ * So it is a hint and nothing more. The blades do the work of saying the engine
+ * is running; this only softens the edge they turn behind.
  */
-export const PROP_DISC_OPACITY = 0.22;
+export const PROP_DISC_OPACITY = 0.06;
+
+/**
+ * How many texels of the model's own spinner are averaged for the blade colour,
+ * and what to use if that sampling cannot happen.
+ *
+ * The blades were #3b3f46, a dark grey chosen against nothing. Against this
+ * aircraft's warm metal it read as a separate black object stuck to the nose,
+ * which is exactly what it was. The colour is now READ FROM THE BASE TEXTURE at
+ * the same nose vertices that place the hub, so the propeller is made of the
+ * same metal as the spinner it covers, and stays that way through a re-skin.
+ *
+ * The fallback is only reached with no texture, no canvas or a tainted one.
+ */
+export const PROP_COLOUR_SAMPLES = 24;
+export const PROP_COLOUR_FALLBACK = "#cbb096";
 
 
 /**
