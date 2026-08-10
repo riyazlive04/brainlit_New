@@ -17,7 +17,7 @@ export function CookieSettingsLink() {
     <button
       type="button"
       onClick={resetConsent}
-      className="text-sm text-slate transition-colors hover:text-violet"
+      className="text-sm text-ink transition-colors hover:text-violet"
     >
       Cookie settings
     </button>

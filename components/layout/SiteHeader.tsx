@@ -33,6 +33,24 @@ export function SiteHeader() {
     setMenuOpen(false);
   }
 
+  /**
+   * The header's webinar button is off the HOMEPAGE only, by request.
+   *
+   * It is not redundant there in the way a repeated CTA usually is — the hero's
+   * own "Join the free webinar" scrolls away — so this is a deliberate choice
+   * to leave the top of the homepage clear rather than a de-duplication. Every
+   * other page keeps it, which is why this is a pathname test and not a
+   * deletion.
+   *
+   * Both copies are gated: the one in the bar above lg, and the one at the foot
+   * of the mobile menu panel. Gating only the first would leave the homepage
+   * showing the button on phones, which is the opposite of the intent.
+   *
+   * The nav's own "Free Webinar" link is untouched and still on every page, so
+   * the route is never closed off — only the emphasis is.
+   */
+  const showCta = pathname !== "/";
+
   // Lock body scroll while the mobile menu is open.
   useEffect(() => {
     if (!menuOpen) return;
@@ -89,9 +107,28 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button href="/webinar" variant="spark" size="sm" className="hidden sm:inline-flex">
-            Join free webinar
-          </Button>
+          {/* WRAPPED, and both halves of that matter.
+              ─────────────────────────────────────────────────────────────
+              It was `<Button className="hidden sm:inline-flex">` and the
+              button showed anyway, on every phone, sitting on top of the
+              wordmark and covering the T. `cn` in lib/cn.ts is a plain join
+              with no tailwind-merge, so the rendered class list was
+              "inline-flex … hidden sm:inline-flex" — two display utilities of
+              equal specificity, settled by their order in Tailwind's output
+              rather than by ours. `hidden` can never reliably hide a Button
+              here. Putting the display utility on a wrapper takes the
+              question away from the cascade.
+
+              lg, not sm, because that is where the header stops being
+              crowded: the hamburger is `lg:hidden`, so the two switch over
+              together and the wordmark never has to share its row with both. */}
+          {showCta && (
+            <span className="hidden lg:inline-flex">
+              <Button href="/webinar" variant="spark" size="sm">
+                Join free webinar
+              </Button>
+            </span>
+          )}
 
           {/* Mobile menu toggle */}
           <button
@@ -127,10 +164,19 @@ export function SiteHeader() {
       </Container>
 
       {/* Mobile navigation panel */}
+      {/* OPAQUE, not `bg-white/95 backdrop-blur-md`.
+          Five per cent is not much until it sits over the hero, whose display
+          type is near-black at 2rem+ — the headline was legible straight
+          through the open menu on a phone. `backdrop-blur` was carrying that
+          design, and it is the wrong thing to rely on here: it is expensive on
+          the low-end Androids this menu exists for, and it is dropped entirely
+          when a visitor has "reduce transparency" set at the OS level, which
+          leaves them reading two things at once. A navigation panel is not
+          decoration; it should hide what is behind it. */}
       <div
         id="mobile-nav"
         hidden={!menuOpen}
-        className="border-t border-mist bg-white/95 backdrop-blur-md lg:hidden"
+        className="border-t border-mist bg-paper lg:hidden"
       >
         <Container size="wide" className="flex flex-col gap-1 py-4">
           {NAV_LINKS.map((link) => (
@@ -148,9 +194,11 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          <Button href="/webinar" variant="spark" size="md" className="mt-2 w-full">
-            Join free webinar
-          </Button>
+          {showCta && (
+            <Button href="/webinar" variant="spark" size="md" className="mt-2 w-full">
+              Join free webinar
+            </Button>
+          )}
         </Container>
       </div>
     </header>

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { PillarIcon } from "@/components/brand/PillarIcon";
 import { CinematicMount } from "@/components/three/CinematicMount";
-import { StickyCta } from "@/components/layout/StickyCta";
 import { WhyNow } from "@/components/sections/WhyNow";
 import { Comparison } from "@/components/sections/Comparison";
 import { Journey } from "@/components/sections/Journey";
@@ -81,7 +80,7 @@ export const metadata: Metadata = {
  * ─────────────────────────────────────────────────────────────────────────────
  * WHAT WAS CUT, AND WHY IT IS NOT COMING BACK BY ACCIDENT (Aug 2026)
  *
- * Thirteen blocks were removed as doing no work for the site's actual jobs — build
+ * Fourteen blocks were removed as doing no work for the site's actual jobs — build
  * trust, capture leads, fill the webinar, convert to enrolment, show student
  * work. Recorded here so nobody re-adds them thinking they were an oversight:
  *
@@ -143,6 +142,17 @@ export const metadata: Metadata = {
  *     copy of that markup, so the site keeps it — but it is no longer on the
  *     highest-authority page, which is where these questions, searched almost
  *     verbatim by parents, had the best chance of a rich result.
+ *   - Both PERSISTENT webinar CTAs, removed at the client's request: the header
+ *     button, which is now gated to non-homepage routes in SiteHeader, and
+ *     StickyCta, the phone-only bar pinned to the bottom of the viewport once
+ *     the hero had scrolled past. THE STICKY BAR IS DELETED, not orphaned — this
+ *     page was its only caller.
+ *     What that changes, specifically: every webinar CTA left on the homepage is
+ *     now a fixed point in the scroll rather than something that follows the
+ *     reader. The hero's own button is the first, and after it there is nothing
+ *     until Pricing, which is most of the page away — and on a phone that is a
+ *     long way to travel with no visible way to act. Both are one-line reverts;
+ *     the sticky bar is in git.
  *
  * Note what went with all of that, so the gaps are decisions and not surprises.
  * Comparison contrasts US against other academies, and Transformation was the
@@ -215,7 +225,17 @@ export default function HomePage() {
                 {/* Smaller than --text-display, which is sized for a headline
                     spanning the full page. In a column it would wrap to six
                     lines and swamp the CTAs. */}
-                <h1 className="mt-4 text-[clamp(2.35rem,4.5vw,3.5rem)] text-ink">
+                {/* The floor is 2rem, NOT 2.35rem, and that is a bug fix.
+                    "NEXT GENERATION" is `whitespace-nowrap` below, so it can
+                    never wrap to escape a narrow screen — it can only run off
+                    the edge. At 2.35rem on a 360px Android the phrase measured
+                    345px inside a 320px column and the final N was clipped by
+                    `overflow-x: clip` on body. 2rem matches the floor of
+                    --text-h1 in globals.css, which carries the comment
+                    "clamped so headings never overflow a 360px Android"; this
+                    heading had simply opted out of it. The vw term and the
+                    3.5rem ceiling are unchanged, so nothing above ~445px moves. */}
+                <h1 className="mt-4 text-[clamp(2rem,4.5vw,3.5rem)] text-ink">
                   AI Literacy for{" "}
                   {/* Capitalised with CSS, not by typing NEXT GENERATION into
                       the DOM. Screen readers pronounce short all-caps strings
@@ -266,10 +286,15 @@ export default function HomePage() {
                     `For parents in ${SITE.city} and across India`,
                   ].map((fact, i) => (
                     <li key={fact} className="flex items-center gap-3">
+                      {/* Hidden below sm. The list wraps on a phone, and a
+                          leading divider then arrives at the START of the new
+                          line with nothing to its left — "| For parents in
+                          Chennai…". The `gap-x-3` already separates the items
+                          once they are on one line each. */}
                       {i > 0 && (
                         <span
                           aria-hidden="true"
-                          className="h-3.5 w-px bg-mist"
+                          className="hidden h-3.5 w-px bg-mist sm:block"
                         />
                       )}
                       {fact}
@@ -336,8 +361,17 @@ export default function HomePage() {
           still fills most of a screen, which is what the beat needs — this is
           the line the whole sequence builds to. Do not shrink it much further:
           the heading runs to four lines at --text-h1 and needs the room. */}
-      <section className="relative z-10 flex min-h-[60svh] items-center">
-        <Container size="narrow" className="py-16 text-center">
+      {/* NO min-height on a phone, and that is FIX 3.
+          The film ends as this section's top edge appears — see the note above
+          — but the copy is centred inside the block, so a minimum height puts
+          empty space between the aeroplane leaving and the line arriving. In
+          portrait that read as about a second of blank gradient. Dropping the
+          minimum below sm lets the section be exactly as tall as its own copy,
+          which removes the padding without moving the section. Desktop keeps
+          the 60svh block: there the beat wants the room, and the copy is
+          already in frame during the pass. */}
+      <section className="relative z-10 flex items-center sm:min-h-[60svh]">
+        <Container size="narrow" className="py-10 text-center sm:py-16">
           <div className="relative">
             <div aria-hidden="true" className="text-scrim" />
 
@@ -421,8 +455,6 @@ export default function HomePage() {
 
       {/* ── Close ───────────────────────────────────────────────────────── */}
       <FinalCta />
-
-      <StickyCta />
     </>
   );
 }
