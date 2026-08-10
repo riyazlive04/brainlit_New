@@ -248,7 +248,15 @@ p {
 --------------------------------------------------------------------------- */
 @utility text-scrim {
   position: absolute;
-  inset: -14% -10%;
+  /* Vertical bleed only. The horizontal -10% pushed this past the viewport on
+     every phone — 468px wide inside a 430px screen — which `overflow-x: clip`
+     on body then swallowed. Invisible, because the gradient is transparent by
+     then, but it left document.scrollWidth wider than the screen on the
+     homepage at every mobile width, and it would become a real sideways scroll
+     the moment that clip is removed. The ellipse still covers the copy: the
+     container it sits in is `size="narrow"` and already has padding either
+     side of the text. */
+  inset: -14% 0;
   pointer-events: none;
   background: radial-gradient(
     ellipse at center,

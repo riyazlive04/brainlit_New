@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { scrollState } from "@/lib/scrollState";
@@ -9,11 +9,13 @@ import { Rocket } from "./Rocket";
 import { Plane } from "./Plane";
 import { Embers } from "./Embers";
 import {
+  BOY_FEET,
   CLOSE_DRIFT,
   EYE,
   FLIGHT_CURVE,
   MARK_ANCHOR,
   flightT,
+  setViewportFraming,
 } from "./lib/flightPath";
 import {
   DOLLY_FRACTION,
@@ -184,10 +186,47 @@ export function Cinematic({ tier, reducedMotion }: Props) {
    * simply half out of frame. Below the md breakpoint the rig recentres on him
    * and moves in, because at the desktop distance he would be a thumbnail.
    */
+  /**
+   * The exit path needs the aspect to size the fly-past — see `passDistance`
+   * in lib/flightPath.ts. This is the only place that knows the canvas shape,
+   * so it is the place that publishes it.
+   */
+  useEffect(() => {
+    // BASE_FOV, not the live fov: the fly-past happens after the camera has
+    // finished opening out of the burn, so that is the focal length the
+    // cutoff must be solved at. See EXIT_FRACTION in lib/flightPath.ts.
+    setViewportFraming(size.width / size.height, BASE_FOV);
+  }, [size.width, size.height]);
+
   const narrow = size.width < 768;
-  const lookBiasX = narrow ? 1.68 : 0;
-  const subjectDistance = narrow ? 0.72 : 1;
-  const markDistance = narrow ? 1.42 : 1;
+
+  /**
+   * DERIVED, so it actually centres him. It was 1.68, and it was 0.6 too far.
+   *
+   * The bias is added to `CAM.boyLook.x`, which is 0.62 — so 1.68 aimed the
+   * camera at x = 2.30 while the boy stands at x = 1.70. It looked 0.6m past
+   * his shoulder, and `subjectDistance` below then moves the camera 28% closer,
+   * which magnifies the error rather than hiding it. On a 360px Android the
+   * result was a boy cropped to one arm at the left edge of the frame.
+   *
+   * Aiming at BOY_FEET.x puts him dead centre by construction, and follows him
+   * if he is ever moved.
+   */
+  const lookBiasX = narrow ? BOY_FEET.x - CAM.boyLook.x : 0;
+  /**
+   * 1.15 — FURTHER BACK than desktop, not closer. It was 0.72.
+   *
+   * The old value pulled the camera 28% in on the reasoning that at the desktop
+   * distance he would be "a thumbnail" on a phone. That reasoning holds for a
+   * WIDE subject; it does not hold for a tall one. The camera's FOV is
+   * vertical, so a figure's apparent height depends on distance alone, not on
+   * how narrow the viewport is — he was already the same fraction of the frame
+   * as on desktop, and 0.72 then made him 67% of it. On a screen whose top two
+   * thirds are copy, that put his head behind the lead paragraph.
+   *
+   * At 1.15 he is 42% of frame height, which fits the band under the CTAs.
+   */
+  const subjectDistance = narrow ? 1.15 : 1;
   /**
    * Raising the look axis pushes the subject DOWN the frame.
    *
@@ -196,7 +235,7 @@ export function Cinematic({ tier, reducedMotion }: Props) {
    * philosophy screen the hero has no scrim to lift the type off him. Dropping
    * him into the space under the CTAs keeps both readable without a scrim.
    */
-  const lookBiasY = narrow ? 0.5 : 0;
+  const lookBiasY = narrow ? 1.7 : 0;
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 1 / 20);

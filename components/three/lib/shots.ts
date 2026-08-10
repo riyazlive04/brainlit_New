@@ -24,26 +24,54 @@ export type ShotName = "boy" | "throw" | "eyes" | "burn" | "mark";
 /**
  * Shot boundaries as fractions of the cinematic zone.
  *
- * The ranges are deliberately even (~20% each) rather than weighted by how much
- * "happens" in each. Under scroll the viewer sets the pace, so an unevenly
- * divided timeline does not read as pacing — it reads as some shots being
- * mysteriously harder to scroll through than others.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * WEIGHTED BY WHAT MOVES, not evenly divided.
  *
- * `boy` is the exception at 18%: it is the shot the visitor is looking at while
- * they read the headline, so it wants to be a fraction shorter than the ones
- * they are actively scrubbing through.
+ * These were ~20% each on the argument that an unevenly divided timeline reads
+ * as some shots being mysteriously harder to scroll through than others. That
+ * holds when every shot has something happening in it. Two did not:
+ *
+ *   · `boy` — he stands still. There is nothing to scrub.
+ *   · `eyes` — the camera LOOKS AT the rocket (`look.copy(rocket)` in
+ *     Cinematic.tsx), so the rocket sits at a fixed point on screen while it
+ *     climbs. Tracking a subject removes the very cue that says it is moving.
+ *     Measured, the paper held one screen position for 1.7 seconds.
+ *
+ * Together they were 38% of the zone — over 1.5 screens of scrolling with
+ * almost no visible change. That budget now goes to the beats that pay for it:
+ *
+ *              before          after      screens of scroll (zone is 500svh,
+ *   boy     0.00-0.18 18%   0.00-0.10 10%      so scrub is 4 viewports and
+ *   throw   0.18-0.38 20%   0.10-0.34 24%      screens = span x 4)
+ *   eyes    0.38-0.58 20%   0.34-0.44 10%
+ *   burn    0.58-0.78 20%   0.44-0.68 24%   boy+eyes: 1.52 -> 0.80 screens
+ *   mark    0.78-1.00 22%   0.68-1.00 32%   mark:     0.88 -> 1.28 screens
+ *
+ * NOTHING DOWNSTREAM NEEDS EDITING TO FOLLOW THIS, which is the point of
+ * `shotProgress`: every consumer normalises to 0..1 inside its own window, so a
+ * beat still plays in full, just over more or less scroll. The two constants
+ * derived from these numbers — RELEASE_PROGRESS and ARRIVAL_PROGRESS in
+ * lib/flightPath.ts — are written as fractions of the windows and move with
+ * them. DOLLY_FRACTION below is the one exception; see the note on it.
+ *
+ * `boy` at 10% is deliberately not lower. He cannot throw yet — the rig is
+ * three bones — and when a real clip lands the WIND-UP belongs to the `throw`
+ * shot, which grew to 24%. Release sits 52% into it, so the wind-up now has
+ * 0.125 of the zone to play in, up from 0.104. Shortening `boy` gives the
+ * future animation more room, not less.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 export const SHOTS: Record<ShotName, { start: number; end: number }> = {
   /** He stands, rocket in hand. */
-  boy: { start: 0.0, end: 0.18 },
+  boy: { start: 0.0, end: 0.1 },
   /** Wind-up, release, the trail draws. */
-  throw: { start: 0.18, end: 0.38 },
+  throw: { start: 0.1, end: 0.34 },
   /** Dolly to his eyeline. Sky. The rocket climbing. */
-  eyes: { start: 0.38, end: 0.58 },
+  eyes: { start: 0.34, end: 0.44 },
   /** It catches fire and chars to embers. */
-  burn: { start: 0.58, end: 0.78 },
-  /** The embers converge into the mark. */
-  mark: { start: 0.78, end: 1.0 },
+  burn: { start: 0.44, end: 0.68 },
+  /** The fly-past. */
+  mark: { start: 0.68, end: 1.0 },
 };
 
 /** Local 0..1 progress within one shot, clamped outside it. */
@@ -73,10 +101,17 @@ export const REDUCED_MOTION_PROGRESS = 0.97;
 /**
  * Fraction of the `eyes` shot spent travelling to the boy's eyeline.
  *
- * Short on purpose — see the note on the dolly in Cinematic.tsx. At normal
- * scrolling speed this passes in a few frames and reads as a cut.
+ * 0.5, RAISED FROM 0.25 TO CANCEL THE REBALANCE ABOVE. This is a fraction of a
+ * window that just halved, and unlike everything else downstream it should NOT
+ * follow it: the dolly is the one part of `eyes` that moves, so it is not what
+ * was dead. At 0.25 of the old 20% window it spanned 0.050 of the zone; 0.5 of
+ * the new 10% window spans the same 0.050, so the travel is untouched and the
+ * static tail behind it is what got cut.
+ *
+ * Still short on purpose — see the note on the dolly in Cinematic.tsx. At
+ * normal scrolling speed it passes in a few frames and reads as a cut.
  */
-export const DOLLY_FRACTION = 0.25;
+export const DOLLY_FRACTION = 0.5;
 
 /**
  * Fraction of the final shot spent assembling. The rest is a held frame.

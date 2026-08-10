@@ -8,7 +8,11 @@ import { CartoonPlane } from "./CartoonPlane";
 import { AeroplaneModel } from "./AeroplaneModel";
 import { ModelBoundary } from "./lib/ModelBoundary";
 import { AEROPLANE_MODEL_URL, useModelAvailable } from "./lib/characterModel";
-import { EXIT_FRACTION } from "./lib/flightPath";
+import {
+  EXIT_FRACTION,
+  cutoffDistance,
+  planeDistanceAt,
+} from "./lib/flightPath";
 import { REDUCED_MOTION_PROGRESS, shotProgress } from "./lib/shots";
 import { range, smootherstep } from "./lib/ease";
 import { BRAND } from "@/lib/brand";
@@ -59,50 +63,31 @@ const HEAT_PEAK = 0.8;
 const HEAT_WINDOW = { from: 0.42, to: 0.86 } as const;
 
 /**
- * Where the fly-past fades out, as a fraction of the run at the viewer.
- *
- * Plane.tsx drops `group.visible` the instant the run completes, which is
- * correct — past that point the aircraft is behind the camera and drawing it is
- * waste. What it is not is INVISIBLE: at the speed it is travelling it is still
- * several degrees wide when the flag flips, so it does not leave, it blinks
- * out. This takes it to zero before the cut, so the cut lands on something
- * already gone.
+ * Where the fly-past fades out — measured in METRES FROM THE LENS, not scroll.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * IT HAS TO STAY SOLID UNTIL IT IS ENORMOUS. This window is the difference
- * between an aircraft flying towards you and one that is about to hit you.
+ * IT HAS TO STAY SOLID UNTIL IT IS ENORMOUS, then leave before it stops being
+ * an aeroplane. Those are the two ends of this window, and both of them are
+ * distances, not scroll positions.
  *
- * THIS WINDOW IS DOWNSTREAM OF THE RUN'S EASING, and the two have been wrong
- * together. A fade that finishes before the aircraft arrives dissolves it over
- * exactly the stretch that carries the effect — at 0.45–0.66 it was down to
- * 0.14 while the plane was at its largest, and it read as approaching politely
- * and giving up.
+ * This used to be a `pass` window (0.80–0.90). A fixed pass is a fixed
+ * distance, and a fixed distance is a DIFFERENT SIZE on every viewport,
+ * because the camera's field of view is vertical and the horizontal one falls
+ * out of the aspect ratio. On a 396x806 phone the aircraft was still opaque at
+ * a distance that filled the frame with a landing-gear strut; on desktop the
+ * same pass value was a well-framed aeroplane. One number could not serve
+ * both, and no third number would have served tablets.
  *
- * `exitEase` and `lensAt` in flightPath.ts changed where every one of these
- * moments falls, so the window is placed against THEIR numbers, in pass space:
+ * So the fade is driven by `planeDistanceAt` against `cutoffDistance`, which
+ * solves the viewport's own geometry for the distance at which the wingspan
+ * covers PASS_SPAN_TARGET of the shorter screen axis. See lib/flightPath.ts.
  *
- *      pass 0.702   aircraft reaches 100% of frame width
- *      pass 0.880   passes the lens — behind the viewer, nothing left to draw
- *      pass 0.920   path drops through the floor (see PULL_UP, which is zero)
- *
- * The window is 0.80–0.90, and both ends are pinned by that list. It OPENS at
- * 0.80, by which point the aircraft is wider than the frame and there is no
- * detail left to lose. It CLOSES at 0.90 — as late as it can, because every
- * frame the aircraft is still on screen is a frame the reader is not scrolling
- * through nothing, but still before the path drops through the floor at 0.920.
- *
- * LATER THAN IT WAS (0.74–0.83), and the reason is the tail rather than the
- * look: EXIT_FRACTION is now 1.0 so the run fills the whole mark shot, and
- * holding the fade open to 0.90 keeps the aircraft alive almost to the end of
- * the cinematic zone. What is left after it — 95px on a 500svh zone — is the
- * stretch between passing the lens at 0.880 and the zone ending, and no fade
- * setting can reclaim it. See EXIT_FRACTION in flightPath.ts.
- *
- * Moving `from` earlier costs frame-filling size directly. Moving `to` past
- * 0.920 puts the aircraft back on screen while the path is below the floor.
+ * It is fully opaque beyond FADE_START x that distance and gone at it, so the
+ * aircraft always reaches the same SIZE before it goes, whatever the shape of
+ * the screen. Resize the window mid-pass and it re-solves on the next frame.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-const FADE = { from: 0.8, to: 0.9 } as const;
+const FADE_START = 2.2;
 
 export function PlaneBody({ reducedMotion }: { reducedMotion: boolean }) {
   const rootRef = useRef<THREE.Group>(null);
@@ -199,8 +184,13 @@ export function PlaneBody({ reducedMotion }: { reducedMotion: boolean }) {
     for (const material of lit) material.emissiveIntensity = heat * HEAT_PEAK;
 
     // ...and it fades as it goes past, rather than being switched off.
-    const run = shotProgress(p, "mark") / EXIT_FRACTION;
-    const fade = 1 - smootherstep(range(run, FADE.from, FADE.to));
+    // `range` is inverted on purpose: distance SHRINKS as it approaches, so
+    // opacity is 1 while it is far and 0 once it is inside the cutoff.
+    const pass = shotProgress(p, "mark") / EXIT_FRACTION;
+    const cut = cutoffDistance();
+    const fade = smootherstep(
+      range(planeDistanceAt(pass), cut, cut * FADE_START),
+    );
     for (const [material, base] of baseOpacity) material.opacity = base * fade;
   });
 

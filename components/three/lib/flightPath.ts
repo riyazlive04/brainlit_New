@@ -238,6 +238,90 @@ const CLOSE_EYE = EYE.clone().add(CLOSE_DRIFT);
 const FLYBY_SIDESTEP = 0.1;
 
 /**
+ * How close the aeroplane gets before it is taken off screen, derived from the
+ * lens and the shape of the viewport rather than fixed in scroll space.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE FADE USED TO FIRE AT A FIXED `pass`, which meant a fixed DISTANCE, which
+ * meant a wildly different SIZE depending on the viewport. A three.js
+ * PerspectiveCamera's `fov` is VERTICAL: the horizontal field of view is
+ * derived from it by the aspect ratio, so the narrower the viewport the less
+ * world fits across it. Between a 2.12 desktop and a 0.49 portrait phone the
+ * same world distance subtends more than four times as much of the width. On
+ * the phone the last visible frame was a landing-gear strut and a wheel spat —
+ * the camera was, for practical purposes, inside the aircraft.
+ *
+ * WHY NOT SCALE THE SIDESTEP. That was tried first and it does almost nothing:
+ * FLYBY_SIDESTEP is the LATERAL miss at closest approach, while what sets the
+ * apparent size is the distance ALONG the view axis, and the aircraft is cut
+ * long before the lateral offset matters.
+ *
+ * So the cutoff is a distance, and it is solved. At distance d the frame is
+ *
+ *      height = 2 · d · tan(fov / 2)          width = height · aspect
+ *
+ * so a wingspan W covers this fraction of the SHORTER screen axis:
+ *
+ *      W / (2 · d · tan(fov / 2) · min(aspect, 1))
+ *
+ * Setting that to PASS_SPAN_TARGET and solving for d:
+ *
+ *      d = W / (2 · target · tan(fov / 2) · min(aspect, 1))
+ *
+ * `min(aspect, 1)` because above 1 the short axis is the height, and height
+ * scales with distance alone — a landscape phone and a wide desktop need no
+ * correction. Only portrait does, and it gets exactly the correction its
+ * narrowness costs it. Tablets land in between, and a window resize re-solves
+ * on the next frame.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/**
+ * Wingspan as flown, in world units.
+ *
+ * MEASURED off a rendered frame, not taken from the model: the aircraft was
+ * captured at a known distance on a 1900x895 canvas at BASE_FOV, its span read
+ * in pixels, and the world width of the frame at that distance solved back.
+ * 0.558 was an older figure calibrated through a different lens and it made
+ * this whole derivation land 35% short.
+ */
+const PLANE_WINGSPAN = 0.752;
+
+/**
+ * How much of the SHORTER screen axis the wingspan covers when the aircraft
+ * has finished fading.
+ *
+ * 1.3 keeps the desktop shot exactly as it was tuned: on 1900x895 the shorter
+ * axis is the 895 height, so 1.3 of it is 1164px — 61% of the width, which is
+ * the ~62% the fly-past was built around. Every other viewport now matches
+ * that framing instead of inheriting a distance meant for this one.
+ */
+const PASS_SPAN_TARGET = 1.3;
+
+let viewportAspect = 16 / 9;
+let viewportFovY = 45;
+
+/**
+ * Told to us by the rig, which is the only thing that knows the canvas.
+ * Mirrors `setReleasePoint` above: a path parameter that cannot be known at
+ * module scope, published by whoever does know it.
+ */
+export function setViewportFraming(aspect: number, fovY: number): void {
+  if (Number.isFinite(aspect) && aspect > 0) viewportAspect = aspect;
+  if (Number.isFinite(fovY) && fovY > 0) viewportFovY = fovY;
+}
+
+/** Distance at which the wingspan covers PASS_SPAN_TARGET of the short axis. */
+export function cutoffDistance(): number {
+  const halfFov = (viewportFovY * Math.PI) / 360;
+  return (
+    PLANE_WINGSPAN /
+    (2 * PASS_SPAN_TARGET * Math.tan(halfFov) * Math.min(viewportAspect, 1))
+  );
+}
+
+
+/**
  * Where in the run the aeroplane and the camera actually meet.
  *
  * ─────────────────────────────────────────────────────────────────────────────
@@ -406,6 +490,8 @@ const WORLD_UP = /* @__PURE__ */ new THREE.Vector3(0, 1, 0);
 const SCRATCH_AXIS = /* @__PURE__ */ new THREE.Vector3();
 const SCRATCH_RIGHT = /* @__PURE__ */ new THREE.Vector3();
 const SCRATCH_LENS = /* @__PURE__ */ new THREE.Vector3();
+const SCRATCH_POS = /* @__PURE__ */ new THREE.Vector3();
+const SCRATCH_CAM = /* @__PURE__ */ new THREE.Vector3();
 
 /**
  * The aeroplane's departure.
@@ -499,6 +585,24 @@ export function planeAt(pass: number, out: THREE.Vector3): THREE.Vector3 {
   out.y += PULL_UP * pull * pull;
 
   return out;
+}
+
+/**
+ * How far the aeroplane is from the lens at `pass`, in metres.
+ *
+ * Exported so PlaneBody can fade on DISTANCE rather than on a scroll value —
+ * the same distance the viewport-derived `cutoffDistance` is expressed in.
+ * Both have to come from here, because this is the only file that knows both
+ * where the aircraft is and where the camera is.
+ */
+export function planeDistanceAt(pass: number): number {
+  lensAt(pass, SCRATCH_LENS);
+  SCRATCH_POS.copy(MARK_ANCHOR).addScaledVector(
+    SCRATCH_LENS.clone().sub(MARK_ANCHOR),
+    exitEase(pass) * FLYBY_CARRY,
+  );
+  cameraAt(pass, SCRATCH_CAM);
+  return SCRATCH_POS.distanceTo(SCRATCH_CAM);
 }
 
 /** Which way it is POINTING at `pass`. */
