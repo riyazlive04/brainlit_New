@@ -117,6 +117,69 @@ export const PILLARS = [
 export type PillarKey = (typeof PILLARS)[number]["key"];
 
 /**
+ * Where BrainLIT is, off this site.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ONE LIST, READ IN THREE PLACES: the footer's Connect column, the contact
+ * page, and — the one that is easy to forget — `sameAs` in the Organization
+ * schema. That last is not decoration. `sameAs` is how a search engine ties
+ * this domain to those accounts and treats them as one entity, which is what
+ * puts the right logo and the right profile links in a knowledge panel. A
+ * social account the site links to but does not DECLARE is a relationship the
+ * crawler has to guess at.
+ *
+ * Hard-coded rather than read from the environment, unlike WHATSAPP.number
+ * below. These are public brand accounts, identical in every deployment, and a
+ * preview build that silently drops them would be a worse failure than one that
+ * shows them.
+ *
+ * THE WHATSAPP GROUP IS ONE OF THE FOUR, and it is defined here rather than in
+ * content/home.ts even though a homepage section is built around it. It is one
+ * URL with two jobs — an account to follow and the subject of a band of copy —
+ * and a URL with two jobs written down twice is a URL that will eventually
+ * disagree with itself. content/home.ts reads it from here; this file imports
+ * nothing, so the dependency can only run in that direction.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+export type SocialKey = "instagram" | "facebook" | "youtube" | "whatsapp";
+
+export const SOCIAL_LINKS: readonly {
+  key: SocialKey;
+  label: string;
+  href: string;
+}[] = [
+  {
+    key: "instagram",
+    label: "Instagram",
+    href: "https://www.instagram.com/brainlit.kidsacademy/",
+  },
+  {
+    key: "facebook",
+    label: "Facebook",
+    href: "https://www.facebook.com/brainlit.kidsacademy",
+  },
+  {
+    key: "youtube",
+    label: "YouTube",
+    href: "https://www.youtube.com/@BrainLITofficial",
+  },
+  {
+    key: "whatsapp",
+    label: "WhatsApp community",
+    // The environment still wins, so a fork or a preview can point the group
+    // elsewhere without editing code. The literal is the real group, so a build
+    // with nothing set links to it rather than hiding it.
+    href:
+      process.env.NEXT_PUBLIC_WHATSAPP_COMMUNITY_URL ??
+      "https://chat.whatsapp.com/FVIdUvaAgtjCuYpyvmzaEY",
+  },
+];
+
+/** The group invite on its own, for the homepage band that is built round it. */
+export const COMMUNITY_INVITE =
+  SOCIAL_LINKS.find((link) => link.key === "whatsapp")?.href ?? null;
+
+/**
  * WhatsApp deep link. Number is a placeholder until the client supplies the
  * real business number — see PLAN.md §12.
  */

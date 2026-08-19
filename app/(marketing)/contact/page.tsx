@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ContactForm } from "@/components/forms/ContactForm";
-import { SITE, whatsappHref } from "@/lib/site";
+import { SocialIcon } from "@/components/brand/SocialIcon";
+import { SITE, SOCIAL_LINKS, whatsappHref } from "@/lib/site";
 import { CONTACT_EMAIL } from "@/lib/legal";
 
 export const metadata: Metadata = {
@@ -71,6 +72,35 @@ export default function ContactPage() {
                   </dt>
                   <dd className="mt-1 text-[1.0125rem] text-ink">
                     {SITE.city}, India - teaching online across the country
+                  </dd>
+                </div>
+
+                {/* Last, and deliberately so. This list is ordered by how fast
+                    it gets a parent an answer, and a social profile is the
+                    slowest thing on it — it is where they go to decide whether
+                    to trust us, not where they go to ask a question. */}
+                <div>
+                  <dt className="text-sm tracking-wide text-slate uppercase">
+                    Follow us
+                  </dt>
+                  {/* Icon AND label here, unlike the footer's icon-only row.
+                      This is a contact list a parent is reading to decide how
+                      to get hold of us, so every other row names itself in
+                      words; a line of bare glyphs would be the one entry that
+                      has to be decoded. */}
+                  <dd className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+                    {SOCIAL_LINKS.map((link) => (
+                      <a
+                        key={link.key}
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 font-display text-[1.0625rem] font-semibold text-violet hover:underline"
+                      >
+                        <SocialIcon network={link.key} className="size-5" />
+                        {link.label}
+                      </a>
+                    ))}
                   </dd>
                 </div>
               </dl>

@@ -104,11 +104,23 @@ p {
   line-height: 1.75;
 }
 
-/* Keyboard focus must stay visible — it is the only affordance for non-mouse users */
+/* Keyboard focus must stay visible — it is the only affordance for non-mouse users.
+   ---------------------------------------------------------------------------
+   NO `border-radius` HERE. There was one — `border-radius: 2px` — and because
+   this rule matches the ELEMENT rather than the outline, it did not round the
+   focus ring: it RESHAPED THE ELEMENT. Every circle and every pill on the site
+   snapped to a 2px-radius rectangle the instant it was focused, then sprang
+   back when focus moved on. Measured: the floating WhatsApp button, the mobile
+   menu toggle, the footer's social links and every `rounded-full` Button all
+   went from a circle to 2px.
+
+   It was also unnecessary. An `outline` follows its element's own border-radius
+   in every browser that supports `:focus-visible` at all, so a round thing
+   already gets a round ring for free — which is precisely what the declaration
+   was destroying. */
 :focus-visible {
   outline: 2px solid var(--color-violet);
   outline-offset: 3px;
-  border-radius: 2px;
 }
 
 ::selection {
