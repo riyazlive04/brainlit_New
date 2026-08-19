@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -7,6 +8,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { getCourseBySlug, getPublishedCourses } from "@/lib/content";
 import { PROGRAM_ESSENTIALS } from "@/content/courses";
 import { SITE, whatsappHref } from "@/lib/site";
+import { publicStorageUrl } from "@/lib/storage";
 
 export const revalidate = 300;
 
@@ -53,6 +55,8 @@ export default async function CourseDetailPage({
   const course = await getCourseBySlug(slug);
 
   if (!course) notFound();
+
+  const image = publicStorageUrl("course-images", course.image_path);
 
   const whatsapp = whatsappHref(
     `Hi BrainLIT, I would like to know more about "${course.title}".`,
@@ -108,6 +112,45 @@ export default async function CourseDetailPage({
           </span>
         </div>
       </PageHeader>
+
+      {/* The photograph and the long description, both of which this page has
+          had room for since it was written and neither of which it could show:
+          `image_path` did not exist until 0006, and `hero_copy` existed from
+          0001 but had no field in the admin, so it was null on every row.
+
+          Rendered only when present. A programme with neither still reads as a
+          complete page — the essentials and the CTA below carry it. */}
+      {(image || course.hero_copy) && (
+        <section className="pt-16 sm:pt-20">
+          <Container size="narrow">
+            {image && (
+              <Reveal>
+                <Image
+                  src={image}
+                  alt={`${course.title} in progress`}
+                  width={1600}
+                  height={900}
+                  unoptimized
+                  sizes="(min-width: 768px) 42rem, 92vw"
+                  className="aspect-video w-full rounded-2xl bg-mist object-cover"
+                />
+              </Reveal>
+            )}
+
+            {course.hero_copy && (
+              <Reveal className={image ? "mt-10" : undefined}>
+                {/* `whitespace-pre-line`, so the paragraph breaks an admin
+                    typed into the textarea survive. Without it the whole
+                    description collapses into one block — the newlines are in
+                    the data, HTML just does not honour them by default. */}
+                <p className="text-[length:var(--text-lead)] leading-relaxed whitespace-pre-line text-slate">
+                  {course.hero_copy}
+                </p>
+              </Reveal>
+            )}
+          </Container>
+        </section>
+      )}
 
       <section className="py-20 sm:py-28">
         <Container size="narrow">

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin/auth";
 
@@ -124,6 +125,11 @@ export async function saveCourse(form: FormData) {
     title,
     slug,
     summary: optionalText(form, "summary"),
+    // Long description for the detail page, and the card photograph. Both
+    // columns predate this form; hero_copy has been in the schema since 0001
+    // and was simply never writable, so every course carried a null one.
+    hero_copy: optionalText(form, "hero_copy"),
+    image_path: optionalText(form, "image_path"),
     age_min: optionalNumber(form, "age_min") ?? 10,
     age_max: optionalNumber(form, "age_max") ?? 14,
     duration_weeks: optionalNumber(form, "duration_weeks"),
@@ -163,7 +169,7 @@ export async function saveTestimonial(form: FormData) {
   const id = optionalText(form, "id");
   const quote = text(form, "quote");
   const parentName = text(form, "parent_name");
-  if (!quote || !parentName) return;
+  if (!quote || !parentName) redirect("/admin/testimonials?error=required");
 
   const payload = {
     parent_name: parentName,
@@ -173,21 +179,39 @@ export async function saveTestimonial(form: FormData) {
     rating: optionalNumber(form, "rating"),
     consent_ref: optionalText(form, "consent_ref"),
     video_path: optionalText(form, "video_path"),
+    photo_path: optionalText(form, "photo_path"),
     is_published: checkbox(form, "is_published"),
     sort_order: optionalNumber(form, "sort_order") ?? 0,
   };
 
-  // The database enforces this too (0004). Checked here so the admin gets a
-  // sane outcome instead of an opaque constraint violation. A video carries a
-  // parent's face and voice, and often their child's, so it needs recorded
-  // permission exactly as a named child does.
-  if (
-    payload.is_published &&
-    (payload.child_first_name || payload.video_path) &&
-    !payload.consent_ref
-  ) {
-    return;
-  }
+  /**
+   * Consent gates PUBLISHING, so it may only ever veto the publish flag — and
+   * for two revisions of this function it vetoed the entire save.
+   *
+   * ─────────────────────────────────────────────────────────────────────────
+   * The database enforces the rule too (0003). A video carries a parent's face
+   * and voice, and often their child's, so it needs recorded permission
+   * exactly as a named child does. None of that is in question.
+   *
+   * WHAT WAS WRONG WAS THE PUNISHMENT. This first `return`ed and later
+   * `redirect`ed, and both threw away everything the admin had typed: correct
+   * a quote, fix a city, tick publish, save — and all three were discarded
+   * because the third one was not allowed. From the outside that reads as "the
+   * form does not save", which is exactly what it was reported as, and it is a
+   * fair description: nothing was saved.
+   *
+   * So the write now always happens, with `is_published` forced back down to
+   * draft. The edits survive, the record visibly stays a draft, and the banner
+   * says why. The one thing consent blocks is the one thing it is about.
+   * ─────────────────────────────────────────────────────────────────────────
+   */
+  // A photograph of a parent is the same exposure as a video of them with
+  // fewer frames, so it sits under the same rule rather than a weaker one.
+  const needsConsent = Boolean(
+    payload.child_first_name || payload.video_path || payload.photo_path,
+  );
+  const blocked = payload.is_published && needsConsent && !payload.consent_ref;
+  if (blocked) payload.is_published = false;
 
   if (id) {
     await supabase.from("testimonials").update(payload).eq("id", id);
@@ -197,6 +221,18 @@ export async function saveTestimonial(form: FormData) {
 
   revalidatePath("/admin/testimonials");
   revalidatePath("/");
+
+  /**
+   * Always redirects, and the SUCCESS case is the one that matters here.
+   *
+   * A server action leaves the URL alone, so `?error=consent` from a previous
+   * blocked attempt survives every later save — including the one that finally
+   * worked. The banner is rendered from that parameter, so a correct save came
+   * back still reading "kept as a draft", against a record that was by then
+   * published. Being told the save failed when it succeeded is worse than not
+   * being told anything.
+   */
+  redirect(blocked ? "/admin/testimonials?error=consent" : "/admin/testimonials");
 }
 
 export async function deleteTestimonial(form: FormData) {
@@ -220,7 +256,7 @@ export async function saveProject(form: FormData) {
   const id = optionalText(form, "id");
   const title = text(form, "title");
   const studentFirstName = text(form, "student_first_name");
-  if (!title || !studentFirstName) return;
+  if (!title || !studentFirstName) redirect("/admin/projects?error=required");
 
   const payload = {
     title,
@@ -234,7 +270,12 @@ export async function saveProject(form: FormData) {
 
   // Publishing a child's work without recorded parental consent is a DPDP
   // violation, not a policy preference. The database refuses it too.
-  if (payload.is_published && !payload.consent_ref) return;
+  //
+  // Vetoes the PUBLISH FLAG and nothing else, and saves the rest — see the
+  // note on saveTestimonial for why the earlier "reject the whole edit"
+  // behaviour was indistinguishable from a form that does not work.
+  const blocked = payload.is_published && !payload.consent_ref;
+  if (blocked) payload.is_published = false;
 
   if (id) {
     await supabase.from("student_projects").update(payload).eq("id", id);
@@ -244,6 +285,10 @@ export async function saveProject(form: FormData) {
 
   revalidatePath("/admin/projects");
   revalidatePath("/");
+
+  // After the write, never instead of it.
+  // Always, so a stale ?error from an earlier attempt cannot outlive it.
+  redirect(blocked ? "/admin/projects?error=consent" : "/admin/projects");
 }
 
 export async function deleteProject(form: FormData) {

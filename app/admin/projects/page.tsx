@@ -112,7 +112,7 @@ export default async function ProjectsPage() {
                     .join(" · ")
                 }
                 published={project.is_published}
-                actions={<AdminDelete id={project.id} action={deleteProject} />}
+                actions={<AdminDelete action={deleteProject} />}
               >
               <div className="grid gap-4 sm:grid-cols-2">
                 <AdminField label="Project title" name="title" defaultValue={project.title} required className="sm:col-span-2" />

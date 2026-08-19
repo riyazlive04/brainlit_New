@@ -65,6 +65,12 @@ export function AdminTextarea({
   defaultValue,
   rows = 3,
   required,
+  /**
+   * Matches AdminField, which has had one all along. Two textareas that differ
+   * only in how long the writing should be — a card summary and a page-length
+   * description — are indistinguishable without it.
+   */
+  hint,
   className,
 }: {
   label: string;
@@ -72,6 +78,7 @@ export function AdminTextarea({
   defaultValue?: string | null;
   rows?: number;
   required?: boolean;
+  hint?: string;
   className?: string;
 }) {
   const id = `af-${name}`;
@@ -81,6 +88,7 @@ export function AdminTextarea({
         {label}
         {required && <span className="ml-0.5 text-violet">*</span>}
       </label>
+      {hint && <p className="mt-0.5 text-xs text-slate">{hint}</p>}
       <textarea
         id={id}
         name={name}
@@ -131,17 +139,44 @@ export function AdminSubmit({ children = "Save" }: { children?: string }) {
   );
 }
 
-/** Destructive, so it asks first. */
-export function AdminDelete({ id, action }: { id: string; action: (form: FormData) => void }) {
+/**
+ * Delete, as a button on the record's own edit form.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * IT MUST NOT BE A `<form>`, AND IT USED TO BE ONE.
+ *
+ * Every caller renders this inside the edit form for the same record, so a
+ * nested `<form>` is what came out — which HTML does not allow. The parser does
+ * not error on it, it DROPS the inner form and re-parents its children, so the
+ * button was left as an ordinary submit control of the outer form. Delete ran
+ * save. It also mismatched at hydration, because React's tree still had the
+ * nesting the DOM had just thrown away, and Next reported both.
+ *
+ * `formAction` is the mechanism HTML provides for exactly this: one form, one
+ * set of fields, more than one thing that can be done with them. The `id` comes
+ * from the hidden input the edit form already carries, which is why this takes
+ * no `id` of its own — a second field of that name would be submitted on save
+ * as well.
+ *
+ * THE COROLLARY: this only works INSIDE a form that carries the record's id.
+ * Standing on its own it is a button attached to nothing.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+export function AdminDelete({ action }: { action: (form: FormData) => void }) {
   return (
-    <form action={action}>
-      <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        className="text-sm text-slate transition-colors hover:text-red-600"
-      >
-        Delete
-      </button>
-    </form>
+    <button
+      type="submit"
+      formAction={action}
+      /**
+       * `formNoValidate`, because this button is inside the edit form and
+       * therefore inherits its `required` fields. Without it the browser
+       * refuses to delete a record whose title someone has just cleared —
+       * blocking the one action that does not care what the fields say.
+       */
+      formNoValidate
+      className="text-sm text-slate transition-colors hover:text-red-600"
+    >
+      Delete
+    </button>
   );
 }

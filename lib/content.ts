@@ -26,6 +26,8 @@ export type PublicCourse = {
   age_max: number;
   duration_weeks: number | null;
   price_inr: number | null;
+  hero_copy: string | null;
+  image_path: string | null;
 };
 
 export type PublicTestimonial = {
@@ -35,6 +37,7 @@ export type PublicTestimonial = {
   city: string | null;
   quote: string;
   video_path: string | null;
+  photo_path: string | null;
 };
 
 export type PublicProject = {
@@ -115,30 +118,85 @@ async function safeQuery<T>(run: Runner<T>, label: string): Promise<T[]> {
   return rows;
 }
 
-export function getPublishedCourses() {
-  return safeQuery<PublicCourse>(
+/** Everything on `courses` that has existed since 0001_init.sql. */
+const COURSE_BASE =
+  "id, slug, title, summary, age_min, age_max, duration_weeks, price_inr, hero_copy";
+
+export async function getPublishedCourses(): Promise<PublicCourse[]> {
+  const full = await runQuery<PublicCourse>(
     (client) =>
       client
         .from("courses")
-        .select("id, slug, title, summary, age_min, age_max, duration_weeks, price_inr")
+        .select(`${COURSE_BASE}, image_path`)
         .eq("is_published", true)
         .order("sort_order", { ascending: true }),
     "courses",
   );
-}
 
-export async function getCourseBySlug(slug: string): Promise<PublicCourse | null> {
-  const rows = await safeQuery<PublicCourse>(
+  if (!full.error) return full.rows;
+  if (!isMissingColumn(full.error)) return coursesFailed("courses", full.error);
+
+  console.warn(
+    "[content] courses: image_path is missing - apply supabase/migrations/0006_course_image.sql to enable programme photos. Falling back to no image.",
+  );
+
+  const fallback = await runQuery<Omit<PublicCourse, "image_path">>(
     (client) =>
       client
         .from("courses")
-        .select("id, slug, title, summary, age_min, age_max, duration_weeks, price_inr")
+        .select(COURSE_BASE)
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true }),
+    "courses",
+  );
+
+  if (fallback.error) return coursesFailed("courses", fallback.error);
+  return fallback.rows.map((row) => ({ ...row, image_path: null }));
+}
+
+export async function getCourseBySlug(slug: string): Promise<PublicCourse | null> {
+  const label = `course ${slug}`;
+
+  const full = await runQuery<PublicCourse>(
+    (client) =>
+      client
+        .from("courses")
+        .select(`${COURSE_BASE}, image_path`)
         .eq("is_published", true)
         .eq("slug", slug)
         .limit(1),
-    `course ${slug}`,
+    label,
   );
-  return rows[0] ?? null;
+
+  if (!full.error) return full.rows[0] ?? null;
+  if (!isMissingColumn(full.error)) return coursesFailed(label, full.error)[0] ?? null;
+
+  const fallback = await runQuery<Omit<PublicCourse, "image_path">>(
+    (client) =>
+      client
+        .from("courses")
+        .select(COURSE_BASE)
+        .eq("is_published", true)
+        .eq("slug", slug)
+        .limit(1),
+    label,
+  );
+
+  if (fallback.error) return coursesFailed(label, fallback.error)[0] ?? null;
+  const row = fallback.rows[0];
+  return row ? { ...row, image_path: null } : null;
+}
+
+/** Shared reporting for the two above, so the messages cannot drift apart. */
+function coursesFailed(label: string, error: QueryError): PublicCourse[] {
+  if (isMissingTable(error)) {
+    console.warn(
+      `[content] ${label}: table not found - apply the pending migrations in supabase/migrations.`,
+    );
+  } else {
+    console.error(`[content] ${label} failed:`, error);
+  }
+  return [];
 }
 
 /** Everything that has existed since 0001_init.sql. */
@@ -165,7 +223,7 @@ export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
     (client) =>
       client
         .from("testimonials")
-        .select(`${TESTIMONIAL_BASE}, video_path`)
+        .select(`${TESTIMONIAL_BASE}, video_path, photo_path`)
         .eq("is_published", true)
         .order("sort_order", { ascending: true }),
     "testimonials",
@@ -175,10 +233,12 @@ export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
 
   if (isMissingColumn(first.error)) {
     console.warn(
-      "[content] testimonials: video_path is missing - apply supabase/migrations/0004_testimonial_video.sql to enable video. Falling back to text-only.",
+      "[content] testimonials: video_path or photo_path is missing - apply the pending migrations in supabase/migrations. Falling back to text-only.",
     );
 
-    const fallback = await runQuery<Omit<PublicTestimonial, "video_path">>(
+    const fallback = await runQuery<
+      Omit<PublicTestimonial, "video_path" | "photo_path">
+    >(
       (client) =>
         client
           .from("testimonials")
@@ -193,7 +253,11 @@ export async function getPublishedTestimonials(): Promise<PublicTestimonial[]> {
       return [];
     }
 
-    return fallback.rows.map((row) => ({ ...row, video_path: null }));
+    return fallback.rows.map((row) => ({
+      ...row,
+      video_path: null,
+      photo_path: null,
+    }));
   }
 
   if (isMissingTable(first.error)) {

@@ -18,12 +18,16 @@ import {
   AdminSectionHeading,
 } from "@/components/admin/AdminUI";
 import { VideoUpload } from "@/components/admin/VideoUpload";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { ConsentRequirement } from "@/components/admin/ConsentRequirement";
 
 
 export const metadata: Metadata = { title: "Testimonials" };
 export const dynamic = "force-dynamic";
 
-export default async function TestimonialsPage() {
+export default async function TestimonialsPage({
+  searchParams,
+}: PageProps<"/admin/testimonials">) {
   // Auth and data run CONCURRENTLY, not in sequence.
   //
   // Awaiting requireAdmin() first meant three serial round trips to Supabase at
@@ -32,10 +36,15 @@ export default async function TestimonialsPage() {
   // discarded, and the data is protected by RLS regardless of what this function
   // concluded — the check is not what keeps the rows private.
   const supabase = await createClient();
-  const [, { data: testimonials }] = await Promise.all([
+  const [, { data: testimonials }, params] = await Promise.all([
     requireAdmin(),
     supabase.from("testimonials").select("*").order("sort_order", { ascending: true }),
+    // Awaited alongside the rest rather than before it — it is a promise in
+    // this version of Next, and blocking the queries on it would undo the
+    // concurrency the comment above is about.
+    searchParams,
   ]);
+  const error = typeof params.error === "string" ? params.error : null;
 
   return (
     <>
@@ -43,6 +52,46 @@ export default async function TestimonialsPage() {
         title="Testimonials"
         description="Parents buy on trust from other parents, so this is one of the highest-value sections on the site - and the one where invented content would do the most damage."
       />
+
+      {/* WHY THE FORM REFUSED, said out loud.
+          ─────────────────────────────────────────────────────────────────
+          `saveTestimonial` used to `return` on both of its guards, which
+          saved nothing and reported nothing: the page re-rendered, the form
+          looked submitted, and no row existed. The first real use of this
+          screen lost a testimonial to it — and then time hunting the
+          homepage for something that had never been written.
+
+          The guards redirect here with a reason now. This banner is the
+          other half of that fix; without it the redirect is just a slightly
+          different silence. */}
+      {error && (
+        <div className="mt-6">
+          <AdminNotice tone="warn">
+            {error === "consent" ? (
+              <>
+                <strong>
+                  Saved, but kept as a draft - it needs a consent reference to
+                  publish.
+                </strong>{" "}
+                Every other change you made has been saved. Publishing was the
+                one thing held back, because this testimonial names a child or
+                carries a video or a photo, and all three are personal data
+                under the DPDP Act.
+                Fill in <strong>Consent reference</strong> - a note saying where
+                the parent&apos;s permission is recorded, such as
+                &ldquo;WhatsApp, 11 Aug 2026&rdquo; - then tick Published and
+                save again.
+              </>
+            ) : (
+              <>
+                <strong>Not saved - something required was blank.</strong> A
+                testimonial needs at least the parent&apos;s name and the quote
+                itself.
+              </>
+            )}
+          </AdminNotice>
+        </div>
+      )}
 
       <div className="mt-6">
         <AdminNotice tone="warn">
@@ -72,10 +121,19 @@ export default async function TestimonialsPage() {
           <AdminField
             label="Consent reference"
             name="consent_ref"
-            hint="Where the signed permission is filed"
+            hint="Required to publish a named child, a video or a photo. Where the permission is recorded - e.g. 'WhatsApp, 11 Aug 2026'"
           />
           <AdminField label="Rating (1-5)" name="rating" type="number" min={1} max={5} />
           <AdminField label="Sort order" name="sort_order" type="number" defaultValue={0} />
+          <div className="sm:col-span-2">
+            <ImageUpload
+              name="photo_path"
+              bucket="testimonial-photos"
+              label="Parent photo"
+              hint="JPEG, PNG, WebP or AVIF, up to 4 MB. A head-and-shoulders shot works best - it is shown as a small circle. This is a person's face, so publishing it needs the same consent reference a video does."
+              aspect="aspect-square"
+            />
+          </div>
           <div className="sm:col-span-2">
             <VideoUpload name="video_path" />
           </div>
@@ -83,6 +141,10 @@ export default async function TestimonialsPage() {
             <AdminCheckbox label="Published" name="is_published" />
             <AdminSubmit>Add testimonial</AdminSubmit>
           </div>
+          {/* Renders nothing; makes the browser refuse to submit a publish
+              that needs a consent reference and has not got one, pointing at
+              the field instead of at a banner three screens up. */}
+          <ConsentRequirement />
         </form>
       </AdminCard>
 
@@ -103,16 +165,38 @@ export default async function TestimonialsPage() {
                     .join(" · ") || undefined
                 }
                 published={item.is_published}
-                actions={<AdminDelete id={item.id} action={deleteTestimonial} />}
+                actions={<AdminDelete action={deleteTestimonial} />}
               >
               <div className="grid gap-4 sm:grid-cols-2">
                 <AdminField label="Parent's name" name="parent_name" defaultValue={item.parent_name} required />
                 <AdminField label="City" name="city" defaultValue={item.city} />
                 <AdminTextarea label="What they said" name="quote" rows={3} defaultValue={item.quote} required className="sm:col-span-2" />
                 <AdminField label="Child's first name" name="child_first_name" defaultValue={item.child_first_name} />
-                <AdminField label="Consent reference" name="consent_ref" defaultValue={item.consent_ref} />
+                {/* The hint belongs on the EDIT form too. This is the copy of
+                    the field somebody is looking at when a save comes back as
+                    a draft, and it was the one with no explanation on it. */}
+                <AdminField
+                  label="Consent reference"
+                  name="consent_ref"
+                  defaultValue={item.consent_ref}
+                  hint={
+                    item.child_first_name || item.video_path || item.photo_path
+                      ? "Required to publish this one - it names a child, or has a video or photo."
+                      : "Where the permission is recorded, if any."
+                  }
+                />
                 <AdminField label="Rating (1-5)" name="rating" type="number" defaultValue={item.rating} min={1} max={5} />
                 <AdminField label="Sort order" name="sort_order" type="number" defaultValue={item.sort_order} />
+                <div className="sm:col-span-2">
+                  <ImageUpload
+                    name="photo_path"
+                    defaultPath={item.photo_path}
+                    bucket="testimonial-photos"
+                    label="Parent photo"
+                    hint="JPEG, PNG, WebP or AVIF, up to 4 MB. A head-and-shoulders shot works best - it is shown as a small circle. This is a person's face, so publishing it needs the same consent reference a video does."
+                    aspect="aspect-square"
+                  />
+                </div>
                 <div className="sm:col-span-2">
                   <VideoUpload name="video_path" defaultPath={item.video_path} />
                 </div>
@@ -120,6 +204,7 @@ export default async function TestimonialsPage() {
                   <AdminCheckbox label="Published" name="is_published" defaultChecked={item.is_published} />
                   <AdminSubmit>Save changes</AdminSubmit>
                 </div>
+                <ConsentRequirement />
               </div>
               </AdminRecord>
             </form>

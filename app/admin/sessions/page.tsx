@@ -138,7 +138,7 @@ export default async function SessionsPage() {
                 heading={session.title}
                 meta={`${formatSessionDate(session.starts_at)} · ${formatSessionTime(session.starts_at)} IST`}
                 published={session.is_active}
-                actions={<AdminDelete id={session.id} action={deleteSession} />}
+                actions={<AdminDelete action={deleteSession} />}
               >
               <div className="grid gap-4 sm:grid-cols-2">
                 <AdminField
