@@ -1,3 +1,4 @@
+import { COMMUNITY_INVITE } from "@/lib/site";
 /**
  * Homepage content.
  *
@@ -503,14 +504,92 @@ export const RESOURCES: Resource[] = [
   // { title: "AI Safety Guide", body: "…", href: "/resources/ai-safety.pdf" },
 ];
 
+/* ═════════════════════════════════════════════════════════ Gallery ══ */
+
+/**
+ * Photographs from the sessions themselves.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * SHIPS EMPTY, AND THE SECTION RENDERS NOTHING UNTIL IT IS NOT. Same contract
+ * as PROOF_STATS, RESOURCES and the two database-backed sections: an empty band
+ * costs a conversion, and a band filled with stock photography costs the thing
+ * the band exists to buy. A parent deciding whether to trust a small academy
+ * can spot a stock photo instantly, and finding one here would undo more than
+ * the picture was ever going to earn.
+ *
+ * So: no stock, no AI-generated "classrooms", no photographs of a session that
+ * did not happen. If there is nothing real to show yet, this stays `[]` and the
+ * page is shorter, which is the honest outcome.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * BEFORE ADDING A PHOTOGRAPH WITH A CHILD IN IT — READ THIS.
+ *
+ * Publishing a child's photograph is processing a child's personal data. Under
+ * India's DPDP Act 2023 that requires VERIFIABLE PARENTAL CONSENT, obtained
+ * before publication and on record. This is the same rule that keeps
+ * StudentProjects to a first name and an age with no photograph at all.
+ *
+ * The safe shots, which need no consent and are usually the better pictures
+ * anyway, are the ones where no child is identifiable: hands and a worktable, a
+ * screen mid-project, a whiteboard, the back of a room, a finished model being
+ * held. If a face is recognisable, the consent has to exist first.
+ *
+ * `alt` is REQUIRED and is not decorative here. Describe what is happening in
+ * the frame — "two students comparing two AI answers on one screen" — not what
+ * it is meant to prove.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * `width` and `height` are the file's real pixel dimensions. They are required
+ * so next/image can reserve the space before the bytes arrive; getting them
+ * wrong does not crop anything, it just reintroduces the layout shift they are
+ * there to prevent.
+ */
+export type GalleryPhoto = {
+  /** Path under /public, or a full URL on a configured remote host. */
+  src: string;
+  width: number;
+  height: number;
+  /** What is in the frame. Required — see above. */
+  alt: string;
+  /** Optional visible caption. Say something the picture does not. */
+  caption?: string;
+};
+
+export const GALLERY = {
+  eyebrow: "Inside a session",
+  heading: "What an hour actually looks like.",
+  lead: "Not a lecture, and not a room full of children copying from a screen.",
+  /**
+   * Three or six reads best — the grid is three across on a desktop, so those
+   * are the counts that fill their last row. Four or five leave a gap that
+   * looks like a photograph failed to load rather than like a deliberate stop.
+   */
+  photos: [] as GalleryPhoto[],
+  // photos: [
+  //   { src: "/gallery/session-whiteboard.jpg", width: 1600, height: 1200,
+  //     alt: "A whiteboard mid-session, covered in a class's competing answers to one question.",
+  //     caption: "Every answer on this board came from a child arguing with an AI." },
+  // ],
+} as const;
+
 /* ═══════════════════════════════════════════════════════ Community ══ */
 
 /**
  * Parent WhatsApp community.
- * NEEDS INPUT: `inviteUrl`. Hidden until it exists.
+ *
+ * SUPPLIED, so this is no longer hidden. Note what that switches on: the
+ * `Community` section returns null without an invite URL, so setting it makes a
+ * whole band appear on the homepage that has never rendered before, and adds a
+ * "Parent community" entry to the footer's Connect column.
+ *
+ * The environment variable still wins, so a preview or a fork can point the
+ * group somewhere else without editing content. The literal is the fallback
+ * rather than the other way round because this is the real group and a build
+ * with no env set should link to it, not hide it.
  */
 export const COMMUNITY = {
-  inviteUrl: process.env.NEXT_PUBLIC_WHATSAPP_COMMUNITY_URL ?? null,
+  inviteUrl: COMMUNITY_INVITE,
   heading: "The BrainLIT parent community",
   body: "A WhatsApp group for parents working out the same things you are. No selling, and you can leave whenever you like.",
   benefits: [

@@ -56,3 +56,14 @@ lh*.json
 # Raw model exports. The optimised meshopt versions in public/ are what ship;
 # these are the 40MB+ originals straight out of Tripo3D and must not be cloned.
 /*.glb
+
+# Client asset drops. Whatever arrives from Drive or WhatsApp is a SOURCE, not
+# a deliverable — the cropped and compressed versions under public/ are what
+# ship. A 28MB zip in here is 28MB in every clone, forever, even after deletion.
+/drive-download-*.zip
+/*.zip
+/OIP*.webp
+
+# Patches produced while working. Reproducing them means re-running the work,
+# not replaying a file that has drifted from the branch it was cut against.
+/*.patch

@@ -9,6 +9,8 @@ import { Comparison } from "@/components/sections/Comparison";
 import { Journey } from "@/components/sections/Journey";
 import { ThinkingDemo } from "@/components/sections/ThinkingDemo";
 import { ProofStats } from "@/components/sections/ProofStats";
+import { Gallery } from "@/components/sections/Gallery";
+import { TestimonialDrum } from "@/components/sections/TestimonialDrum";
 import { StudentProjects } from "@/components/sections/StudentProjects";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Pricing } from "@/components/sections/Pricing";
@@ -72,10 +74,11 @@ export const metadata: Metadata = {
  *      interactive demo comes before Pricing; the free guides come before the
  *      final CTA.
  *
- * Sections whose content has not been supplied render nothing — ProofStats,
- * StudentProjects, Testimonials, Community. The live page is therefore shorter
- * than this file suggests, and gets longer as real material arrives rather than
- * shipping placeholders. See content/home.ts.
+ * Sections whose content has not been supplied render nothing — Gallery,
+ * ProofStats, StudentProjects and Testimonials. The live page is therefore
+ * shorter than this file suggests, and gets longer as real material arrives
+ * rather than shipping placeholders. See content/home.ts. (Community is no
+ * longer on that list: its WhatsApp invite exists now, so it renders.)
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * WHAT WAS CUT, AND WHY IT IS NOT COMING BACK BY ACCIDENT (Aug 2026)
@@ -389,6 +392,20 @@ export default function HomePage() {
         </Container>
       </section>
 
+      {/* ── The families ──────────────────────────────────────────────────
+          Straight after the philosophy line, which is the one place on the page
+          where a claim has just been made and no evidence has followed it yet.
+          It is also the only dark band on a light page, so it reads as a
+          deliberate change of register rather than another white section.
+
+          Third treatment of this slot: a static scatter, then a hinged CSS-3D
+          ring, now a three.js drum. The first two are in git. The drum is the
+          only one that is real 3D — which buys the edge-on pass and the depth
+          fade for free, and costs a second WebGL context on a page whose hero
+          already owns one. That trade was made deliberately; see the note in
+          components/sections/TestimonialDrum.tsx. */}
+      <TestimonialDrum />
+
       {/* ── The case ─────────────────────────────────────────────────────── */}
       <WhyNow />
 
@@ -442,6 +459,16 @@ export default function HomePage() {
       <Journey />
 
       {/* ── Proof ───────────────────────────────────────────────────────── */}
+      {/* Gallery sits at the FRONT of this block, before the numbers and the
+          quotes. Everything after it is a claim a parent has to take on trust;
+          a photograph of the room is the one piece of evidence here they can
+          check with their own eyes, so it earns the position and it makes the
+          claims behind it easier to believe.
+
+          It renders nothing until real photographs exist — see the note on
+          GALLERY in content/home.ts, and the DPDP consent rule that applies to
+          any frame a child is recognisable in. */}
+      <Gallery />
       <ThinkingDemo />
       <ProofStats />
       <StudentProjects />
