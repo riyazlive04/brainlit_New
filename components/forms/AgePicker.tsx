@@ -21,13 +21,24 @@ import { SITE } from "@/lib/site";
  * click handlers would give up all three.
  */
 
-const AGES = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+/**
+ * The default spread. Wider than the programme's own 10-14 ON PURPOSE: a parent
+ * of a nine-year-old can still register and be told honestly whether to wait,
+ * which is what the "older or younger" FAQ promises.
+ *
+ * A caller can narrow it - /webinar does, because that page states 10-14 and
+ * offering ages the copy does not serve is a contradiction a parent notices at
+ * exactly the wrong moment.
+ */
+const DEFAULT_AGES = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
 type AgePickerProps = {
   registration: UseFormRegisterReturn;
   error?: string;
   /** Shown under the legend */
   hint?: string;
+  /** Overrides the default spread. Values outside it cannot be chosen. */
+  ages?: readonly number[];
   required?: boolean;
 };
 
@@ -36,6 +47,7 @@ export function AgePicker({
   error,
   hint,
   required,
+  ages = DEFAULT_AGES,
 }: AgePickerProps) {
   const errorId = "child-age-error";
   const hintId = "child-age-hint";
@@ -64,7 +76,7 @@ export function AgePicker({
       )}
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {AGES.map((age) => {
+        {ages.map((age) => {
           const inRange =
             age >= SITE.ageRange.min && age <= SITE.ageRange.max;
 

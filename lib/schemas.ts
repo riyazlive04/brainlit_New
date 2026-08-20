@@ -118,11 +118,14 @@ export const webinarRegistrationSchema = leadSchema.extend({
   // the type check first and surfaces Zod's own "expected number, received
   // undefined" — which means nothing to a parent looking at a row of buttons.
   // The .min/.max messages only ever run once a number is actually present.
+  // 10-14, matching WEBINAR_FORM_AGES and the page copy. Narrowing the picker
+  // alone would leave the endpoint accepting ages the form cannot offer - which
+  // is exactly the gap a scripted POST walks through.
   childAge: z.coerce
     .number({ error: "Please choose your child's age" })
     .int()
-    .min(6, "Please choose your child's age")
-    .max(16, "Please choose your child's age"),
+    .min(10, "This session is for parents of 10-14 year olds")
+    .max(14, "This session is for parents of 10-14 year olds"),
 });
 
 export type WebinarFormValues = z.input<typeof webinarRegistrationSchema>;

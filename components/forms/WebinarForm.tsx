@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, Honeypot } from "@/components/forms/Field";
 import { phoneInputProps } from "@/components/forms/phoneInput";
 import { AgePicker } from "@/components/forms/AgePicker";
+import { WEBINAR_FORM_AGES } from "@/content/webinar";
 import { Button } from "@/components/ui/Button";
 import { SuccessMark } from "@/components/ui/SuccessMark";
 import { webinarRegistrationSchema } from "@/lib/schemas";
@@ -187,8 +188,12 @@ export function WebinarForm({ sessionId }: Props) {
           )}
         </Field>
 
+        {/* Narrowed to the ages this session is actually for. The page says
+            10-14; offering 6 and 16 as well was a contradiction a parent meets
+            at the worst possible moment - with their details already typed. */}
         <AgePicker
           required
+          ages={WEBINAR_FORM_AGES}
           registration={register("childAge")}
           error={errors.childAge?.message}
           hint="So we can tell you honestly whether they are ready."
