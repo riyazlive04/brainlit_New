@@ -135,28 +135,33 @@ export function TestimonialDrum() {
    * section. Same colour, nothing showing through.
    */
   return (
-    <section className="relative z-10 overflow-hidden bg-[#f8fafc] py-20 sm:py-28">
+    <section
+      className="relative z-10 overflow-hidden bg-[#f8fafc] py-10 sm:py-14"
+    >
+      {/* HEADED AGAIN, but with one word.
+          What stood here before was "From the families / What it looks like
+          from the other side of the screen" - a promise about parents and
+          children sitting above photographs of a guest lecture. A plain section
+          title says what the band is without claiming anything about what is
+          in it, and it names the region for a screen reader, so the `aria-label`
+          that stood in for it while there was no heading is gone. */}
       <Container size="wide">
-        {/* Type scale taken verbatim from the philosophy section, COLOURS AND
-            ALL. It could not be, while this band was near-black — `text-ink` on
-            #0b1020 is ink on ink. On a light band the classes transfer whole,
-            which is the point of having a scale. */}
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="font-display text-sm font-medium tracking-[0.2em] text-violet uppercase">
-            From the families
-          </p>
-          <h2 className="mt-8 font-display text-[length:var(--text-h1)] leading-[1.1] font-semibold tracking-tight text-ink">
-            What it looks like from the{" "}
-            <span className="text-brand-gradient">other side</span> of the
-            screen.
-          </h2>
-        </div>
+        <h2 className="text-center font-display text-[length:var(--text-h2)] leading-tight font-semibold tracking-tight text-ink">
+          Testimonials
+        </h2>
       </Container>
 
-      {/* The container needs an explicit height — the canvas fills it, and a
-          canvas in a box of height zero is a canvas of height zero. */}
-      <div className="relative mt-14">
-        <div ref={mount} className="h-[380px] w-full sm:h-[440px]" aria-hidden="true" />
+      {/* `mt-10`, not the `mt-14` this had originally. The section's own padding
+          was halved when the old headline came out, and a margin tuned against
+          the larger padding reopens the gap it was cut to close. */}
+      <div className="relative mt-10">
+        {/* SHORTER THAN IT WAS (440 -> 340).
+            The camera's fov is VERTICAL, so the world height it frames is fixed
+            no matter how many pixels the canvas is given. A tall box therefore
+            does not show more drum - it shows the same drum with more empty air
+            above and below it, which on a wide desktop was reading as a blank
+            band between the heading that used to be here and the videos. */}
+        <div ref={mount} className="h-[300px] w-full sm:h-[340px]" aria-hidden="true" />
 
         {/* ── The accessible half of the wall ──────────────────────────────
             A photograph wall that exists only inside WebGL is invisible to a
