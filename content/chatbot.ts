@@ -69,7 +69,7 @@ export type ChatBranchId = (typeof CHAT_BRANCHES)[number]["id"];
 /* ═════════════════════════════════════════════════════ Asking for it ══ */
 
 export const CHAT_PHONE_STEP = {
-  ask: "What is the best WhatsApp number to send it to?",
+  ask: "Enter you whatsapp number to stay connected?",
   /**
    * Under the field, not in a modal. The DPDP Act makes the purpose of
    * collection something a person is entitled to know BEFORE they hand it over,
