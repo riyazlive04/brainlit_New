@@ -2,6 +2,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SmoothScrollMount } from "@/components/providers/SmoothScrollMount";
 import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 
 /**
  * Shell for all standard marketing pages.
@@ -36,6 +37,11 @@ export default function MarketingLayout({
           jumps to — a keyboard user who skips to content and tabs should reach
           the page, not a button that is always there. */}
       <WhatsAppFab />
+
+      {/* Outside <main> for the same reason the FAB is, and mounted AFTER it
+          so that when both are on screen the chat panel wins the paint order
+          at equal z-index. */}
+      <ChatWidget />
     </>
   );
 }
