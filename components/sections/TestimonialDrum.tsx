@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Container } from "@/components/ui/Container";
 import { LogoCylinder, type LogoCylinderLogo } from "@/lib/logoCylinder";
+import { YouTubeCard } from "@/components/sections/YouTubeCard";
 import { publicStorageUrl } from "@/lib/storage";
 
 /**
@@ -26,18 +27,36 @@ import { publicStorageUrl } from "@/lib/storage";
  */
 
 /**
- * FOUR, not six. The six that were here were placeholders describing sessions
- * we had no photographs of, and every one of them rendered as a tinted block
- * carrying its own caption. These are the real files, so the list is now as
- * long as the evidence and no longer a plan for it.
+ * CONSENT IS HELD for the Sanfort International School photographs, confirmed
+ * by BrainLIT on 27 Aug 2026. Recorded here because these frames show
+ * identifiable children with the school legible on their uniforms, and the
+ * question is otherwise guaranteed to be asked again by whoever reads this next.
  *
- * `repeat` goes to 3 to pay for the two that went. Radius is derived from plate
- * COUNT, so four photographs wrapped twice is eight plates on a smaller drum,
- * 45 degrees apart — which renders as two lonely plates and a gap where the
- * band used to be full. Three wraps restores the original twelve at 30 degrees.
- * Adjacent plates step through the set, so the four in view are still four
- * different photographs; only the far side repeats. Adding a fifth photograph
- * means adding a line here and dropping `repeat` back to 2.
+ * REAL FILES ONLY. The six entries that were here originally were placeholders
+ * describing sessions we had no photographs of, and every one rendered as a
+ * tinted block carrying its own caption. This list is as long as the evidence.
+ *
+ * `repeat` IS ABOUT THE RADIUS, not about how many pictures there are.
+ *
+ * Radius is derived from the plate COUNT, and a bigger drum turns its front
+ * plates more slowly past the camera - so more of them face it at once and
+ * survive the facing fade. Fewer plates means a smaller drum, which means the
+ * plates either side of centre are already edge-on and dimmed, and the band
+ * reads as ONE photograph with two smudges beside it.
+ *
+ * That is not a guess. Five photographs at `repeat: 2` is ten plates, and it
+ * renders as a single legible picture with two smudges beside it. At fifteen,
+ * three read clearly with a fourth turning in. The plates round the back that
+ * nobody sees are the price of the ones at the front being face-on.
+ *
+ * It is the PLATE COUNT that wants to stay in the mid-teens, and that is the
+ * product of the two numbers - so `repeat` falls as the set grows. Eight
+ * photographs wanted two wraps; fourteen want one.
+ *
+ * Adjacent plates step through the set, so the ones in view are always
+ * different photographs; only the far side repeats. Adding a sixth means adding
+ * a line here - and if the band ever looks sparse again, RAISE this number and
+ * look, rather than reasoning about it.
  *
  * The labels are the sr-only captions further down as well as the fallback
  * text, so they describe THIS frame rather than the section's theme — a
@@ -49,6 +68,16 @@ const PHOTOS: LogoCylinderLogo[] = [
   { src: "/testimonials/session-02.jpg", label: "The BrainLIT team with the faculty who hosted the session" },
   { src: "/testimonials/session-03.jpg", label: "The panel seated before the expert session begins" },
   { src: "/testimonials/session-04.jpg", label: "The memento handed over as the session closes" },
+  { src: "/testimonials/session-05.jpg", label: "Speaking at the podium at IITM Research Park" },
+  { src: "/testimonials/session-06.jpg", label: "Taking a question from the room at IITM Research Park" },
+  { src: "/testimonials/session-07.jpg", label: "Pointing something out to the audience at IITM Research Park" },
+  { src: "/testimonials/session-08.jpg", label: "Making a point mid-talk at IITM Research Park" },
+  { src: "/testimonials/session-09.jpg", label: "Shaking hands with a student during the session at Sanfort International School" },
+  { src: "/testimonials/session-10.jpg", label: "The class during the BrainLIT session at Sanfort International School" },
+  { src: "/testimonials/session-11.jpg", label: "The BrainLIT team in front of the board at Sanfort International School" },
+  { src: "/testimonials/session-12.jpg", label: "Working through what AI stands for, on the board at Sanfort International School" },
+  { src: "/testimonials/session-13.jpg", label: "Teaching from the board and screen at Sanfort International School" },
+  { src: "/testimonials/session-14.jpg", label: "A student answering at the problem-solving board, Sanfort International School" },
 ];
 
 /**
@@ -97,6 +126,27 @@ const CLIPS = [
     name: null,
     caption: "Inside the session at St Joseph's College for Women, Tirupur",
   },
+  {
+    /**
+     * A YOUTUBE SHORT, not a file in our bucket - hence `youtubeId` where the
+     * others carry `bucket`/`path`. From
+     * https://www.youtube.com/shorts/qwul0znoxaU the id is the last segment.
+     *
+     * Shorts are filmed PORTRAIT and this cell is 16:9. Handing that to the
+     * embed produced YouTube's own pillarbox - a darkened, blown-up copy of the
+     * frame down each side - so the card shows OUR poster instead and the embed
+     * only appears once somebody presses play. See YouTubeCard.
+     */
+    youtubeId: "qwul0znoxaU",
+    bucket: null,
+    path: null,
+    // OUR crop of the clip's original portrait frame. YouTube's own 16:9
+    // thumbnail has the pillarbox blur baked into it, so it could not be used.
+    poster: "/testimonials/poster-short.jpg",
+    label: "A parent talking about BrainLIT",
+    name: null,
+    caption: "Session in Sanfort International School",
+  },
 ];
 
 export function TestimonialDrum() {
@@ -112,9 +162,12 @@ export function TestimonialDrum() {
       // Photographs, not line art. See the note above.
       keyWhiteBackground: false,
       spinSpeed: 0.24,
-      // Three times round. Twelve plates, so the step is 30 degrees and three or
-      // four are legible at once. See the note on PHOTOS, and `layout`.
-      repeat: 3,
+      // ONCE round, now that there are fourteen photographs. Fourteen plates is
+      // already where the band wants to be; wrapping twice would be
+      // twenty-eight, and every extra plate shrinks the ones at the front. See
+      // the note on PHOTOS - it is the plate COUNT this controls, not the
+      // number of pictures.
+      repeat: 1,
       plateWidth: 2.4,
       aspect: 1.4,
       tilt: 0.12,
@@ -138,16 +191,20 @@ export function TestimonialDrum() {
     <section
       className="relative z-10 overflow-hidden bg-[#f8fafc] py-10 sm:py-14"
     >
-      {/* HEADED AGAIN, but with one word.
-          What stood here before was "From the families / What it looks like
-          from the other side of the screen" - a promise about parents and
-          children sitting above photographs of a guest lecture. A plain section
-          title says what the band is without claiming anything about what is
-          in it, and it names the region for a screen reader, so the `aria-label`
-          that stood in for it while there was no heading is gone. */}
+      {/* TWO HEADINGS, because there are two different claims here.
+          ─────────────────────────────────────────────────────────────
+          This band ran under a single "Testimonials" title over content that
+          was mostly not testimony: photographs of guest talks at colleges, and
+          one parent video. The photographs were doing the work of proof while
+          being labelled as something they are not.
+
+          Split, each half says what it is. The drum is where BrainLIT has been
+          invited to speak; the row below it is a parent describing what changed
+          at home. Only the second is a testimonial, and now only the second
+          claims to be. */}
       <Container size="wide">
         <h2 className="text-center font-display text-[length:var(--text-h2)] leading-tight font-semibold tracking-tight text-ink">
-          Testimonials
+          BrainLIT momentum
         </h2>
       </Container>
 
@@ -161,7 +218,18 @@ export function TestimonialDrum() {
             does not show more drum - it shows the same drum with more empty air
             above and below it, which on a wide desktop was reading as a blank
             band between the heading that used to be here and the videos. */}
-        <div ref={mount} className="h-[300px] w-full sm:h-[340px]" aria-hidden="true" />
+        {/* CAPPED WIDTH, not `w-full`.
+            The camera frames the drum by its own geometry, so a wider canvas
+            does not make the drum bigger - it just adds empty air either side.
+            Spanning the full 1900px of a desktop window left the plates
+            clustered in the middle half with dead margins, which reads as a
+            sparse band however many photographs are on it. Capping the box
+            lets the drum fill what it is given. */}
+        <div
+          ref={mount}
+          className="mx-auto h-[300px] w-full max-w-5xl sm:h-[340px]"
+          aria-hidden="true"
+        />
 
         {/* ── The accessible half of the wall ──────────────────────────────
             A photograph wall that exists only inside WebGL is invisible to a
@@ -184,32 +252,56 @@ export function TestimonialDrum() {
 
             A band and a row in sequence lose nothing and hide nothing. */}
         <Container size="wide">
-          <ul className="mx-auto -mt-6 grid max-w-4xl gap-5 sm:grid-cols-2">
+          {/* No `-mt-6` on the list any more: that negative margin existed to
+              tuck the videos up under the drum when nothing sat between them.
+              With a heading in the gap it would pull the row onto its own
+              title. */}
+          <h2 className="mt-14 text-center font-display text-[length:var(--text-h2)] leading-tight font-semibold tracking-tight text-ink">
+            Testimonials
+          </h2>
+        </Container>
+
+        <Container size="wide">
+          <ul className="mx-auto mt-10 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {CLIPS.map((clip) => {
-              const src = publicStorageUrl(clip.bucket, clip.path);
-              if (!src) return null;
+              // A hosted file needs a <video>; a YouTube id needs an <iframe>.
+              // Nothing else about the card differs, so the branch is as small
+              // as it can be and the figure below is shared.
+              const src = clip.bucket
+                ? publicStorageUrl(clip.bucket, clip.path)
+                : null;
+              if (!src && !clip.youtubeId) return null;
 
               return (
                 // `flex` on the item and `h-full` on the figure: a grid row is
                 // as tall as its tallest cell, and without these a two-line
                 // caption leaves its neighbours' cards short with a strip of
                 // page showing under them.
-                <li key={clip.path} className="flex">
+                <li key={clip.youtubeId ?? clip.path} className="flex">
                   <figure className="flex h-full w-full flex-col overflow-hidden rounded-2xl bg-paper shadow-[0_18px_40px_-24px_rgba(11,16,32,0.35)] ring-1 ring-mist">
-                    <video
-                      src={src}
-                      poster={clip.poster}
-                      playsInline
-                      preload="none"
-                      controls
-                      aria-label={clip.label}
-                      className="aspect-video w-full bg-ink object-cover"
-                    >
-                      {/* Kept even with no file supplied. A video of a person
-                          speaking needs captions; leaving the element out is
-                          how that gets forgotten rather than scheduled. */}
-                      <track kind="captions" srcLang="en" label="English" />
-                    </video>
+                    {clip.youtubeId ? (
+                      <YouTubeCard
+                        videoId={clip.youtubeId}
+                        poster={clip.poster ?? ""}
+                        label={clip.label}
+                        className="aspect-video w-full border-0"
+                      />
+                    ) : (
+                      <video
+                        src={src ?? undefined}
+                        poster={clip.poster ?? undefined}
+                        playsInline
+                        preload="none"
+                        controls
+                        aria-label={clip.label}
+                        className="aspect-video w-full bg-ink object-cover"
+                      >
+                        {/* Kept even with no file supplied. A video of a person
+                            speaking needs captions; leaving the element out is
+                            how that gets forgotten rather than scheduled. */}
+                        <track kind="captions" srcLang="en" label="English" />
+                      </video>
+                    )}
                     <figcaption className="px-4 py-3 text-sm text-slate">
                       {clip.name ? (
                         <>

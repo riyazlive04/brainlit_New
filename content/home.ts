@@ -557,20 +557,87 @@ export type GalleryPhoto = {
 };
 
 export const GALLERY = {
-  eyebrow: "Inside a session",
-  heading: "What an hour actually looks like.",
-  lead: "Not a lecture, and not a room full of children copying from a screen.",
+  /**
+   * NOT "Inside a session" any more.
+   *
+   * That copy promised a classroom - "what an hour actually looks like, not a
+   * lecture, not a room full of children copying from a screen" - and every
+   * photograph below is a guest talk at a college. The words described the
+   * pictures we hoped to have; these are the pictures we have.
+   */
+  eyebrow: "Out in the world",
+  heading: "Where we have been invited to teach.",
+  lead: "Guest sessions and talks, at colleges and research campuses across Tamil Nadu.",
+
   /**
    * Three or six reads best — the grid is three across on a desktop, so those
    * are the counts that fill their last row. Four or five leave a gap that
    * looks like a photograph failed to load rather than like a deliberate stop.
+   *
+   * SIX, from eight supplied. The two left out are a third and fourth frame of
+   * the same speaker at the same podium minutes apart; on a grid they read as
+   * padding rather than range. They are /testimonials/session-06.jpg and
+   * session-08.jpg if you want them back - add the rows and the last line
+   * fills out to nine.
+   *
+   * These are the same files the drum uses. Shared deliberately: one set of
+   * photographs, shown two ways, so a change to a file changes both.
+   */
+  /**
+   * EMPTY, so this section renders nothing.
+   *
+   * Gallery returns null on an empty list - see the note at the top of
+   * components/sections/Gallery.tsx - so removing the band is a content change,
+   * not a code change, and putting it back is the same. The six entries it held
+   * are kept below rather than deleted: they were never committed, and the
+   * captions took longer to write than the markup.
    */
   photos: [] as GalleryPhoto[],
+
   // photos: [
-  //   { src: "/gallery/session-whiteboard.jpg", width: 1600, height: 1200,
-  //     alt: "A whiteboard mid-session, covered in a class's competing answers to one question.",
-  //     caption: "Every answer on this board came from a child arguing with an AI." },
-  // ],
+  //   {
+  //     src: "/testimonials/session-02.jpg",
+  //     width: 1400,
+  //     height: 1000,
+  //     alt: "The BrainLIT team with the faculty who hosted the session at St Joseph's College for Women, Tirupur.",
+  //     caption: "With the faculty who hosted us at St Joseph's College for Women, Tirupur.",
+  //   },
+  //   {
+  //     src: "/testimonials/session-03.jpg",
+  //     width: 1400,
+  //     height: 1000,
+  //     alt: "The panel seated on stage before the expert session begins.",
+  //     caption: "Before the session starts.",
+  //   },
+  //   {
+  //     src: "/testimonials/session-01.jpg",
+  //     width: 1400,
+  //     height: 1000,
+  //     alt: "Receiving a memento on stage at St Joseph's College for Women, Tirupur.",
+  //     caption: "A memento at the close of the VisionTech Club session.",
+  //   },
+  //   {
+  //     src: "/testimonials/session-04.jpg",
+  //     width: 1400,
+  //     height: 1000,
+  //     alt: "The memento handed over as the session closes.",
+  //     caption: "The handover, with the club's organisers.",
+  //   },
+  //   {
+  //     src: "/testimonials/session-07.jpg",
+  //     width: 1400,
+  //     height: 1000,
+  //     alt: "Pointing something out to the audience during a talk at IITM Research Park.",
+  //     caption: "Taking the room through an example, at IITM Research Park.",
+  //   },
+  //   {
+  //     src: "/testimonials/session-05.jpg",
+  //     width: 1400,
+  //     height: 1000,
+  //     alt: "Speaking at the podium at IITM Research Park.",
+  //     caption: "At the podium, IITM Research Park.",
+  //   },
+  // ] as GalleryPhoto[],
 } as const;
 
 /* ═══════════════════════════════════════════════════════ Community ══ */

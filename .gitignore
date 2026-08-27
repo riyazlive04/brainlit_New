@@ -67,3 +67,11 @@ lh*.json
 # Patches produced while working. Reproducing them means re-running the work,
 # not replaying a file that has drifted from the branch it was cut against.
 /*.patch
+
+# Source frames for the hero fallback artwork (94MB of PNGs).
+# The shipped assets are public/hero/*.webp; these are the raw input.
+watermark-removed-*-frames/
+
+# Dev server output, redirected there so the process survives detached from a
+# shell. Local runtime noise, never part of a build.
+/dev-server.log
