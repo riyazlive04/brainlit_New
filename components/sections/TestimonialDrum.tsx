@@ -62,22 +62,39 @@ import { publicStorageUrl } from "@/lib/storage";
  * text, so they describe THIS frame rather than the section's theme — a
  * caption that generalises is one a screen reader user cannot tell apart from
  * its neighbour.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * 800px WEBP, AND THAT IS ALREADY GENEROUS. A NEW PHOTOGRAPH GETS THE SAME.
+ *
+ * The plate at the front of the drum is never wider than about 390 device
+ * pixels. That is not a guess: the container caps at max-w-5xl (1024px), the
+ * layout puts four plates across it, and `maxDpr` caps the pixel ratio at 1.75
+ * - so 1024/4 x 1.75. A phone renders it smaller still. 800px is twice that,
+ * which is the headroom three.js wants for a clean mipmap and no more.
+ *
+ * These arrived as 1400px JPEGs, 1.9MB for the set. At 800px WebP the same
+ * fourteen are 591KB and no plate looks different, because the extra pixels
+ * were being thrown away by the sampler either way.
+ *
+ * To add one:
+ *   sharp(src).resize(800).webp({ quality: 78 }).toFile('session-NN.webp')
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 const PHOTOS: LogoCylinderLogo[] = [
-  { src: "/testimonials/session-01.jpg", label: "Receiving a memento on stage at St Joseph's College for Women, Tirupur" },
-  { src: "/testimonials/session-02.jpg", label: "The BrainLIT team with the faculty who hosted the session" },
-  { src: "/testimonials/session-03.jpg", label: "The panel seated before the expert session begins" },
-  { src: "/testimonials/session-04.jpg", label: "The memento handed over as the session closes" },
-  { src: "/testimonials/session-05.jpg", label: "Speaking at the podium at IITM Research Park" },
-  { src: "/testimonials/session-06.jpg", label: "Taking a question from the room at IITM Research Park" },
-  { src: "/testimonials/session-07.jpg", label: "Pointing something out to the audience at IITM Research Park" },
-  { src: "/testimonials/session-08.jpg", label: "Making a point mid-talk at IITM Research Park" },
-  { src: "/testimonials/session-09.jpg", label: "Shaking hands with a student during the session at Sanfort International School" },
-  { src: "/testimonials/session-10.jpg", label: "The class during the BrainLIT session at Sanfort International School" },
-  { src: "/testimonials/session-11.jpg", label: "The BrainLIT team in front of the board at Sanfort International School" },
-  { src: "/testimonials/session-12.jpg", label: "Working through what AI stands for, on the board at Sanfort International School" },
-  { src: "/testimonials/session-13.jpg", label: "Teaching from the board and screen at Sanfort International School" },
-  { src: "/testimonials/session-14.jpg", label: "A student answering at the problem-solving board, Sanfort International School" },
+  { src: "/testimonials/session-01.webp", label: "Receiving a memento on stage at St Joseph's College for Women, Tirupur" },
+  { src: "/testimonials/session-02.webp", label: "The BrainLIT team with the faculty who hosted the session" },
+  { src: "/testimonials/session-03.webp", label: "The panel seated before the expert session begins" },
+  { src: "/testimonials/session-04.webp", label: "The memento handed over as the session closes" },
+  { src: "/testimonials/session-05.webp", label: "Speaking at the podium at IITM Research Park" },
+  { src: "/testimonials/session-06.webp", label: "Taking a question from the room at IITM Research Park" },
+  { src: "/testimonials/session-07.webp", label: "Pointing something out to the audience at IITM Research Park" },
+  { src: "/testimonials/session-08.webp", label: "Making a point mid-talk at IITM Research Park" },
+  { src: "/testimonials/session-09.webp", label: "Shaking hands with a student during the session at Sanfort International School" },
+  { src: "/testimonials/session-10.webp", label: "The class during the BrainLIT session at Sanfort International School" },
+  { src: "/testimonials/session-11.webp", label: "The BrainLIT team in front of the board at Sanfort International School" },
+  { src: "/testimonials/session-12.webp", label: "Working through what AI stands for, on the board at Sanfort International School" },
+  { src: "/testimonials/session-13.webp", label: "Teaching from the board and screen at Sanfort International School" },
+  { src: "/testimonials/session-14.webp", label: "A student answering at the problem-solving board, Sanfort International School" },
 ];
 
 /**
@@ -112,7 +129,7 @@ const CLIPS = [
   {
     bucket: "session-videos",
     path: "2026/st-josephs-tirupur-talk.mp4",
-    poster: "/testimonials/poster-talk.jpg",
+    poster: "/testimonials/poster-talk.webp",
     label: "A parent speaking to camera about what changed at home",
     name: null,
     caption: "A parent on what changed at home",
@@ -120,7 +137,7 @@ const CLIPS = [
   {
     bucket: "session-videos",
     path: "2026/st-josephs-tirupur-clip.mp4",
-    poster: "/testimonials/poster-clip.jpg",
+    poster: "/testimonials/poster-clip.webp",
     label:
       "A short clip filmed during the session at St Joseph's College for Women, Tirupur",
     name: null,
@@ -142,13 +159,57 @@ const CLIPS = [
     path: null,
     // OUR crop of the clip's original portrait frame. YouTube's own 16:9
     // thumbnail has the pillarbox blur baked into it, so it could not be used.
-    poster: "/testimonials/poster-short.jpg",
+    poster: "/testimonials/poster-short.webp",
     label: "A parent talking about BrainLIT",
     name: null,
     caption: "Session in Sanfort International School",
   },
 ];
 
+/** Every dial the drum is given. Module scope: it closes over nothing. */
+function makeDrum(container: HTMLDivElement) {
+  return new LogoCylinder({
+    container,
+    logos: PHOTOS,
+    // Photographs, not line art. See the note above.
+    keyWhiteBackground: false,
+    spinSpeed: 0.24,
+    // ONCE round, now that there are fourteen photographs. Fourteen plates is
+    // already where the band wants to be; wrapping twice would be
+    // twenty-eight, and every extra plate shrinks the ones at the front. See
+    // the note on PHOTOS - it is the plate COUNT this controls, not the
+    // number of pictures.
+    repeat: 1,
+    plateWidth: 2.4,
+    aspect: 1.4,
+    tilt: 0.12,
+    logosInView: 4,
+    reactToScroll: true,
+    maxDpr: 1.75,
+  });
+}
+
+/**
+ * NOTHING HERE LOADS UNTIL THE BAND IS NEARLY ON SCREEN.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Constructing LogoCylinder is what fetches the photographs - `build()` in
+ * lib/logoCylinder.ts hands every `src` to a TextureLoader - and it also opens
+ * a WebGL context. Doing that on mount meant every visitor paid for fourteen
+ * photographs before they had scrolled a pixel, including the ones who read the
+ * hero and tapped WhatsApp. Measured on a throttled connection (400kbps,
+ * 400ms RTT) the homepage had not finished loading after sixty seconds.
+ *
+ * The drum ALREADY had an IntersectionObserver, which is why this looks like a
+ * duplicate and is not. That one pauses the animation loop when the band
+ * scrolls away - it exists to stop burning a phone battery on a drum nobody is
+ * looking at, and it can only do that once the drum exists. This one decides
+ * whether the drum exists at all, so it has to sit outside it.
+ *
+ * The two are deliberately not merged. Starting is one-shot and cheap to get
+ * wrong in one direction only; pausing is continuous and has to keep firing.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
 export function TestimonialDrum() {
   const mount = useRef<HTMLDivElement>(null);
 
@@ -156,27 +217,40 @@ export function TestimonialDrum() {
     const container = mount.current;
     if (!container) return;
 
-    const drum = new LogoCylinder({
-      container,
-      logos: PHOTOS,
-      // Photographs, not line art. See the note above.
-      keyWhiteBackground: false,
-      spinSpeed: 0.24,
-      // ONCE round, now that there are fourteen photographs. Fourteen plates is
-      // already where the band wants to be; wrapping twice would be
-      // twenty-eight, and every extra plate shrinks the ones at the front. See
-      // the note on PHOTOS - it is the plate COUNT this controls, not the
-      // number of pictures.
-      repeat: 1,
-      plateWidth: 2.4,
-      aspect: 1.4,
-      tilt: 0.12,
-      logosInView: 4,
-      reactToScroll: true,
-      maxDpr: 1.75,
-    });
+    let drum: LogoCylinder | null = null;
 
-    return () => drum.destroy();
+    const build = () => {
+      if (drum) return;
+      drum = makeDrum(container);
+    };
+
+    // No IntersectionObserver (very old browser, or a test environment): build
+    // immediately. Losing the saving is acceptable; losing the drum is not.
+    if (typeof IntersectionObserver === "undefined") {
+      build();
+      return () => drum?.destroy();
+    }
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        // One-shot. The drum has its own observer for pausing the animation
+        // when it scrolls away; this one exists only to decide when to START,
+        // so it has nothing left to do afterwards.
+        io.disconnect();
+        build();
+      },
+      // 600px of warning. At the edge of the viewport the visitor would watch
+      // an empty box fill in; 600px is roughly one flick of a thumb, which is
+      // enough time for the first plates to arrive before the band is reached.
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(container);
+
+    return () => {
+      io.disconnect();
+      drum?.destroy();
+    };
   }, []);
 
   /**

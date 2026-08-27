@@ -64,6 +64,12 @@ export function YouTubeCard({
       <img
         src={poster}
         alt=""
+        // This card is a long way below the fold everywhere it is used, and on
+        // a slow connection the poster was competing with the copy above it for
+        // the same few kilobits. `decoding="async"` for the same reason: there
+        // is nothing here worth blocking a paint on.
+        loading="lazy"
+        decoding="async"
         className="size-full object-cover transition-transform duration-500 [transition-timing-function:var(--ease-out-expo)] group-hover:scale-[1.03]"
       />
 

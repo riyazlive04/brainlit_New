@@ -61,7 +61,7 @@ export const WEBINAR_HERO = {
   clip: {
     bucket: "session-videos",
     path: "2026/st-josephs-tirupur-talk.mp4",
-    poster: "/testimonials/poster-talk.jpg",
+    poster: "/testimonials/poster-talk.webp",
     start: 67, // 01:07
     end: 103, // 01:43
   },

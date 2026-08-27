@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import * as THREE from "three";
+import { onSlowConnection } from "./deviceTier";
 
 /**
  * The contract between the hero cinematic and the character model file.
@@ -320,10 +321,35 @@ function probe(url: string): Promise<boolean> {
   return request;
 }
 
+/**
+ * A MODEL ON A BAD CONNECTION IS TREATED AS A MODEL THAT IS NOT THERE.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * The three GLBs are 2.5MB between them. On a throttled 3G profile the
+ * homepage was still downloading after a minute, and they were most of what
+ * was left. `MODEL_TIERS` was the existing gate for this, but it is consulted
+ * only by Boy.tsx — the rocket and the aeroplane, 1.6MB of the total, were
+ * never behind it and shipped to every device on every connection.
+ *
+ * Gating HERE rather than adding a tier check to each of the three call sites:
+ * this hook is what every one of them already asks before loading, and every
+ * one of them already renders a complete procedural stand-in when the answer
+ * is "absent". Nothing downstream needs to learn a new state, and a fourth
+ * model added later is covered without anybody remembering to cover it.
+ *
+ * The probe is skipped, not just the load. Three HEAD requests is three round
+ * trips, and on the connections this is written for a round trip is 400ms.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
 export function useModelAvailable(url: string): Availability {
   const [state, setState] = useState<Availability>("probing");
 
   useEffect(() => {
+    if (onSlowConnection()) {
+      setState("absent");
+      return;
+    }
+
     let live = true;
     probe(url).then((ok) => {
       if (live) setState(ok ? "present" : "absent");

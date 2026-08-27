@@ -75,3 +75,4 @@ watermark-removed-*-frames/
 # Dev server output, redirected there so the process survives detached from a
 # shell. Local runtime noise, never part of a build.
 /dev-server.log
+/prod-server.log

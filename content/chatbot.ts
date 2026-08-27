@@ -115,7 +115,7 @@ export const CHAT_MEDIA = {
   testimonial: {
     bucket: "session-videos",
     path: "2026/st-josephs-tirupur-talk.mp4",
-    poster: "/testimonials/poster-talk.jpg",
+    poster: "/testimonials/poster-talk.webp",
     caption: "A parent on what changed at home",
   },
 
