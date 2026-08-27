@@ -96,6 +96,19 @@ const FRAGMENT = `
       gl_FragColor = vec4(tex.rgb, tex.a * uOpacity);
     }
 
+    // LINEAR -> sRGB ON THE WAY OUT. This is not optional here.
+    //
+    // The textures are tagged SRGBColorSpace, so the GPU decodes them to LINEAR
+    // when sampled - three.js arranges that. Built-in materials then convert
+    // back on output, but a custom ShaderMaterial gets no such treatment: the
+    // linear values were being written straight to a framebuffer the display
+    // reads as sRGB.
+    //
+    // Whites survive that (1.0 is 1.0 either way) and midtones do not, which is
+    // why photographs looked muddy and grey rather than uniformly dim - a
+    // whiteboard at 0.85 was being shown at 0.68.
+    #include <colorspace_fragment>
+
     if (gl_FragColor.a < 0.01) discard;
   }
 `;
