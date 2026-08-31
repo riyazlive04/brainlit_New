@@ -3,7 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/env";
 import { sendBranchMessage, type WhatsAppResult } from "@/lib/whatsapp";
-import type { ChatState } from "@/lib/chat/flow";
+import type { ChatState, LeadIntent } from "@/lib/chat/flow";
 
 /**
  * Writing a captured chat lead, and messaging them.
@@ -17,6 +17,24 @@ import type { ChatState } from "@/lib/chat/flow";
  * a parent who pressed a button, gave their number, and heard nothing. The
  * failure is recorded ON the row so somebody can list them and follow up.
  * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * WHAT IS WRITTEN GREW, AND THAT IS NOT A FREE CHANGE.
+ *
+ * v1 stored a number, a branch and sometimes an age. This now also stores the
+ * discovery answers - why the parent came, how their child uses AI, what
+ * worries them, what they want developed - plus which resources they took and
+ * how warm the lead is. See the header of
+ * supabase/migrations/0009_chat_leads_discovery.sql: it is a small profile of a
+ * child's AI habits attached to a phone number, and it is only defensible
+ * because CHAT_PHONE_STEP.note tells the parent, right above the input, that we
+ * keep what they told us so the messages are relevant.
+ *
+ * The insert below is therefore the complete list of what leaves the browser.
+ * Nothing is derived, enriched or inferred here on the way past. If a field is
+ * not in the flow's ChatState and not named in that migration, it does not get
+ * added to this object.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 
 export type CaptureOutcome = {
@@ -25,9 +43,19 @@ export type CaptureOutcome = {
   stored: boolean;
 };
 
+/**
+ * @param intent Passed in rather than computed here.
+ *
+ * `leadIntent` lives in lib/chat/flow.ts and is a pure view of the state, so
+ * calling it here would work. It is a parameter because the caller - the chat
+ * route - has already computed it for the turn it is answering, and two
+ * independent calls at two moments is exactly how a stored `intent` starts
+ * disagreeing with the one the rest of the turn acted on.
+ */
 export async function captureAndNotify(
   state: ChatState,
   utm: { source?: string; medium?: string; campaign?: string },
+  intent: LeadIntent,
 ): Promise<CaptureOutcome> {
   if (!state.phone || !state.branch) {
     return { whatsapp: { status: "failed", error: "incomplete state" }, stored: false };
@@ -45,8 +73,35 @@ export async function captureAndNotify(
       .insert({
         phone: state.phone,
         branch: state.branch,
-        readiness: state.readiness,
         child_age: state.childAge,
+
+        // The discovery answers. Option ids, straight through - the route has
+        // already checked them against content/chatbot.ts, and re-deriving or
+        // "cleaning" them here would only make the row disagree with what the
+        // parent was actually shown.
+        reason: state.reason,
+        ai_use: state.aiUse,
+        concern: state.concern,
+        goal: state.goal,
+
+        // Empty array, not null, when nothing was viewed. `seen` is read as a
+        // set and null would force every reader to handle two spellings of
+        // "took no resources".
+        seen: state.seen,
+
+        intent,
+
+        // Always true in practice - shouldDeliver() gates this whole path on
+        // it - but written from the state rather than hardcoded, so if that
+        // gate is ever loosened the row still records what actually happened
+        // instead of asserting consent that was not given.
+        opted_in: state.optedIn,
+
+        // `readiness` is NOT written. The step it came from was cut with the
+        // rest of the v1 funnel and the field no longer exists on ChatState;
+        // the column survives in the schema for historical rows only. See the
+        // legacy note in 0009_chat_leads_discovery.sql.
+
         utm_source: utm.source ?? null,
         utm_medium: utm.medium ?? null,
         utm_campaign: utm.campaign ?? null,

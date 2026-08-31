@@ -640,6 +640,117 @@ export const GALLERY = {
   // ] as GalleryPhoto[],
 } as const;
 
+/* ═══════════════════════════════════ Gallery photographs - the drum set ══ */
+
+/**
+ * The session photographs themselves, as `{ src, label }` plates.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * WHY THIS IS NOT `GALLERY.photos`, AND MUST NOT BE MERGED INTO IT.
+ *
+ * Two lists, two consumers, two shapes, and they are not interchangeable:
+ *
+ *   GALLERY.photos   `{ src, width, height, alt, caption? }`, read by next/image
+ *                    in components/sections/Gallery.tsx. It needs the file's
+ *                    real pixel dimensions to reserve space before the bytes
+ *                    arrive, and it ships `[]` on purpose so that band renders
+ *                    nothing at all. Its rows point at the 1400px .jpg
+ *                    originals.
+ *
+ *   GALLERY_PHOTOS   `{ src, label }`, read by the WebGL drum in
+ *                    components/sections/TestimonialDrum.tsx and by the
+ *                    chatbot's workshop-photos step. A texture has no layout to
+ *                    shift, so there is nothing for width/height to buy here,
+ *                    and `label` does two jobs no `alt` does - see the note on
+ *                    the labels below. Its rows point at the 800px .webp
+ *                    derivatives.
+ *
+ * Folding one into the other costs something in both directions: the drum would
+ * carry width/height it never reads, and the Gallery band would acquire fourteen
+ * rows and switch itself back on by accident, because `Gallery` returns null
+ * only while the list is empty. They also name different files for the same
+ * photographs, so a single list would have to carry both paths regardless.
+ *
+ * IT LIVES IN content/ RATHER THAN IN THE COMPONENT because it is now read
+ * twice. It was a module-private const inside TestimonialDrum.tsx, which the
+ * chatbot cannot import: that component is `"use client"` and pulls in three.js
+ * through lib/logoCylinder, so importing it to reach a fourteen-line array would
+ * drag a WebGL renderer into the chat bundle. Moving the data out costs one
+ * import in the drum and nothing else - the drum renders exactly as it did.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/**
+ * Structurally identical to `LogoCylinderLogo` in lib/logoCylinder.ts, and
+ * declared again here rather than imported from it, because that module imports
+ * three.js at the top level. A type-only import is erased at build time, but it
+ * is one careless edit away from being widened into a value import, and content/
+ * is pulled in by the server, by the chatbot API route and by every page. Two
+ * fields kept in step by hand is the cheaper risk, and if they ever do drift the
+ * `logos:` assignment in TestimonialDrum's `makeDrum` stops compiling - which is
+ * the place that would actually break.
+ */
+export type GalleryPhotoPlate = {
+  /** Path under /public. */
+  src: string;
+  /** The sr-only caption, and the text drawn on the fallback plate. */
+  label: string;
+};
+
+/**
+ * CONSENT IS HELD for the Sanfort International School photographs, confirmed
+ * by BrainLIT on 27 Aug 2026. Recorded here because these frames show
+ * identifiable children with the school legible on their uniforms, and the
+ * question is otherwise guaranteed to be asked again by whoever reads this next.
+ *
+ * REAL FILES ONLY. The six entries that were here originally were placeholders
+ * describing sessions we had no photographs of, and every one rendered as a
+ * tinted block carrying its own caption. This list is as long as the evidence.
+ *
+ * The labels are the sr-only captions in TestimonialDrum as well as the
+ * fallback text, so they describe THIS frame rather than the section's theme —
+ * a caption that generalises is one a screen reader user cannot tell apart from
+ * its neighbour.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * 800px WEBP, AND THAT IS ALREADY GENEROUS. A NEW PHOTOGRAPH GETS THE SAME.
+ *
+ * The plate at the front of the drum is never wider than about 390 device
+ * pixels. That is not a guess: the container caps at max-w-5xl (1024px), the
+ * layout puts four plates across it, and `maxDpr` caps the pixel ratio at 1.75
+ * - so 1024/4 x 1.75. A phone renders it smaller still. 800px is twice that,
+ * which is the headroom three.js wants for a clean mipmap and no more.
+ *
+ * These arrived as 1400px JPEGs, 1.9MB for the set. At 800px WebP the same
+ * fourteen are 591KB and no plate looks different, because the extra pixels
+ * were being thrown away by the sampler either way.
+ *
+ * To add one:
+ *   sharp(src).resize(800).webp({ quality: 78 }).toFile('session-NN.webp')
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * ADDING A ROW CHANGES THE DRUM'S GEOMETRY, not just its content. The plate
+ * count is this length times `repeat`, and `repeat` is tuned against this
+ * length - see the note above `makeDrum` in
+ * components/sections/TestimonialDrum.tsx before adding several at once.
+ */
+export const GALLERY_PHOTOS: GalleryPhotoPlate[] = [
+  { src: "/testimonials/session-01.webp", label: "Receiving a memento on stage at St Joseph's College for Women, Tirupur" },
+  { src: "/testimonials/session-02.webp", label: "The BrainLIT team with the faculty who hosted the session" },
+  { src: "/testimonials/session-03.webp", label: "The panel seated before the expert session begins" },
+  { src: "/testimonials/session-04.webp", label: "The memento handed over as the session closes" },
+  { src: "/testimonials/session-05.webp", label: "Speaking at the podium at IITM Research Park" },
+  { src: "/testimonials/session-06.webp", label: "Taking a question from the room at IITM Research Park" },
+  { src: "/testimonials/session-07.webp", label: "Pointing something out to the audience at IITM Research Park" },
+  { src: "/testimonials/session-08.webp", label: "Making a point mid-talk at IITM Research Park" },
+  { src: "/testimonials/session-09.webp", label: "Shaking hands with a student during the session at Sanfort International School" },
+  { src: "/testimonials/session-10.webp", label: "The class during the BrainLIT session at Sanfort International School" },
+  { src: "/testimonials/session-11.webp", label: "The BrainLIT team in front of the board at Sanfort International School" },
+  { src: "/testimonials/session-12.webp", label: "Working through what AI stands for, on the board at Sanfort International School" },
+  { src: "/testimonials/session-13.webp", label: "Teaching from the board and screen at Sanfort International School" },
+  { src: "/testimonials/session-14.webp", label: "A student answering at the problem-solving board, Sanfort International School" },
+];
+
 /* ═══════════════════════════════════════════════════════ Community ══ */
 
 /**

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { Container } from "@/components/ui/Container";
-import { LogoCylinder, type LogoCylinderLogo } from "@/lib/logoCylinder";
+import { LogoCylinder } from "@/lib/logoCylinder";
 import { YouTubeCard } from "@/components/sections/YouTubeCard";
 import { publicStorageUrl } from "@/lib/storage";
+import { GALLERY_PHOTOS } from "@/content/home";
 
 /**
  * Session photographs on a slowly turning drum, with the testimonial below it.
@@ -27,75 +28,21 @@ import { publicStorageUrl } from "@/lib/storage";
  */
 
 /**
- * CONSENT IS HELD for the Sanfort International School photographs, confirmed
- * by BrainLIT on 27 Aug 2026. Recorded here because these frames show
- * identifiable children with the school legible on their uniforms, and the
- * question is otherwise guaranteed to be asked again by whoever reads this next.
+ * THE PHOTOGRAPHS THEMSELVES LIVE IN content/home.ts, as `GALLERY_PHOTOS`.
  *
- * REAL FILES ONLY. The six entries that were here originally were placeholders
- * describing sessions we had no photographs of, and every one rendered as a
- * tinted block carrying its own caption. This list is as long as the evidence.
+ * They were a module-private const right here, which is precisely why they had
+ * to move: the chatbot's workshop-photos step needs the same fourteen frames,
+ * and it cannot import them out of a `"use client"` component that drags
+ * three.js in behind it. The list went to content/ - where the chatbot's other
+ * copy already lives - and everything that is about the PHOTOGRAPHS went with
+ * it: the dated Sanfort International School consent record, the note on what
+ * the labels are doing, and the 800px WebP sizing rule with the sharp() line
+ * for adding a new one.
  *
- * `repeat` IS ABOUT THE RADIUS, not about how many pictures there are.
- *
- * Radius is derived from the plate COUNT, and a bigger drum turns its front
- * plates more slowly past the camera - so more of them face it at once and
- * survive the facing fade. Fewer plates means a smaller drum, which means the
- * plates either side of centre are already edge-on and dimmed, and the band
- * reads as ONE photograph with two smudges beside it.
- *
- * That is not a guess. Five photographs at `repeat: 2` is ten plates, and it
- * renders as a single legible picture with two smudges beside it. At fifteen,
- * three read clearly with a fourth turning in. The plates round the back that
- * nobody sees are the price of the ones at the front being face-on.
- *
- * It is the PLATE COUNT that wants to stay in the mid-teens, and that is the
- * product of the two numbers - so `repeat` falls as the set grows. Eight
- * photographs wanted two wraps; fourteen want one.
- *
- * Adjacent plates step through the set, so the ones in view are always
- * different photographs; only the far side repeats. Adding a sixth means adding
- * a line here - and if the band ever looks sparse again, RAISE this number and
- * look, rather than reasoning about it.
- *
- * The labels are the sr-only captions further down as well as the fallback
- * text, so they describe THIS frame rather than the section's theme — a
- * caption that generalises is one a screen reader user cannot tell apart from
- * its neighbour.
- *
- * ─────────────────────────────────────────────────────────────────────────────
- * 800px WEBP, AND THAT IS ALREADY GENEROUS. A NEW PHOTOGRAPH GETS THE SAME.
- *
- * The plate at the front of the drum is never wider than about 390 device
- * pixels. That is not a guess: the container caps at max-w-5xl (1024px), the
- * layout puts four plates across it, and `maxDpr` caps the pixel ratio at 1.75
- * - so 1024/4 x 1.75. A phone renders it smaller still. 800px is twice that,
- * which is the headroom three.js wants for a clean mipmap and no more.
- *
- * These arrived as 1400px JPEGs, 1.9MB for the set. At 800px WebP the same
- * fourteen are 591KB and no plate looks different, because the extra pixels
- * were being thrown away by the sampler either way.
- *
- * To add one:
- *   sharp(src).resize(800).webp({ quality: 78 }).toFile('session-NN.webp')
- * ─────────────────────────────────────────────────────────────────────────────
+ * What stayed here is what is about the DRUM rather than the data - the note on
+ * `repeat` sits above `makeDrum`. Nothing about the render changed: the same
+ * fourteen photographs, the same order, the same options.
  */
-const PHOTOS: LogoCylinderLogo[] = [
-  { src: "/testimonials/session-01.webp", label: "Receiving a memento on stage at St Joseph's College for Women, Tirupur" },
-  { src: "/testimonials/session-02.webp", label: "The BrainLIT team with the faculty who hosted the session" },
-  { src: "/testimonials/session-03.webp", label: "The panel seated before the expert session begins" },
-  { src: "/testimonials/session-04.webp", label: "The memento handed over as the session closes" },
-  { src: "/testimonials/session-05.webp", label: "Speaking at the podium at IITM Research Park" },
-  { src: "/testimonials/session-06.webp", label: "Taking a question from the room at IITM Research Park" },
-  { src: "/testimonials/session-07.webp", label: "Pointing something out to the audience at IITM Research Park" },
-  { src: "/testimonials/session-08.webp", label: "Making a point mid-talk at IITM Research Park" },
-  { src: "/testimonials/session-09.webp", label: "Shaking hands with a student during the session at Sanfort International School" },
-  { src: "/testimonials/session-10.webp", label: "The class during the BrainLIT session at Sanfort International School" },
-  { src: "/testimonials/session-11.webp", label: "The BrainLIT team in front of the board at Sanfort International School" },
-  { src: "/testimonials/session-12.webp", label: "Working through what AI stands for, on the board at Sanfort International School" },
-  { src: "/testimonials/session-13.webp", label: "Teaching from the board and screen at Sanfort International School" },
-  { src: "/testimonials/session-14.webp", label: "A student answering at the problem-solving board, Sanfort International School" },
-];
 
 /**
  * Every moving picture in this band, in ONE list so it renders as one row.
@@ -166,18 +113,48 @@ const CLIPS = [
   },
 ];
 
-/** Every dial the drum is given. Module scope: it closes over nothing. */
+/**
+ * Every dial the drum is given. Module scope: it closes over nothing.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * `repeat` IS ABOUT THE RADIUS, not about how many pictures there are.
+ *
+ * Radius is derived from the plate COUNT, and a bigger drum turns its front
+ * plates more slowly past the camera - so more of them face it at once and
+ * survive the facing fade. Fewer plates means a smaller drum, which means the
+ * plates either side of centre are already edge-on and dimmed, and the band
+ * reads as ONE photograph with two smudges beside it.
+ *
+ * That is not a guess. Five photographs at `repeat: 2` is ten plates, and it
+ * renders as a single legible picture with two smudges beside it. At fifteen,
+ * three read clearly with a fourth turning in. The plates round the back that
+ * nobody sees are the price of the ones at the front being face-on.
+ *
+ * It is the PLATE COUNT that wants to stay in the mid-teens, and that is the
+ * product of the two numbers - so `repeat` falls as the set grows. Eight
+ * photographs wanted two wraps; fourteen want one.
+ *
+ * Adjacent plates step through the set, so the ones in view are always
+ * different photographs; only the far side repeats. Adding a sixth means adding
+ * a line to GALLERY_PHOTOS in content/home.ts - and if the band ever looks
+ * sparse again, RAISE this number and look, rather than reasoning about it.
+ *
+ * This note stayed with the drum when the photographs moved out to content/,
+ * because `repeat` is a property of the geometry, not of the pictures. The list
+ * only supplies one of the two factors.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
 function makeDrum(container: HTMLDivElement) {
   return new LogoCylinder({
     container,
-    logos: PHOTOS,
-    // Photographs, not line art. See the note above.
+    logos: GALLERY_PHOTOS,
+    // Photographs, not line art. See the note at the top of this file.
     keyWhiteBackground: false,
     spinSpeed: 0.24,
     // ONCE round, now that there are fourteen photographs. Fourteen plates is
     // already where the band wants to be; wrapping twice would be
     // twenty-eight, and every extra plate shrinks the ones at the front. See
-    // the note on PHOTOS - it is the plate COUNT this controls, not the
+    // the note above - it is the plate COUNT this controls, not the
     // number of pictures.
     repeat: 1,
     plateWidth: 2.4,
@@ -311,7 +288,7 @@ export function TestimonialDrum() {
             text in it. These are the same captions, in the DOM, hidden from
             sight only. */}
         <ul className="sr-only">
-          {PHOTOS.map((photo) => (
+          {GALLERY_PHOTOS.map((photo) => (
             <li key={photo.src}>{photo.label}</li>
           ))}
         </ul>

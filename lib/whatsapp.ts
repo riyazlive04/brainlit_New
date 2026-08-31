@@ -64,11 +64,35 @@ function readEnv(): Env | null {
 }
 
 /**
- * Fills {{age}} and {{branch}}.
+ * Fills {{age}} and {{branch}}. Those two, and no others.
  *
  * An absent value collapses to an empty string rather than leaving `{{age}}` in
  * the message. A parent reading a template placeholder in their WhatsApp is
  * worse than a slightly clumsy sentence.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THERE IS NO {{Parent Name}}, AND THAT IS THE DECISION, NOT AN OVERSIGHT.
+ *
+ * The brief's draft messages opened with a name. The flow never asks for one -
+ * it asks for a WhatsApp number, late and optionally, and nothing else about
+ * the parent - so `vars` has no name to pass and the collapse-to-empty rule
+ * above would have sent "Hello ," to every parent. See the matching note on
+ * CHAT_WHATSAPP in content/chatbot.ts; the templates there were rewritten to
+ * open without one.
+ *
+ * The alternative was a name step before the number. Rejected: it is one more
+ * question standing in front of the only field that actually matters, at the
+ * exact point where people stop answering. Adding the placeholder back means
+ * adding that step first - a placeholder with no source is how "Hello ," ships.
+ *
+ * NOTE ON THE TWO THAT REMAIN. As of the v2 rewrite none of the three
+ * CHAT_WHATSAPP bodies contains `{{age}}` or `{{branch}}` either, so these
+ * replaces are currently no-ops. They are kept because they are correct and
+ * because age is still captured on the future-readiness branch: whoever next
+ * edits a template can reach for them without also having to write the
+ * plumbing. They are the supported set - anything else in a body is printed
+ * literally and will be seen by a parent.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 function fill(
   body: string,

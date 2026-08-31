@@ -1,21 +1,53 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   CHAT_INTRO,
   CHAT_BRANCHES,
   CHAT_PHONE_STEP,
   CHAT_AGE_STEP,
-  CHAT_READINESS_STEP,
   CHAT_MEDIA,
   CHAT_CLOSING,
   CHAT_ANSWERS,
+  CHAT_EXPLORING_REASON,
+  CHAT_EXPLORING_AI_USE,
+  CHAT_EXPLORING_UNDERSTAND,
+  CHAT_EXPLORING_CURIOUS,
+  CHAT_LITERACY_INTEREST,
+  CHAT_LITERACY_AI_USE,
+  CHAT_LITERACY_CONCERN,
+  CHAT_LITERACY_PROPERLY,
+  CHAT_LITERACY_DEVELOP,
+  CHAT_LITERACY_INSIGHT,
+  CHAT_FUTURE_PRIORITY,
+  CHAT_FUTURE_FOLLOWUP,
+  CHAT_FUTURE_PERSPECTIVE,
+  CHAT_RESOURCES,
+  CHAT_TESTIMONIAL,
+  CHAT_WORKSHOP,
+  CHAT_EXPLORE,
+  CHAT_SOCIAL,
+  CHAT_COMMUNITY,
+  CHAT_HUMAN,
+  CHAT_WHATSAPP_OFFER,
   type ChatBranchId,
+  type ChatFuturePriorityId,
 } from "@/content/chatbot";
-import { INITIAL_STATE, type ChatState } from "@/lib/chat/flow";
+import { GALLERY_PHOTOS } from "@/content/home";
+import {
+  INITIAL_STATE,
+  canAsk,
+  resourceOptions,
+  hubExhausted,
+  type ChatAction,
+  type ChatState,
+  type ResourceId,
+  type SeenId,
+} from "@/lib/chat/flow";
 import { normalizeIndianMobile } from "@/lib/phone";
 import { publicStorageUrl } from "@/lib/storage";
+import { SOCIAL_LINKS, COMMUNITY_INVITE, whatsappHref } from "@/lib/site";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { YouTubeStep } from "@/components/chat/YouTubeStep";
 
@@ -33,23 +65,106 @@ import { YouTubeStep } from "@/components/chat/YouTubeStep";
  * The transcript, by contrast, is purely local. It is a rendering of what has
  * happened, not a source of truth, so it is never sent anywhere.
  * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * WHAT CHANGED IN v2: THERE IS A HUB IN THE MIDDLE NOW.
+ *
+ * v1 was three straight lines - branch, phone, a step, done - so this component
+ * had four `case`s to narrate and four controls to render. The flow now runs
+ * discovery per branch, lands everyone on `resources`, and returns there after
+ * every resource. That makes the widget's job bigger in exactly one way: the
+ * SAME step can be arrived at many times, so anything that must be said only
+ * once has to be tracked here rather than re-derived.
+ *
+ * See `sung` below. Deriving "have we said the insight yet?" by scanning `log`
+ * for the string was the alternative, and it was rejected: it makes the copy in
+ * content/chatbot.ts load-bearing for control flow, so an editor fixing a typo
+ * would silently make a paragraph repeat.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
+
+/**
+ * A link rendered inside a bubble.
+ *
+ * `seen` is what pressing it reports to the flow, and it is optional on
+ * purpose: Instagram, YouTube and the parent community all stop being offered
+ * once they have been opened, but the handoff to a person never does - see
+ * `resourceOptions` in lib/chat/flow.ts, where `human` is deliberately
+ * unfilterable.
+ */
+type BubbleLink = {
+  key: string;
+  label: string;
+  href: string;
+  seen?: SeenId;
+};
 
 type Bubble = {
   id: number;
   from: "bot" | "user";
   text: string;
   /** Rendered instead of text, when the bubble is a step's media. */
-  media?: "testimonial" | "youtube";
+  media?: "testimonial" | "youtube" | "photos" | "links";
+  /** Only ever set on a "links" bubble. */
+  links?: BubbleLink[];
 };
 
 let bubbleId = 0;
-const bubble = (from: Bubble["from"], text: string, media?: Bubble["media"]): Bubble => ({
+const bubble = (
+  from: Bubble["from"],
+  text: string,
+  media?: Bubble["media"],
+  links?: BubbleLink[],
+): Bubble => ({
   id: ++bubbleId,
   from,
   text,
   media,
+  links,
 });
+
+/**
+ * The label for an option id, from whichever list owns it.
+ *
+ * Falls back to the raw id rather than an empty string. An empty user bubble is
+ * indistinguishable from a rendering bug; a bubble reading `already_using` at
+ * least says what was pressed, and points at the list that is out of step.
+ */
+function labelOf(
+  options: readonly { id: string; label: string }[],
+  id: string,
+): string {
+  return options.find((o) => o.id === id)?.label ?? id;
+}
+
+/**
+ * The follow-up question for whatever priority was chosen, or null.
+ *
+ * The guard is not paranoia. `state.reason` is a plain string on the state - see
+ * the note on ChatState in lib/chat/flow.ts for why it is not a union - so an
+ * old tab holding a `reason` from a list that has since been edited can arrive
+ * here with an id that no longer has a question written for it. Rendering
+ * nothing beats crashing the panel a parent is halfway through.
+ */
+function followupFor(state: ChatState) {
+  const id = state.reason;
+  if (!id || !(id in CHAT_FUTURE_FOLLOWUP)) return null;
+  return CHAT_FUTURE_FOLLOWUP[id as ChatFuturePriorityId];
+}
+
+/**
+ * The way back to the hub, worded so it does not read as a brush-off.
+ *
+ * It is offered on the `human` step, immediately under an invitation to message
+ * a real person, so "Back" or "Cancel" would both read as retracting the thing
+ * the parent just asked for. "Something else" says what it does - the WhatsApp
+ * link stays exactly where it is, and this is an addition to it rather than an
+ * escape from it.
+ */
+const BACK_LABEL = "Something else";
+
+/** The keys of the paragraphs that must be said at most once per conversation. */
+type SungKey = "literacy_insight" | "future_perspective" | "exploring_curious";
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -61,6 +176,20 @@ export function ChatWidget() {
 
   const scroller = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
+
+  /**
+   * WHAT HAS ALREADY BEEN SAID ONCE.
+   *
+   * Each branch has a payoff paragraph - the insight, the perspective, the
+   * explainer - said on the way into the hub. The hub is returned to after
+   * every single resource, so without this the parent who looks at three things
+   * is lectured three times.
+   *
+   * A ref rather than state: nothing renders from it, and it is read inside
+   * `narrate` immediately after being written, which a `useState` setter cannot
+   * promise within the same turn.
+   */
+  const sung = useRef<Set<SungKey>>(new Set());
 
   /* The opening lines, written once the panel is first opened rather than on
      mount — a transcript that exists before anyone has looked at it will be
@@ -88,9 +217,20 @@ export function ChatWidget() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const say = useCallback((from: Bubble["from"], text: string, media?: Bubble["media"]) => {
-    setLog((prev) => [...prev, bubble(from, text, media)]);
-  }, []);
+  const say = useCallback(
+    (from: Bubble["from"], text: string, media?: Bubble["media"], links?: BubbleLink[]) => {
+      setLog((prev) => [...prev, bubble(from, text, media, links)]);
+    },
+    [],
+  );
+
+  /** A multi-line paragraph, one bubble per line. Reads as speech, not a wall. */
+  const sayAll = useCallback(
+    (lines: readonly string[]) => {
+      setLog((prev) => [...prev, ...lines.map((line) => bubble("bot", line))]);
+    },
+    [],
+  );
 
   /**
    * One request shape for every turn.
@@ -129,7 +269,14 @@ export function ChatWidget() {
           return null;
         }
         if (data.state) setState(data.state as ChatState);
-        return data as { reply?: string; closing?: string; state?: ChatState };
+        return data as {
+          reply?: string;
+          closing?: string;
+          state?: ChatState;
+          /** Set by the route when a typed question was about fees, enrolling
+              or calling - see `leadIntent` in lib/chat/flow.ts. */
+          hot?: boolean;
+        };
       } catch {
         say("bot", CHAT_ANSWERS.unavailable);
         return null;
@@ -140,69 +287,413 @@ export function ChatWidget() {
     [state, say],
   );
 
-  /* Whatever the new step is, narrate it. Kept in one place so a step added to
-     the machine cannot arrive on screen with nothing said about it. */
+  /* ═══════════════════════════════════════════════════ The links ══ */
+
+  /**
+   * The external destinations, resolved from lib/site.ts rather than written
+   * here.
+   *
+   * ONE LIST, and it is the footer's. A handle changes about once a year and it
+   * changes in one place; a chatbot pointing at last year's Instagram is the
+   * exact failure content/chatbot.ts refuses to make possible by keeping the
+   * URLs out of itself.
+   *
+   * `whatsappHref()` returns null when no business number is configured - a
+   * preview deployment, usually - and `COMMUNITY_INVITE` can be null for the
+   * same kind of reason. Both are filtered out below rather than rendered as
+   * dead anchors.
+   */
+  /* `useMemo` with no dependencies, and it is not premature. This list is a
+     dependency of `narrate`, which is a dependency of `commit`, which reaches
+     the YouTube player's `onWatched` - and that prop is in an effect list that
+     tears the player down and rebuilds it. Rebuilding the array every render
+     would restart the film on every keystroke in the composer. */
+  const socialLinks: BubbleLink[] = useMemo(
+    () =>
+      SOCIAL_LINKS.filter(
+        (link) => link.key === "instagram" || link.key === "youtube",
+      ).map((link) => ({
+        key: link.key,
+        label: link.label,
+        href: link.href,
+        // The keys happen to match the SeenId spellings, but the mapping is
+        // written out rather than assumed - SocialKey also contains "facebook"
+        // and "whatsapp", which are not things the hub filters on.
+        seen: link.key === "instagram" ? ("instagram" as const) : ("youtube" as const),
+      })),
+    [],
+  );
+
+  const humanLink = useCallback((): BubbleLink[] => {
+    const href = whatsappHref();
+    if (!href) return [];
+    // No `seen`: the way out to a person is never filtered from the hub.
+    return [{ key: "human", label: CHAT_HUMAN.cta, href }];
+  }, []);
+
+  /* ══════════════════════════════════════════════════ Narration ══ */
+
+  /**
+   * Whatever the new step is, narrate it.
+   *
+   * Kept in one place so a step added to the machine cannot arrive on screen
+   * with nothing said about it - and now there are twenty of them, which is
+   * precisely why the alternative of narrating inside each handler was
+   * rejected. A step reachable from three handlers would need its lines in
+   * three places, and they would drift.
+   */
   const narrate = useCallback(
     (next: ChatState, closing?: string) => {
+      /** The one line said on the way into a branch. */
+      const lead = () => {
+        const branch = CHAT_BRANCHES.find((b) => b.id === next.branch);
+        if (branch) say("bot", branch.lead);
+      };
+
+      /** Says a paragraph the first time only. See `sung`. */
+      const once = (key: SungKey, lines: readonly string[], then?: string) => {
+        if (sung.current.has(key)) return;
+        sung.current.add(key);
+        sayAll(lines);
+        if (then) say("bot", then);
+      };
+
       switch (next.step) {
-        case "phone": {
-          const branch = CHAT_BRANCHES.find((b) => b.id === next.branch);
-          if (branch) say("bot", branch.lead);
-          say("bot", CHAT_PHONE_STEP.ask);
+        /* ── Just exploring ── */
+
+        case "exploring_reason":
+          lead();
+          say("bot", CHAT_EXPLORING_REASON.ask);
+          break;
+        case "exploring_ai_use":
+          say("bot", CHAT_EXPLORING_AI_USE.ask);
+          break;
+        case "exploring_understand":
+          say("bot", CHAT_EXPLORING_UNDERSTAND.ask);
+          break;
+
+        /* ── AI literacy ── */
+
+        case "literacy_interest":
+          lead();
+          say("bot", CHAT_LITERACY_INTEREST.ask);
+          break;
+        case "literacy_ai_use":
+          say("bot", CHAT_LITERACY_AI_USE.ask);
+          break;
+        case "literacy_concern":
+          say("bot", CHAT_LITERACY_CONCERN.ask);
+          break;
+        case "literacy_develop":
+          // The "learning AI is not learning buttons" paragraph earns the
+          // question that follows it. Said here rather than in the handler
+          // because this step has exactly one way in.
+          sayAll(CHAT_LITERACY_PROPERLY.body);
+          say("bot", CHAT_LITERACY_DEVELOP.ask);
+          break;
+
+        /* ── Future readiness ── */
+
+        case "future_priority":
+          lead();
+          say("bot", CHAT_FUTURE_PRIORITY.ask);
+          break;
+        case "future_followup": {
+          const followup = followupFor(next);
+          // Nothing written for this priority: the flow routes straight to the
+          // age step in that case, so this is belt and braces. Saying nothing
+          // beats saying "undefined".
+          if (followup) say("bot", followup.ask);
           break;
         }
-        case "readiness":
-          say("bot", CHAT_READINESS_STEP.ask);
-          break;
-        case "age":
+        case "future_age":
           say("bot", CHAT_AGE_STEP.ask);
           break;
+
+        /* ── The hub ── */
+
+        case "resources": {
+          /**
+           * THE PAYOFF COMES BEFORE THE MENU, AND ONLY EVER ONCE.
+           *
+           * Each branch has earned a different paragraph by the time it lands
+           * here, and which one is decided by the branch rather than by the
+           * step, because all three branches share this step. `curious` is the
+           * odd one: it is the only exploring answer that arrives with nothing
+           * asked after it, so it is the only one owed an explanation.
+           */
+          if (next.branch === "ai_literacy") {
+            once("literacy_insight", CHAT_LITERACY_INSIGHT.body, CHAT_LITERACY_INSIGHT.then);
+          } else if (next.branch === "future_readiness") {
+            once("future_perspective", CHAT_FUTURE_PERSPECTIVE.body);
+          } else if (next.branch === "exploring" && next.reason === "curious") {
+            once("exploring_curious", CHAT_EXPLORING_CURIOUS.body);
+          }
+
+          say("bot", hubExhausted(next) ? CHAT_RESOURCES.exhausted : CHAT_RESOURCES.ask);
+          break;
+        }
+
+        /* ── The resources ── */
+
         case "testimonial":
+          say("bot", CHAT_TESTIMONIAL.offer);
           say("bot", CHAT_MEDIA.testimonial.caption, "testimonial");
           break;
-        case "video":
+        case "testimonial_reaction":
+          say("bot", CHAT_TESTIMONIAL.reaction);
+          break;
+        case "workshop":
+          say("bot", CHAT_WORKSHOP.ask);
+          break;
+        case "workshop_photos":
+          say("bot", "", "photos");
+          break;
+        case "workshop_videos":
           say("bot", "", "youtube");
           break;
+        case "social":
+          say("bot", CHAT_SOCIAL.body, "links", socialLinks);
+          break;
+        case "community":
+          say(
+            "bot",
+            CHAT_COMMUNITY.body,
+            "links",
+            COMMUNITY_INVITE
+              ? [
+                  {
+                    key: "community",
+                    label: CHAT_COMMUNITY.cta,
+                    href: COMMUNITY_INVITE,
+                    seen: "community" as const,
+                  },
+                ]
+              : [],
+          );
+          break;
+        case "human":
+          say("bot", CHAT_HUMAN.body, "links", humanLink());
+          break;
+
+        /* ── The offer, and the number ── */
+
+        case "whatsapp_offer":
+          say("bot", CHAT_WHATSAPP_OFFER.ask);
+          break;
+        case "phone":
+          say("bot", CHAT_PHONE_STEP.ask);
+          break;
+
         case "done":
           if (closing) say("bot", closing);
           say("bot", CHAT_CLOSING.openFloor);
           break;
       }
     },
-    [say],
+    [say, sayAll, socialLinks, humanLink],
   );
 
-  async function chooseBranch(branch: ChatBranchId) {
-    const label = CHAT_BRANCHES.find((b) => b.id === branch)?.label ?? "";
-    say("user", label);
-    const data = await post({ action: { type: "branch", branch } });
-    if (data?.state) narrate(data.state, data.closing);
-  }
+  /* ═══════════════════════════════════════════════════ Handlers ══ */
 
-  async function submitPhone(value: string) {
-    say("user", value);
-    const data = await post({ action: { type: "phone", phone: value } });
-    if (data?.state) narrate(data.state, data.closing);
-  }
+  /**
+   * The three lines every button press performs, written once.
+   *
+   * Fifteen copies of `say` / `post` / `narrate` was the alternative - one per
+   * member of `ChatAction` - and it was rejected for the ordinary reason: the
+   * order of those three calls is the thing that must not vary, and fifteen
+   * chances to get it wrong is fifteen chances to get it wrong. The named
+   * handlers below still exist one per action type, because THAT is what makes
+   * the control table readable; they just do not each re-implement the turn.
+   *
+   * `label` may be null for a press that should not appear as a user bubble -
+   * the "Continue" under a video is a control, not something a parent said.
+   */
+  const commit = useCallback(
+    async (label: string | null, action: ChatAction) => {
+      if (label) say("user", label);
+      const data = await post({ action });
+      if (data?.state) narrate(data.state, data.closing);
+      return data;
+    },
+    [say, post, narrate],
+  );
 
-  async function submitReadiness(readiness: "ready" | "more_details") {
-    const label =
-      CHAT_READINESS_STEP.options.find((o) => o.id === readiness)?.label ?? "";
-    say("user", label);
-    const data = await post({ action: { type: "readiness", readiness } });
-    if (data?.state) narrate(data.state, data.closing);
-  }
+  /* ── Opening ── */
 
-  async function submitAge(value: string) {
-    say("user", value);
-    const data = await post({ action: { type: "age", childAge: value } });
-    if (data?.state) narrate(data.state, data.closing);
-  }
+  const chooseBranch = (branch: ChatBranchId) =>
+    void commit(labelOf(CHAT_BRANCHES, branch), { type: "branch", branch });
 
-  const finishMedia = useCallback(async () => {
-    const data = await post({ action: { type: "watched" } });
-    if (data?.state) narrate(data.state, data.closing);
-  }, [post, narrate]);
+  /* ── Discovery ── */
+
+  const submitReason = (reason: string) =>
+    void commit(labelOf(CHAT_EXPLORING_REASON.options, reason), { type: "reason", reason });
+
+  /** Shared by both branches that ask it; the step tells the flow them apart. */
+  const submitAiUse = (aiUse: string) =>
+    void commit(
+      labelOf(
+        state.step === "literacy_ai_use"
+          ? CHAT_LITERACY_AI_USE.options
+          : CHAT_EXPLORING_AI_USE.options,
+        aiUse,
+      ),
+      { type: "ai_use", aiUse },
+    );
+
+  const submitUnderstand = (understand: string) =>
+    void commit(labelOf(CHAT_EXPLORING_UNDERSTAND.options, understand), {
+      type: "understand",
+      understand,
+    });
+
+  const submitInterest = (interest: string) =>
+    void commit(labelOf(CHAT_LITERACY_INTEREST.options, interest), {
+      type: "interest",
+      interest,
+    });
+
+  const submitConcern = (concern: string) =>
+    void commit(labelOf(CHAT_LITERACY_CONCERN.options, concern), { type: "concern", concern });
+
+  const submitDevelop = (develop: string) =>
+    void commit(labelOf(CHAT_LITERACY_DEVELOP.options, develop), { type: "develop", develop });
+
+  const submitPriority = (priority: string) =>
+    void commit(labelOf(CHAT_FUTURE_PRIORITY.options, priority), { type: "priority", priority });
+
+  const submitFollowup = (followup: string) =>
+    void commit(labelOf(followupFor(state)?.options ?? [], followup), {
+      type: "followup",
+      followup,
+    });
+
+  /** The field hands over a string; the action carries a number. */
+  const submitAge = (value: string) =>
+    void commit(value, { type: "age", childAge: Number(value) });
+
+  /* ── The hub ── */
+
+  const submitResource = async (resource: ResourceId) => {
+    const label = labelOf(CHAT_RESOURCES.options, resource);
+
+    // "What is BrainLIT?" has no step of its own - the flow marks it seen and
+    // hands the hub straight back - so the explainer is said here. Deliberately
+    // NOT gated on `sung.exploring_curious`: this one was asked for, and a
+    // button that answers with silence reads as broken.
+    if (resource === "explore") {
+      say("user", label);
+      sayAll(CHAT_EXPLORE.body);
+      const data = await post({ action: { type: "resource", resource } });
+      if (data?.state) narrate(data.state, data.closing);
+      return;
+    }
+
+    await commit(label, { type: "resource", resource });
+  };
+
+  /* ── Inside a resource ── */
+
+  /**
+   * "I have seen it."
+   *
+   * Fired by the Continue under a media card and by pressing an external link.
+   * The flow turns this into `resources` for everything except the parent
+   * video, which earns one follow-up question.
+   */
+  const submitSeen = useCallback(
+    async (what: SeenId, label?: string) => {
+      // Said before the hub comes back, so it reads as a reply to the tap
+      // rather than as an afterthought under the next menu.
+      if (what === "community") say("bot", CHAT_COMMUNITY.after);
+
+      /**
+       * THE SOCIAL STEP DOES NOT MOVE, SO IT MUST NOT BE NARRATED.
+       *
+       * Marking a social link now keeps the step - that is what stops the
+       * second link being stranded - and `narrate` says what has been ARRIVED
+       * at. Running it here would post the paragraph and both links a second
+       * time on every tap, so the state is updated and nothing is said. The
+       * links and the way out are already on screen.
+       */
+      if (state.step === "social") {
+        if (label) say("user", label);
+        await post({ action: { type: "seen", what } });
+        return;
+      }
+
+      await commit(label ?? null, { type: "seen", what });
+    },
+    [commit, post, say, state.step],
+  );
+
+  /**
+   * Out of a resource without having taken it.
+   *
+   * NO USER BUBBLE - `commit` is passed null. This is navigation, not something
+   * a parent said, and the same reasoning keeps the Continue under a video out
+   * of the transcript. A conversation littered with "Something else" reads as
+   * an argument with a menu.
+   *
+   * The flow ignores this anywhere but the eight resource steps, so it cannot
+   * be used to jump the discovery questions - see the `back` case in
+   * lib/chat/flow.ts.
+   */
+  const goBack = () => void commit(null, { type: "back" });
+
+  const submitReaction = (reaction: string) =>
+    void commit(labelOf(CHAT_TESTIMONIAL.options, reaction), { type: "reaction", reaction });
+
+  /* ── The offer ── */
+
+  const submitWhatsapp = async (answer: "yes" | "later") => {
+    const label = labelOf(CHAT_WHATSAPP_OFFER.options, answer);
+    // "Maybe later" is a real answer, so it gets a real reply before the hub
+    // returns - otherwise declining reads as being ignored.
+    if (answer === "later") {
+      say("user", label);
+      say("bot", CHAT_WHATSAPP_OFFER.later);
+      const data = await post({ action: { type: "whatsapp", answer } });
+      if (data?.state) narrate(data.state, data.closing);
+      return;
+    }
+    await commit(label, { type: "whatsapp", answer });
+  };
+
+  const submitPhone = (phone: string) => void commit(phone, { type: "phone", phone });
+
+  /* ── The workshop chooser ── */
+
+  /**
+   * Photos or videos - a SEPARATE action from `resource`, not a second one.
+   *
+   * The hub's question is "which of seven things next"; this one is "which half
+   * of this one", and lib/chat/flow.ts keeps them apart so `ResourceId` never
+   * has to carry two ids the hub must not offer. See the note on the action in
+   * that file.
+   *
+   * Nothing moves if the video half is not configured - `isReachable` returns
+   * the state untouched - which is why the option is filtered out of the list
+   * below rather than left to fail silently.
+   */
+  const submitWorkshop = (which: string) =>
+    void commit(labelOf(CHAT_WORKSHOP.options, which), {
+      type: "workshop",
+      which: which === "videos" ? "videos" : "photos",
+    });
+
+  /* ══════════════════════════════════════════════════ Free text ══ */
+
+  async function ask(question: string) {
+    say("user", question);
+    setDraft("");
+    const data = await post({ message: question });
+    if (data?.reply) say("bot", data.reply);
+    // A question about fees, enrolling or calling is not one this thing should
+    // be answering alone. The reply still goes out - it may well be the right
+    // passage - and a person is offered underneath it.
+    if (data?.hot) say("bot", CHAT_HUMAN.body, "links", humanLink());
+  }
 
   /**
    * Start the conversation again from nothing.
@@ -211,6 +702,11 @@ export function ChatWidget() {
    * opening lines fires on `log.length === 0`, so clearing it replays the
    * greeting from the ONE place that owns that copy. Re-seeding it here would
    * be a second copy to keep in step.
+   *
+   * `sung` is cleared too, and it has to be: it is the only piece of the
+   * conversation that does NOT live in `state`, so a restart that reset the
+   * state alone would leave a second run through the same branch silently
+   * missing its payoff paragraph.
    *
    * Note what this genuinely resets - `delivered` goes back to false, so a
    * person who restarts CAN reach the end and be messaged a second time. That
@@ -223,24 +719,148 @@ export function ChatWidget() {
     setLog([]);
     setDraft("");
     setInvalid(null);
+    sung.current = new Set();
   }, []);
-
-  async function ask(question: string) {
-    say("user", question);
-    setDraft("");
-    const data = await post({ message: question });
-    if (data?.reply) say("bot", data.reply);
-  }
 
   const testimonialSrc = publicStorageUrl(
     CHAT_MEDIA.testimonial.bucket,
     CHAT_MEDIA.testimonial.path,
   );
 
-  /* Free text is offered once the funnel is done, and also at the very start —
-     someone who arrives with a specific question should not have to walk a
-     three-step script to ask it. */
-  const canAsk = state.step === "done" || state.step === "branch";
+  /* One object, reused by every step whose only exit this is. Hoisted above
+     the picker rather than repeated inside it so the four cases below read as
+     one decision - "this step has no other way out" - rather than as four
+     copies of a one-item list. */
+  const backControl = {
+    options: [{ id: "back", label: BACK_LABEL }],
+    onPick: goBack,
+  };
+
+  /**
+   * THE CONTROL FOR THE CURRENT STEP, as a table rather than a wall of JSX.
+   *
+   * Twenty steps is too many for a stack of `{state.step === "x" && ...}`
+   * lines - which is what this was - because the answer to "what does this step
+   * show?" is then spread over a hundred lines of markup. One switch returning
+   * a list and a handler puts every step's control on one line, and the two
+   * that are not option lists (the phone and age fields) stay in the markup
+   * below where their sanitisers can be read.
+   *
+   * Returning null is a legitimate answer: the media steps and the link steps
+   * carry their own controls inside the bubble, and `done` has only the
+   * composer.
+   */
+  function picker(): { options: readonly { id: string; label: string }[]; onPick: (id: string) => void } | null {
+    switch (state.step) {
+      case "branch":
+        return { options: CHAT_BRANCHES, onPick: (id) => chooseBranch(id as ChatBranchId) };
+
+      case "exploring_reason":
+        return { options: CHAT_EXPLORING_REASON.options, onPick: submitReason };
+      case "exploring_ai_use":
+        return { options: CHAT_EXPLORING_AI_USE.options, onPick: submitAiUse };
+      case "exploring_understand":
+        return { options: CHAT_EXPLORING_UNDERSTAND.options, onPick: submitUnderstand };
+
+      case "literacy_interest":
+        return { options: CHAT_LITERACY_INTEREST.options, onPick: submitInterest };
+      case "literacy_ai_use":
+        return { options: CHAT_LITERACY_AI_USE.options, onPick: submitAiUse };
+      case "literacy_concern":
+        return { options: CHAT_LITERACY_CONCERN.options, onPick: submitConcern };
+      case "literacy_develop":
+        return { options: CHAT_LITERACY_DEVELOP.options, onPick: submitDevelop };
+
+      case "future_priority":
+        return { options: CHAT_FUTURE_PRIORITY.options, onPick: submitPriority };
+      case "future_followup": {
+        const followup = followupFor(state);
+        return followup ? { options: followup.options, onPick: submitFollowup } : null;
+      }
+
+      case "resources": {
+        // The ids the hub still has to offer, given back their labels. Filtered
+        // in CHAT_RESOURCES order rather than mapped in `resourceOptions` order
+        // so the menu does not reshuffle itself between visits - a list whose
+        // items move is a list that has to be re-read every time.
+        const offered = new Set<ResourceId>(resourceOptions(state));
+        return {
+          options: CHAT_RESOURCES.options.filter((o) => offered.has(o.id)),
+          onPick: (id) => void submitResource(id as ResourceId),
+        };
+      }
+
+      case "testimonial_reaction":
+        return { options: CHAT_TESTIMONIAL.options, onPick: submitReaction };
+
+      case "workshop": {
+        // An empty youtubeId means no film is configured, and an empty
+        // GALLERY_PHOTOS means no photographs - either way the option is
+        // dropped rather than rendered as a button that shows nothing. Same
+        // reasoning as `isReachable` in lib/chat/flow.ts.
+        const halves = CHAT_WORKSHOP.options.filter((o) =>
+          o.id === "videos"
+            ? CHAT_MEDIA.youtubeId.trim().length > 0
+            : GALLERY_PHOTOS.length > 0,
+        );
+        // Both halves filtered out is a hole THIS filter opens, not one the
+        // flow has: `resourceOptions` keeps offering the workshop because
+        // nothing can ever be marked seen. `back` is the exit only when there
+        // is otherwise none - not a second one sitting beside the chooser.
+        return halves.length > 0
+          ? { options: halves, onPick: submitWorkshop }
+          : backControl;
+      }
+
+      /**
+       * BOTH LINKS LIVE IN THE BUBBLE; THIS IS THE ONLY CONTROL.
+       *
+       * Marking a social link now KEEPS the step - see the `seen` case in
+       * lib/chat/flow.ts - so Instagram and YouTube can both be taken. That
+       * makes `back` the step's one exit rather than a convenience.
+       */
+      case "social":
+        return backControl;
+
+      /**
+       * The handoff has no `seen` id - there is none for having read a
+       * paragraph, and the hub deliberately never filters `human` out - so
+       * without this the step could only be left by restarting.
+       */
+      case "human":
+        return backControl;
+
+      /**
+       * Normally left by pressing the invite, which reports `seen` and returns
+       * to the hub. Deliberately NOT given a second exit beside that. It gets
+       * one only when the invite is unset - a preview deployment with no group
+       * URL - because the bubble then renders no link at all.
+       */
+      case "community":
+        return COMMUNITY_INVITE ? null : backControl;
+
+      case "whatsapp_offer":
+        return {
+          options: CHAT_WHATSAPP_OFFER.options,
+          onPick: (id) => void submitWhatsapp(id as "yes" | "later"),
+        };
+
+      default:
+        return null;
+    }
+  }
+
+  const control = picker();
+
+  /**
+   * Free text is open at EVERY step now - see `canAsk` in lib/chat/flow.ts.
+   *
+   * It used to be `state.step === "done" || state.step === "branch"`, which
+   * meant a parent three questions into a branch who wanted to ask about fees
+   * had to finish the script first. The predicate is imported rather than
+   * repeated so the rule lives with the flow that enforces it.
+   */
+  const asking = canAsk(state);
 
   return (
     <>
@@ -383,27 +1003,15 @@ export function ChatWidget() {
                 key={b.id}
                 bubble={b}
                 testimonialSrc={testimonialSrc}
-                onWatched={finishMedia}
+                onSeen={submitSeen}
               />
             ))}
             {busy && <p className="text-xs text-slate">{CHAT_ANSWERS.thinking}</p>}
           </div>
 
           <div className="border-t border-mist px-4 py-3">
-            {state.step === "branch" && (
-              <Options
-                options={CHAT_BRANCHES.map((b) => ({ id: b.id, label: b.label }))}
-                disabled={busy}
-                onPick={(id) => chooseBranch(id as ChatBranchId)}
-              />
-            )}
-
-            {state.step === "readiness" && (
-              <Options
-                options={CHAT_READINESS_STEP.options.map((o) => ({ ...o }))}
-                disabled={busy}
-                onPick={(id) => submitReadiness(id as "ready" | "more_details")}
-              />
+            {control && (
+              <Options options={control.options} disabled={busy} onPick={control.onPick} />
             )}
 
             {state.step === "phone" && (
@@ -433,7 +1041,7 @@ export function ChatWidget() {
               />
             )}
 
-            {state.step === "age" && (
+            {state.step === "future_age" && (
               <Field
                 label={CHAT_AGE_STEP.placeholder}
                 note={CHAT_AGE_STEP.note}
@@ -447,7 +1055,7 @@ export function ChatWidget() {
               />
             )}
 
-            {canAsk && (
+            {asking && (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -483,17 +1091,121 @@ export function ChatWidget() {
 
 /* ══════════════════════════════════════════════════════════ Pieces ══ */
 
+/**
+ * The film, wrapped so its callback is stable.
+ *
+ * YouTubeStep takes a zero-argument `onWatched` and has it in an effect
+ * dependency list, where it tears the player down and rebuilds it on every
+ * change. `onSeen` needs an argument, so binding it inline in `Message` would
+ * hand the player a new function on every render. One `useCallback` behind one
+ * component is the cheapest fix, and it cannot be written inside `Message`
+ * because that branch is conditional and hooks are not.
+ */
+function VideoBubble({ onSeen }: { onSeen: (what: SeenId) => void }) {
+  const watched = useCallback(() => onSeen("workshop_videos"), [onSeen]);
+  return <YouTubeStep videoId={CHAT_MEDIA.youtubeId} onWatched={watched} />;
+}
+
 function Message({
   bubble: b,
   testimonialSrc,
-  onWatched,
+  onSeen,
 }: {
   bubble: Bubble;
   testimonialSrc: string | null;
-  onWatched: () => void;
+  onSeen: (what: SeenId, label?: string) => void;
 }) {
   if (b.media === "youtube") {
-    return <YouTubeStep videoId={CHAT_MEDIA.youtubeId} onWatched={onWatched} />;
+    return <VideoBubble onSeen={onSeen} />;
+  }
+
+  /**
+   * THE WORKSHOP PHOTOGRAPHS, as a strip rather than a grid.
+   *
+   * Three of fourteen - `CHAT_MEDIA.photoCount` - because section 18 of the
+   * brief asks what this visitor should see NEXT, not how much can be shown.
+   * Horizontal and scrollable, so the panel's height is not eaten by a stack:
+   * the transcript above has to stay visible or the answer to the previous
+   * question scrolls away while the parent looks at pictures.
+   *
+   * Plain `<img>`, not next/image. These sit inside a scroller in a fixed panel
+   * with no layout to reserve and no LCP to protect, and they are already
+   * 800px WebP - see the note above GALLERY_PHOTOS in content/home.ts. The
+   * optimiser would cost a round trip per frame to save nothing.
+   */
+  if (b.media === "photos") {
+    const photos = GALLERY_PHOTOS.slice(0, CHAT_MEDIA.photoCount);
+    if (photos.length === 0) return null;
+
+    return (
+      <div className="overflow-hidden rounded-xl ring-1 ring-mist">
+        <div className="flex gap-2 overflow-x-auto p-2">
+          {photos.map((photo) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={photo.src}
+              src={photo.src}
+              // The label is the caption written for THIS frame, so it is the
+              // alt text as well - see the note in content/home.ts.
+              alt={photo.label}
+              loading="lazy"
+              decoding="async"
+              className="h-24 w-32 shrink-0 rounded-lg object-cover"
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => onSeen("workshop_photos")}
+          // Matches the video step's control: same job, same weight. See the
+          // note in YouTubeStep for why a bare tinted label loses under media.
+          className="w-full bg-violet px-3 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet/90 focus-visible:bg-violet/90"
+        >
+          Continue
+        </button>
+      </div>
+    );
+  }
+
+  /**
+   * A paragraph with real links under it.
+   *
+   * `target="_blank"` with `rel="noopener noreferrer"`: opening in the same tab
+   * would destroy the conversation, because the state lives in this component
+   * and there is nothing on the server to come back to.
+   *
+   * Pressing one ALSO reports it as seen, so the hub stops offering what has
+   * already been opened. The report goes out on the same click that follows the
+   * link - the fetch is not cancelled by a new tab opening, and doing it on
+   * `onClick` rather than after a return means it still happens for the parent
+   * who never comes back to the tab.
+   */
+  if (b.media === "links") {
+    return (
+      <div className="w-fit max-w-[90%] space-y-2">
+        <p className="w-fit rounded-2xl rounded-bl-sm bg-mist/50 px-3 py-2 text-sm text-ink">
+          {b.text}
+        </p>
+        {b.links && b.links.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {b.links.map((link) => (
+              <a
+                key={link.key}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  if (link.seen) onSeen(link.seen, link.label);
+                }}
+                className="rounded-full border border-violet px-3 py-1.5 text-sm font-medium text-violet transition-colors hover:bg-violet hover:text-white"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
 
   if (b.media === "testimonial") {
@@ -510,7 +1222,7 @@ function Message({
             // Watching a two-minute testimonial to completion inside a chat
             // window is rare, and a person who has seen enough should not be
             // stuck with no way forward.
-            onEnded={onWatched}
+            onEnded={() => onSeen("testimonial")}
             aria-label={b.text}
             className="aspect-video w-full bg-ink object-cover"
           >
@@ -520,7 +1232,7 @@ function Message({
         <figcaption className="px-3 py-2 text-xs text-slate">{b.text}</figcaption>
         <button
           type="button"
-          onClick={onWatched}
+          onClick={() => onSeen("testimonial")}
           // Matches the video step's control: same job, same weight. See the
           // note in YouTubeStep for why a bare tinted label loses under media.
           className="w-full bg-violet px-3 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet/90 focus-visible:bg-violet/90"
@@ -550,7 +1262,11 @@ function Options({
   disabled,
   onPick,
 }: {
-  options: { id: string; label: string }[];
+  /* `readonly`, so the `as const` lists in content/chatbot.ts can be passed
+     straight in. They used to be copied through `.map((o) => ({ ...o }))` for
+     no reason but the type, which is a per-render allocation to satisfy a
+     mutability the component never wanted. */
+  options: readonly { id: string; label: string }[];
   disabled: boolean;
   onPick: (id: string) => void;
 }) {
